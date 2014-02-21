@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 ### extract pattern according to differernt structure
-import sys
-sys.path.append('~/projects/pymodules')
+import sys, os
+sys.path.append('/'.join([os.environ['PROJECT_HOME'],'pymodules']))
 
 import color
 from ListCombination import ListCombination
