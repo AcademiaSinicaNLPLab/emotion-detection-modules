@@ -61,12 +61,11 @@ def apply_rule(deps, rule):
 				D[rel].append( dep )
 			else:
 				continue
-	## check if achieve minimum count
+	## check if match the given rule
 	for rel, mincnt in rule:
 		if len([x for x in D.keys() if rel in x]) < mincnt:
 			return False
 	return dict(D)
-
 
 def form(deps, anchor_node):
 	words = set()
@@ -80,10 +79,8 @@ def form(deps, anchor_node):
 
 			## predict position
 			idx = max(dep['xIdx'], dep['yIdx']) - 1
-			# print dep['rel'], '-->', prep
-			words.add((prep, 'IN', idx))
-			# raw_input()
 
+			words.add((prep, 'IN', idx))
 	return sorted(list(words), key=lambda x:x[-1])
 
 def negation(sent):
@@ -115,7 +112,6 @@ def extract_pattern(sent, targets):
 			for comb in combs:
 				pat = form(comb, anchor_node)
 				weight = 1/float(len(combs))
-				# print len(pat)
 				pats.append((pat,weight))
 
 	return pats
