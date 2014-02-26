@@ -1,11 +1,11 @@
 #Bootstrapping-MI
 
 
-* Given seed
+1. Given seed
 
 		seed = ['regret' , ... ]
 
-* Calculate p(x)
+2. Calculate p(x)
 		
 		total = sum( [ doc['count'] for doc in db['WC'].find() ] )
 
@@ -13,9 +13,9 @@
 		
 		p(regret) = f(regret)/total
 		
-* save to <code>mongo > MI</code>
+3. save to <code>mongo > MI</code>
 
-	* mongo structure
+	1. mongo structure
 	
 			[mongo.MI]
 			doc = 
@@ -25,15 +25,15 @@
 				"length" : 1
 			}
 
-	* update and insert if the word not found. <code>upsert</code>: <code>up</code>date + in<code>sert</code>
+	2. update and insert if the word not found. <code>upsert</code>: <code>up</code>date + in<code>sert</code>
 
 			db['MI'].update( {'word': 'regret'},  doc, upsert=True )
 		
-* Find pairs and
+4. Find pairs and
 
 		sent = 'I regret that I loved you'
 		
-	* 程式可以這樣寫，就不用檢查 key 是否在 dict 中
+	1. 程式可以這樣寫，就不用檢查 key 是否在 dict 中
 	
 			from collections import defaultdict, Counter
 			
@@ -43,7 +43,7 @@
 					...
 			D['regret']['you'] += 1   # 看到 you
 
-	* 掃完全部 sents, 得到 D
+	2. 掃完全部 sents, 得到 D
 		
 			D = {
 				'regret':
@@ -59,7 +59,7 @@
 				'seed word...'
 			}
 		
-* 計算 mi
+5. 計算 mi
 
 		scoring_method = 'mi'
 
@@ -69,12 +69,12 @@
 		
 		p(i,regret) = p(i|regret) * p(regret)
 		
-	* 把算過的存起來
+	1. 把算過的存起來
 	
 			[set]
 			processed = set("#i#regret", ...)
 		
-	* 更新 <code>mongo > MI</code>
+	2. 更新 <code>mongo > MI</code>
 	
 			[mongo.MI]
 			doc = db['MI'].find_one({ 'word':'#i#regret' })
