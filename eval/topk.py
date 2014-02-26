@@ -13,6 +13,8 @@ LP = '\033[1;35m'
 LC = '\033[1;36m'
 W = '\033[1;37m'
 
+data_path = '../data'
+
 # input format: [doc_id]   [gold]   [system]
 
 def accuracy(res, target_emotions):
@@ -154,7 +156,7 @@ if __name__ == '__main__':
 			fw.write('\n'.join([res_entry['target']+'\t'+str(res_entry['accuracy']) for res_entry in SR]))
 		
 		## reduce res
-		emolist_pathes = ['data/LJ40K.emolist', 'data/Mishne05.emolist']
+		emolist_pathes = [data_path+'LJ40K.emolist', data_path+'Mishne05.emolist']
 		lines = reduce_target.filter_lines(res_path, emolist_pathes)
 		reduce_target.output(lines, res_path, emolist_pathes)
 
