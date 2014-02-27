@@ -116,7 +116,7 @@ def init():
 
 if __name__ == '__main__':
 
-	K = 1
+	K = 3
 	
 	init()
 
