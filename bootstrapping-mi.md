@@ -112,14 +112,3 @@
 		
 	要檢查的 <code>[that, I, loved, you]</code>
 		
-	i. 可以用 itertools
-	
-			from itertools import product
-
-			list( product(['#i#regret'], ['that', 'I', 'loved', 'you']) )
-					 
-			output >
-			[('#i#regret', 'that'),
-		 	('#i#regret', 'I'),
-			 ('#i#regret', 'loved'),
-			 ('#i#regret', 'you')]
