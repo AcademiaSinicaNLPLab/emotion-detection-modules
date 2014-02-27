@@ -1,6 +1,8 @@
 #Bootstrapping-MI
 
 
+###Round 1
+
 1. Given seed
 
 		seed = ['regret' , ... ]
@@ -92,7 +94,9 @@
 			
 ---
 
-1. round 2
+###Round 2
+
+1. get new seed from round 1
 
 		seed = ['#i#regret' , ... ]
 
@@ -108,5 +112,14 @@
 		
 	要檢查的 <code>[that, I, loved, you]</code>
 		
-		 
-		
+	i. 可以用 itertools
+	
+			from itertools import product
+
+			list( product(['#i#regret'], ['that', 'I', 'loved', 'you']) )
+					 
+			output >
+			[('#i#regret', 'that'),
+		 	('#i#regret', 'I'),
+			 ('#i#regret', 'loved'),
+			 ('#i#regret', 'you')]
