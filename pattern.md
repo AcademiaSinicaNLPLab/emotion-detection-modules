@@ -32,6 +32,12 @@
 
 ---
 
+* 截圖
+
+	![image](img/discuss.jpg =768x) 
+
+
+
 * ####容易發生的小 bugs
 	
 
