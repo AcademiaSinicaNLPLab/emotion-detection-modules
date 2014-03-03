@@ -1,8 +1,5 @@
 venv
 *.pyc
-*.png
-*.jpg
 *.db
 *.db3
-*.txt
 .DS_Store
