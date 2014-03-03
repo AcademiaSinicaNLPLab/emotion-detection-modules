@@ -34,7 +34,7 @@
 
 * 截圖
 
-	![image](img/discuss.jpg =768x) 
+	![image](img/discuss.jpg) 
 
 
 
