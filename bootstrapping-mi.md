@@ -1,6 +1,8 @@
 #Bootstrapping-MI
 
 
+###Round 1
+
 1. Given seed
 
 		seed = ['regret' , ... ]
@@ -15,7 +17,7 @@
 		
 3. save to <code>mongo > MI</code>
 
-	1. mongo structure
+	i. mongo structure
 	
 			[mongo.MI]
 			doc = 
@@ -29,11 +31,15 @@
 
 			db['MI'].update( {'word': 'regret'},  doc, upsert=True )
 		
-4. Find pairs and
+4. Find pairs
 
 		sent = 'I regret that I loved you'
 		
-	1. 程式可以這樣寫，就不用檢查 key 是否在 dict 中
+		seed: "#regret", 把 regret 刪掉
+		
+	要檢查的 <code>[I, that, I, loved, you]</code>
+		
+	i. 程式可以這樣寫，就不用檢查 key 是否在 dict 中
 	
 			from collections import defaultdict, Counter
 			
@@ -43,7 +49,7 @@
 					...
 			D['regret']['you'] += 1   # 看到 you
 
-	2. 掃完全部 sents, 得到 D
+	i. 掃完全部 sents, 得到 D
 		
 			D = {
 				'regret':
@@ -69,12 +75,12 @@
 		
 		p(i,regret) = p(i|regret) * p(regret)
 		
-	1. 把算過的存起來
+	i. 把算過的存起來
 	
 			[set]
 			processed = set("#i#regret", ...)
 		
-	2. 更新 <code>mongo > MI</code>
+	i. 更新 <code>mongo > MI</code>
 	
 			[mongo.MI]
 			doc = db['MI'].find_one({ 'word':'#i#regret' })
@@ -86,3 +92,23 @@
 				"score": mi(i, regret)
 			}
 			
+---
+
+###Round 2
+
+1. get new seed from round 1
+
+		seed = ['#i#regret' , ... ]
+
+2. Calculate p(x)
+
+3. save to <code>mongo > MI</code>
+
+4. Find pairs
+
+		sent = 'I regret that I loved you'
+		
+		seed: "#i#regret", 把 i, regret 刪掉
+		
+	要檢查的 <code>[that, I, loved, you]</code>
+		
