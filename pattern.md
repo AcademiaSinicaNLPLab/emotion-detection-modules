@@ -24,10 +24,34 @@
 
 	2. pf, df or pf-idf
  
+	3. Multiple Lexicons
+	
+		* <b>Lexicon_Happy</b>: `Prob(pattern, Happy)`
+		* <b>Lexicon_Sad</b>: `Prob(pattern, Sad)`
+		* ...
+		* <b>Lexicon_Anger</b>: `Prob(pattern, Anger)`
 	
 	
+		---
+		
+			p1 < Prob(p1, Happy), Prob(p1, Sad), ..., Prob(p1, Anger) >
+			
+			p2 < Prob(p2, Happy), Prob(p2, Sad), ..., Prob(p2, Anger) >
+			
+			...
+			
+			pk < Prob(pk, Happy), Prob(pk, Sad), ..., Prob(pk, Anger) >
+		
+		
+		---
+		
+		* #####predict as _True_ if prob > 0.5 else _False_
+		
+				p1 < 0, 1, ..., 1 >
 	
-<br>
+				p2 < 1, 1, ..., 1 >		
+	
+				pk < 1, 0, ..., 0 >	
 
 
 ---
