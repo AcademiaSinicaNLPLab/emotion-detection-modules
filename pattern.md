@@ -17,9 +17,9 @@
 	1. 長 pattern --> 高分
 
 		<pre>sent: I really wish I <u>have</u> someone ...
-	    SV: *i have*
-	   SVO: *i have someone*
-	  Args: *wish i have someone* </pre>
+	    SV: <b>i have</b>
+	   SVO: <b>i have someone</b>
+	  Args: <b>wish i have someone</b> </pre>
 
 
 	2. pf, df or pf-idf
