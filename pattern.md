@@ -60,6 +60,12 @@
 
 * ####To do
 
+	1. 只動testing stage: pattern占sentence的比例 (固定一種結構)
+	
+	3. 只動testing stage: pattern占sentence的比例 (多種結構)
+
+	2. 只動testing stage: pattern的長度 (多種結構) 
+
 	1. `現有` 列出一篇可以抽出哪些 pattern，把 SV, SVO, VO, SVC, Args 都放在一起
 
 			{
