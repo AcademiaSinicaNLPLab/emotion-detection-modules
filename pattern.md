@@ -66,7 +66,9 @@
 
 	2. 只動testing stage: pattern的長度 (多種結構) 
 
-	1. `現有` 列出一篇可以抽出哪些 pattern，把 SV, SVO, VO, SVC, Args 都放在一起
+	1. mongo sentences, deps 加 unique id
+	
+	1. 列出一篇可以抽出哪些 pattern，把 SV, SVO, VO, SVC, Args 都放在一起
 
 			{
 				pattern: "i _love you",
@@ -86,8 +88,9 @@
 				}
 			}
 	
+	1. 建lexicon
 
-	2. `new` 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
+	2. 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
 
 * 截圖
 
