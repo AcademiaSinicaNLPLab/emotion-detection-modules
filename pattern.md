@@ -20,7 +20,10 @@
 	    SV: <b>i have</b>
 	   SVO: <b>i have someone</b>
 	  Args: <b>wish i have someone</b> </pre>
-
+	  
+	  * pattern長度
+	  * pattern長度/sentence長度
+		
 
 	2. pf, df or pf-idf
  
@@ -67,6 +70,8 @@
 				sID: 2,
 				vidx: 13,
 				negation: True,
+				pLen: 3
+				sLen: 10
 				rule: 
 				{
 					'subject': 1,
