@@ -55,13 +55,70 @@
 
 				pk < 1, 0, ..., 0 >	
 
+* ####To do
 
----
+	1. `現有` 列出一篇可以抽出哪些 pattern，把 SV, SVO, VO, SVC, Args 都放在一起
+
+			{
+				pattern: "i _love you",
+				anchor: "love",
+				anchortype: "verb",
+				dID: 1,
+				sID: 2,
+				vidx: 13,
+				negation: True,
+				rule: 
+				{
+					'subject': 1,
+					'object' : 1,
+					'prep'   : 0
+				}
+			}
+	
+
+	2. `new` 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
 
 * 截圖
 
 	![image](img/discuss.jpg) 
 
+---
+
+* ####database
+
+	* mongo > sentences
+	
+			{
+			        "_id" : ObjectId("5316a7a0d4388c0a6ae1bb9a"),
+			        "emotion" : "annoyed",
+			        "docID" : 3000,
+			        "sent" : "hey , today i took the freaking ao euro test it was bad",
+			        "sentID" : 0
+			}		
+	
+		---
+	
+	* mongo > mapping
+	
+			{
+			        "_id" : ObjectId("52fc4aa93681df69081246f5"),
+			        "docID" : 0,
+			        "emotion" : "accomplished",
+			        "local_docID" : 0,
+			        "path" : "LJ40K/accomplished/0.txt"
+			}
+	
+	* mongo > patterns
+	
+			{
+				"_id" : ObjectId("5305729f3681dfda4a9c52d5"),
+				"pattern": "you given me",
+				"structure": "SVO",
+				"df": [<40 elements>],
+				"ndf": [<40 elements>],
+				"pf": [<40 elements>],
+				"npf": [<40 elements>]		
+			}
 
 
 * ####容易發生的小 bugs
