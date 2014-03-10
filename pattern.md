@@ -66,11 +66,24 @@
 
 	1. [ testing ] pattern的長度 (多種結構) 
 
-	1. ~~[ preprocessing ] mongo sentences, deps 加 unique id~~ `done`
+	1. `done` [ preprocessing ] mongo sentences, deps 加 unique id
+	
+		* udocID: 0 ~ 39,999
+		* usentID: 0 ~ 937,143
+
+		* 找 特定句子 (usentID = 100)
+			```python
+			db['deps'].find( { 'usentID': 100 } )
+			```
+
+		* 找 一篇文章 (udocID = 0) 中的所有 dependency
+			```python
+			db['deps'].find( { 'udocID': 0 } )
+			```
 	
 	1. [ training + testing ] 列出一篇可以抽出哪些 pattern，是什麼樣式的 (SV, SVO, VO, SVC, Args), 這樣可快速做 n-fold，可以用舊的先建一次，邊找 pattern 邊記錄
 
-	```javascript
+		```javascript
 
 
 
@@ -91,7 +104,7 @@
 					'prep'   : 0
 				}
 			}
-	```
+		```
 
 	1. 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
 	
