@@ -87,16 +87,28 @@
 					'prep'   : 0
 				}
 			}
+
 	
 	1. 建lexicon
 	
 		* micro/macro average
-		* e.g., 
 		
-			[10, 0, ..., 0, 100, 0, ...] -->  `not Happy` 
+		* 利用已知類別的資訊
+		
+			**考慮這兩種情況**
+		
+			1. 如果全部都集中在某一類，而且那一類不是 Happy，平均下去可能就不顯著	
+			
+					[ 10,  0,    ..., 100,    0   ] -->  Happy: _Happy = 10: 100  --> _Happy
 
-			[10, 0/39, ..., 0/39, 100/39, 0/39, ...] --> `Happy` 
+					[ 10,  0/39, ..., 100/39, 0/39] -->  Happy: _Happy = 10: 2.56 --> Happy
 
+			1. 如果都很分散，但都不是 Happy
+
+					[ 10,  5,    ..., 5,    5   ] -->  Happy: _Happy = 10: 195  --> _Happy
+
+					[ 10,  5/39, ..., 5/39, 5/39] -->  Happy: _Happy = 10: 5    --> Happy			
+			
 	2. 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
 	
 	1. formulate scoring functions 
@@ -106,7 +118,7 @@
 
 * 截圖
 
-	![image](img/discuss.jpg) 
+	[image](img/discuss.jpg) 
 
 ---
 
