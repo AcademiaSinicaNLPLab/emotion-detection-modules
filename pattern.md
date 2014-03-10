@@ -60,13 +60,13 @@
 
 * ####To do
 
-	1. [ testing ] pattern占sentence的比例 (固定一種結構)
+	* [ testing ] pattern占sentence的比例 (固定一種結構)
 	
-	1. [ testing ] pattern占sentence的比例 (多種結構)
+	* [ testing ] pattern占sentence的比例 (多種結構)
 
-	1. [ testing ] pattern的長度 (多種結構) 
+	* [ testing ] pattern的長度 (多種結構) 
 
-	1. `done` [ preprocessing ] mongo sentences, deps 加 unique id
+	* `done` [ preprocessing ] mongo sentences, deps 加 unique id
 	
 		* udocID: 0 ~ 39,999
 		* usentID: 0 ~ 937,143
@@ -81,7 +81,7 @@
 			db['deps'].find( { 'udocID': 0 } )
 			```
 	
-	1. [ training + testing ] 列出一篇可以抽出哪些 pattern，是什麼樣式的 (SV, SVO, VO, SVC, Args), 這樣可快速做 n-fold，可以用舊的先建一次，邊找 pattern 邊記錄
+	* [ training + testing ] 列出一篇可以抽出哪些 pattern，是什麼樣式的 (SV, SVO, VO, SVC, Args), 這樣可快速做 n-fold，可以用舊的先建一次，邊找 pattern 邊記錄
 
 		```javascript
 
@@ -106,9 +106,9 @@
 			}
 		```
 
-	1. 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
+	* 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
 	
-	1. 建 40 個 *binary lexicon*
+	* 建 40 個 *binary lexicon*
 	
 		* micro/macro average
 		
@@ -128,7 +128,7 @@
 			
 
 	
-	1. formulate scoring functions 
+	* formulate scoring functions 
 	
 		1. pattern
 		2. document
