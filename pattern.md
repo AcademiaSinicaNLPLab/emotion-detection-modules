@@ -90,7 +90,7 @@
 	
 	1. 建lexicon
 	
-		i. micro/macro average
+		i. micro/macro average				
 		i. [10, 0, ..., 0, 100, 0, ...] -->  `not Happy` 	
 			[10, 0/39, ..., 0/39, 100/39, 0/39, ...] --> `Happy` 
 
