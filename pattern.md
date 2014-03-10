@@ -60,15 +60,15 @@
 
 * ####To do
 
-	1. 只動testing stage: pattern占sentence的比例 (固定一種結構)
+	1. [ testing ] pattern占sentence的比例 (固定一種結構)
 	
-	3. 只動testing stage: pattern占sentence的比例 (多種結構)
+	1. [ testing ] pattern占sentence的比例 (多種結構)
 
-	2. 只動testing stage: pattern的長度 (多種結構) 
+	1. [ testing ] pattern的長度 (多種結構) 
 
-	1. `done` mongo sentences, deps 加 unique id
+	1. ~~[ preprocessing ] mongo sentences, deps 加 unique id~~ `done`
 	
-	1. 列出一篇可以抽出哪些 pattern，把 SV, SVO, VO, SVC, Args 都放在一起
+	1. [ training + testing ] 列出一篇可以抽出哪些 pattern，是什麼樣式的 (SV, SVO, VO, SVC, Args), 這樣可快速做 n-fold，可以用舊的先建一次，邊找 pattern 邊記錄
 
 			{
 				pattern: "i _love you",
@@ -88,14 +88,13 @@
 				}
 			}
 
+	1. 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
 	
-	1. 建lexicon
+	1. 建 40 個 *binary lexicon*
 	
 		* micro/macro average
 		
-		* 利用已知類別的資訊
-		
-			**考慮這兩種情況**
+		* 利用已知類別的資訊, 考慮這兩種:
 		
 			1. 如果全部都集中在某一類，而且那一類不是 Happy，平均下去可能就不顯著	
 			
@@ -109,7 +108,7 @@
 
 					[ 10,  5/39, ..., 5/39, 5/39] -->  Happy: _Happy = 10: 5    --> Happy			
 			
-	2. 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
+
 	
 	1. formulate scoring functions 
 	
@@ -138,7 +137,7 @@
 			}		
 	
 	
-	* mongo > mapping
+	* LJ40K > mapping
 	
 			{
 			        "_id" : ObjectId("52fc4aa93681df69081246f5"),
@@ -148,7 +147,7 @@
 			        "path" : "LJ40K/accomplished/0.txt"
 			}
 	
-	* mongo > patterns
+	* LJ40K > patterns
 	
 			{
 				"_id" : ObjectId("5305729f3681dfda4a9c52d5"),
