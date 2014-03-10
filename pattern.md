@@ -90,8 +90,11 @@
 	
 	1. 建lexicon
 	
-		i. micro/macro average
-		i. [10, 0, ..., 0, 100, 0, ...] -->  `not Happy` 	
+		* micro/macro average
+		* e.g., 
+		
+			[10, 0, ..., 0, 100, 0, ...] -->  `not Happy` 
+		 
 			[10, 0/39, ..., 0/39, 100/39, 0/39, ...] --> `Happy` 
 
 	2. 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
