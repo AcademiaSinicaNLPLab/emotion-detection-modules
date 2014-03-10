@@ -70,6 +70,10 @@
 	
 	1. [ training + testing ] 列出一篇可以抽出哪些 pattern，是什麼樣式的 (SV, SVO, VO, SVC, Args), 這樣可快速做 n-fold，可以用舊的先建一次，邊找 pattern 邊記錄
 
+	```javascript
+
+
+
 			{
 				pattern: "i _love you",
 				anchor: "love",
@@ -87,6 +91,7 @@
 					'prep'   : 0
 				}
 			}
+	```
 
 	1. 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
 	
@@ -124,7 +129,7 @@
 * ####database
 
 	* LJ40K > sents
-	
+		```javascript
 			{
 				"_id" : ObjectId("531944ac3681dfca09875205"),
 				"emotion" : "accomplished",
@@ -136,9 +141,11 @@
 				"sent" : "I got new hair : O omfg I love it"
 			}		
 	
-	
+		```
 	* LJ40K > mapping
-	
+
+		```javascript
+		
 			{
 			        "_id" : ObjectId("52fc4aa93681df69081246f5"),
 			        "docID" : 0,
@@ -146,9 +153,12 @@
 			        "local_docID" : 0,
 			        "path" : "LJ40K/accomplished/0.txt"
 			}
-	
+			
+		```
 	* LJ40K > patterns
 	
+		```javascript
+
 			{
 				"_id" : ObjectId("5305729f3681dfda4a9c52d5"),
 				"pattern": "you given me",
@@ -158,9 +168,9 @@
 				"pf": [<40 elements>],
 				"npf": [<40 elements>]		
 			}
-
+		```
 	* LJ40K > deps
-
+		```javascript
 			{
 				"_id" : ObjectId("531944ac3681dfca098751fc"),
 				
@@ -178,7 +188,7 @@
 				"yIdx" : 1,				
 				"yPos" : "PRP"
 			}
-
+		```
 * ####容易發生的小 bugs
 	
 
