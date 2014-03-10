@@ -66,7 +66,7 @@
 
 	2. 只動testing stage: pattern的長度 (多種結構) 
 
-	1. mongo sentences, deps 加 unique id
+	1. `done` mongo sentences, deps 加 unique id
 	
 	1. 列出一篇可以抽出哪些 pattern，把 SV, SVO, VO, SVC, Args 都放在一起
 
@@ -109,17 +109,19 @@
 
 * ####database
 
-	* mongo > sentences
+	* LJ40K > sents
 	
 			{
-			        "_id" : ObjectId("5316a7a0d4388c0a6ae1bb9a"),
-			        "emotion" : "annoyed",
-			        "docID" : 3000,
-			        "sent" : "hey , today i took the freaking ao euro test it was bad",
-			        "sentID" : 0
+				"_id" : ObjectId("531944ac3681dfca09875205"),
+				"emotion" : "accomplished",
+				"udocID" : 0,
+				"usentID" : 0,
+				
+				"sent_length" : 10,
+				"sent_pos" : "I/PRP got/VBD new/JJ hair/NN :/: O/RB omfg/VBG I/PRP love/VBP it/PRP",
+				"sent" : "I got new hair : O omfg I love it"
 			}		
 	
-		---
 	
 	* mongo > mapping
 	
@@ -143,6 +145,25 @@
 				"npf": [<40 elements>]		
 			}
 
+	* LJ40K > deps
+
+			{
+				"_id" : ObjectId("531944ac3681dfca098751fc"),
+				
+				"emotion" : "accomplished",
+				"udocID" : 0,
+				"usentID" : 0,
+				"sent_length" : 10,
+					
+				"rel" : "nsubj",
+				"x" : "got",				
+				"xIdx" : 2,
+				"xPos" : "VBD",
+				
+				"y" : "I",				
+				"yIdx" : 1,				
+				"yPos" : "PRP"
+			}
 
 * ####容易發生的小 bugs
 	
