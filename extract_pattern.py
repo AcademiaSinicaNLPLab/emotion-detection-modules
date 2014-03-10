@@ -19,8 +19,18 @@ co = db['deps']
 # output seperated lists containing each sentence
 def extract_sents(doc):
 	S = defaultdict(list)
-	for x in doc: S[x['sentID']].append(x)
+	for x in doc: S[x['usentID']].append(x)
 	return S.values()
+
+def negation(sent):
+	negs = [x for x in sent if x['rel'] == 'neg'] # found negation
+	if not negs: return sent
+	for neg in negs:
+		negtarget = (neg['x'], neg['xIdx'])
+		for i, dep in enumerate(sent):
+			if (dep['x'], dep['xIdx']) == negtarget: sent[i]['x'] = '_'+sent[i]['x']
+			if (dep['y'], dep['yIdx']) == negtarget: sent[i]['y'] = '_'+sent[i]['y']
+	return sent
 
 ## input all deps of sents
 ## output set of anchors containing related deps
@@ -41,26 +51,41 @@ def extract_anchors(sent, targets=['VB']):
 	for dep in sent:
 		for xy in ['x', 'y']:
 			for pos in [t for t in targets if t.lower() in dep[xy+'Pos'].lower()]:
-				anchor = (dep[xy], dep[xy+'Pos'], dep[xy+'Idx'], dep['sentID'])
+				# anchor (word, pos, wordIndex, usentID)
+				anchor = (dep[xy], dep[xy+'Pos'], dep[xy+'Idx'], dep['usentID'])
 				if dep not in D[pos][anchor]:
-					D[pos][anchor].append(dep)			
+					D[pos][anchor].append(dep)
 	return D
 
 ##
-##
-# {
-# 	'obj' : [ dep1, dep2, ... ],
-# }
+## D = 
+##     {
+##  	 'obj' : [ dep1, dep2, ... ],
+##     }
+## get as long as possible
+## 
+## sent: i/subj loved/verb you/obj very much
+## rule: [(s, 0), (o, 0)]
+## ---> 	i loved you
+## -x->		loved, i loved, loved you
 def apply_rule(deps, rule):
+
 	D = defaultdict(list)
 	for dep in deps:
+		print '='*30
+		print 'current dep', dep
 		for rel, mincnt in rule:
-			if rel == 'prep' and '_' in dep['rel']:
+			print '\ttest',rel, mincnt,
+			if rel == 'prep' and ('prep' in dep['rel']) and ('_' in dep['rel']): # prepc_without, prep_with
+				print '\tmatch 1'
 				D[dep['rel']].append( dep )
 			elif rel in dep['rel']:
+				print '\tmatch 2'
 				D[rel].append( dep )
 			else:
+				print '\tcontinue'
 				continue
+
 	## check if match the given rule
 	for rel, mincnt in rule:
 		if len([x for x in D.keys() if rel in x]) < mincnt:
@@ -83,15 +108,7 @@ def form(deps, anchor_node):
 			words.add((prep, 'IN', idx))
 	return sorted(list(words), key=lambda x:x[-1])
 
-def negation(sent):
-	negs = [x for x in sent if x['rel'] == 'neg'] # found negation
-	if not negs: return sent
-	for neg in negs:
-		negtarget = (neg['x'], neg['xIdx'])
-		for i, dep in enumerate(sent):
-			if (dep['x'], dep['xIdx']) == negtarget: sent[i]['x'] = '_'+sent[i]['x']
-			if (dep['y'], dep['yIdx']) == negtarget: sent[i]['y'] = '_'+sent[i]['y']
-	return sent
+
 
 def extract_pattern(sent, targets):
 
@@ -116,15 +133,30 @@ def extract_pattern(sent, targets):
 
 	return pats
 
+def list_possible_rules(rule):
+	## [(s, 0), (o, 0)]
+	## --> 		v
+	##		s + v
+	##			v + o
+	##		s + v + o
+
+	## [(s, 1), (o, 0)]
+	## --> 	s + v
+	##		s + v + o
+
+	## [(s, 1), (o, 1)]
+	## --> 	s + v + o
+	pass	
+
 if __name__ == '__main__':
 	
 	udocID = 0
-	rule = [('prep', 0), ('subj',0), ('obj',0)]
+	rule = [('prep', 0), ('subj',0), ('obj',0), ('cop', 0)]
 	targets = ['VB', 'JJ']
 
 	for udocID in range(10):
 
-		doc = list(co.find({'udocID':udocID}))
+		doc = list(co.find({'udocID':udocID}, {'_id':0}))
 		sents = extract_sents(doc)
 
 		for sent in sents:
