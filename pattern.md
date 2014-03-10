@@ -133,7 +133,7 @@
 		1. pattern
 		2. document
 
-* [截圖](img/discuss.jpg)
+* [討論照片](img/discuss.jpg)
 
 ---
 
