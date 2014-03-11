@@ -146,6 +146,11 @@
 			prob\left ( d_{i}, e_{j} \right ) =
 			```
 			
+			加入分布資訊
+			
+			1. 標準差
+				
+			2. Entropy
 			
 			考慮兩種 pattern
 
