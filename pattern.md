@@ -85,23 +85,48 @@
 
 		```javascript
 		{
-			"_id" : ObjectId("531e8ba13681df1329f746b4"),
+			"_id" : ObjectId("531e8ba13681df1329f746c2"),
 			
-			"udocID" : 1,
-			"usentID" : 20,
+			"udocID" : 7,
+			"usentID" : 177,
 			"emotion" : "accomplished",
-			"sent_length" : 42,
+			"sent_length" : 19,
 			
-			"anchor" : "__low",
-			"anchor_idx" : 42,
+			"anchor" : "happy",
 			"anchor_type" : "JJ",
 			
-			"pattern" : "watch is __low",
-			"pattern_length" : 3,
 			"weight" : 1,
+			"pattern" : "we were happy",
+			"pattern_length" : 3,
 			"rule" : {
 				"cop" : 1,
 				"subj" : 1
+			},
+			
+			
+			
+		}
+		```
+		```javascript
+		{
+			"_id" : ObjectId("531eb5e33681df14af39be08"),
+			
+			"udocID" : 12,
+			"usentID" : 247,
+			"emotion" : "accomplished",
+			"sent_length" : 20,
+			
+			"anchor" : "talk",
+			"anchor_idx" : 6,
+			"anchor_type" : "VB",
+			
+			"weight" : 1,
+			"pattern" : "people talk with me",
+			"pattern_length" : 4,
+			"rule" : {
+				"obj" : 0,
+				"subj" : 1,
+				"prep" : 1
 			}
 		}
 		```
