@@ -60,15 +60,15 @@
 
 				pk < 1, 0, ..., 0 >	
 
-* ####To do
+* ###To do
 
-	* [ testing ] pattern占sentence的比例 (固定一種結構)
+	* #####[ testing ] pattern占sentence的比例 (固定一種結構)
 	
-	* [ testing ] pattern占sentence的比例 (多種結構)
+	* #####[ testing ] pattern占sentence的比例 (多種結構)
 
-	* [ testing ] pattern的長度 (多種結構) 
+	* #####[ testing ] pattern的長度 (多種結構) 
 
-	* `done` [ preprocessing ] mongo sentences, deps 加 unique id
+	* ##### `done` [ preprocessing ] mongo sentences, deps 加 unique id
 	
 		* udocID: 0 ~ 39,999
 		* usentID: 0 ~ 937,143
@@ -83,9 +83,9 @@
 			db['deps'].find( { 'udocID': 0 } )
 			```
 	
-	* `done` [ training + testing ] 統一有一個抽 pattern 的模組，抽出一篇文章所有的 pattern，記錄規則 (prep, subj, obj, cop, ...)。做 n-fold 可以用這邊篩選文章的 pattern [\[mongo structure\]](pattern.md#lj40k--pats)
+	* ##### `done` [ training + testing ] 統一有一個抽 pattern 的模組，抽出一篇文章所有的 pattern，記錄規則 (prep, subj, obj, cop, ...)。做 n-fold 可以用這邊篩選文章的 pattern [\[mongo structure\]](pattern.md#lj40k--pats)
 
-	* 建 40 個 *binary lexicon*
+	* ##### 建 40 個 binary lexicon
 	
 		* micro/macro average
 		
@@ -105,14 +105,34 @@
 			
 
 	
-	* formulate scoring functions 
+	* ##### Formulate scoring functions 
 	
-		1. pattern
-		2. document
+		[CodeCogs](http://latex.codecogs.com/): convert LaTex into images
+
+		1. **Pattern**
+		
+			![equation](http://latex.codecogs.com/gif.latex?score%20%5Cleft%20%28%20p_%7Bi%7D%2C%20e_%7Bj%7D%20%5Cright%20%29%20%3D%20%5Csum_%7Bd%20%5Cin%20e_%7Bj%7D%20%7D%20f%5Cleft%20%28%20p_%7Bi%7D%2C%20d%20%5Cright%20%29)
+			```latex
+			% 一個 pattern 在某個 emotion 中的分數
+			score \left ( p_{i}, e_{j} \right ) = \sum_{d \in e_{j} } f\left ( p_{i}, d \right )
+			```
+			*f*: pattern 在某情緒中的總出現次數
+			
+			*e*: document collection, a set of documents with certain emotion
+
+			*d*: a document
+
+		2. **Document**
+		
+			![equation](http://latex.codecogs.com/gif.latex?%5Cbar%7Bd%7D_%7Bi%7D%20%3D%20%5Cleft%20%5B%20prob%5Cleft%20%28%20d_%7Bi%7D%2C%20e_%7B1%7D%20%5Cright%20%29%2C%20prob%5Cleft%20%28%20d_%7Bi%7D%2C%20e_%7B2%7D%20%5Cright%20%29%2C%20...%2C%20prob%5Cleft%20%28%20d_%7Bi%7D%2C%20e_%7B40%7D%20%5Cright%20%29%20%5Cright%20%5D)
+			```latex
+			% 一個 document 的 40 個分數
+			\bar{d}_{i} = \left [ prob\left ( d_{i}, e_{1} \right ), prob\left ( d_{i}, e_{2} \right ), ..., prob\left ( d_{i}, e_{40} \right ) \right ]
+			```
 
 * [討論照片](img/discuss.jpg)
 
----
+--------------------------
 
 * ####database
 
