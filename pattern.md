@@ -73,12 +73,12 @@
 		* udocID: 0 ~ 39,999
 		* usentID: 0 ~ 937,143
 
-		* 找 特定句子 (usentID = 100)
+		* 找 特定句子 (usentID = 100) [\[mongo structure\]](pattern.md#lj40k--sents)
 			```python
 			db['deps'].find( { 'usentID': 100 } )
 			```
 
-		* 找 一篇文章 (udocID = 0) 中的所有 dependency
+		* 找 一篇文章 (udocID = 0) 中的所有 dependency [\[mongo structure\]](pattern.md#lj40k--deps)
 			```python
 			db['deps'].find( { 'udocID': 0 } )
 			```
