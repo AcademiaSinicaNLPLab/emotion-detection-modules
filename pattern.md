@@ -2,7 +2,9 @@
 
 * #### Pattern 產生
 
-	verb + \< subj, obj, prep_obj, be_adj \>
+	scenario: verb + \< subj, obj, prep_obj \>
+	
+	status: be_verb + adj
 		
 
 * #### Pattern 結構
