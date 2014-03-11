@@ -81,30 +81,28 @@
 			db['deps'].find( { 'udocID': 0 } )
 			```
 	
-	* [ training + testing ] 列出一篇可以抽出哪些 pattern，是什麼樣式的 (SV, SVO, VO, SVC, Args), 這樣可快速做 n-fold，可以用舊的先建一次，邊找 pattern 邊記錄
+	* `done` [ training + testing ] 統一有一個抽 pattern 的模組，抽出一篇文章所有的 pattern，記錄規則 (prep, subj, obj, cop, ...)。做 n-fold 可以用這邊篩選文章的 pattern
 
 		```javascript
 		{
-			"_id" : ObjectId("531e8ba13681df1329f746c2"),
+			"_id" : ObjectId("531e8ba13681df1329f74705"),
 			
-			"udocID" : 7,
-			"usentID" : 177,
+			"udocID" : 37,
+			"usentID" : 734,
 			"emotion" : "accomplished",
-			"sent_length" : 19,
+			"sent_length" : 34,
 			
-			"anchor" : "happy",
+			"anchor" : "__depressed",
+			"anchor_idx" : 30,
 			"anchor_type" : "JJ",
 			
-			"weight" : 1,
-			"pattern" : "we were happy",
+			"pattern" : "i am __depressed",
 			"pattern_length" : 3,
 			"rule" : {
 				"cop" : 1,
 				"subj" : 1
 			},
-			
-			
-			
+			"weight" : 1
 		}
 		```
 		```javascript
@@ -120,19 +118,17 @@
 			"anchor_idx" : 6,
 			"anchor_type" : "VB",
 			
-			"weight" : 1,
 			"pattern" : "people talk with me",
 			"pattern_length" : 4,
 			"rule" : {
 				"obj" : 0,
 				"subj" : 1,
 				"prep" : 1
-			}
+			},
+			"weight" : 1,
 		}
 		```
 
-	* 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
-	
 	* 建 40 個 *binary lexicon*
 	
 		* micro/macro average
