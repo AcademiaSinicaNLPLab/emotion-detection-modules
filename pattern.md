@@ -84,26 +84,26 @@
 	* [ training + testing ] 列出一篇可以抽出哪些 pattern，是什麼樣式的 (SV, SVO, VO, SVC, Args), 這樣可快速做 n-fold，可以用舊的先建一次，邊找 pattern 邊記錄
 
 		```javascript
-
-
-
-			{
-				pattern: "i _love you",
-				anchor: "love",
-				anchortype: "verb",
-				dID: 1,
-				sID: 2,
-				vidx: 13,
-				negation: True,
-				pLen: 3
-				sLen: 10
-				rule: 
-				{
-					'subject': 1,
-					'object' : 1,
-					'prep'   : 0
-				}
+		{
+			"_id" : ObjectId("531e8ba13681df1329f746b4"),
+			
+			"udocID" : 1,
+			"usentID" : 20,
+			"emotion" : "accomplished",
+			"sent_length" : 42,
+			
+			"anchor" : "__low",
+			"anchor_idx" : 42,
+			"anchor_type" : "JJ",
+			
+			"pattern" : "watch is __low",
+			"pattern_length" : 3,
+			"weight" : 1,
+			"rule" : {
+				"cop" : 1,
+				"subj" : 1
 			}
+		}
 		```
 
 	* 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
