@@ -83,6 +83,41 @@
 	
 	* `done` [ training + testing ] 統一有一個抽 pattern 的模組，抽出一篇文章所有的 pattern，記錄規則 (prep, subj, obj, cop, ...)。做 n-fold 可以用這邊篩選文章的 pattern
 
+	* 建 40 個 *binary lexicon*
+	
+		* micro/macro average
+		
+		* 利用已知類別的資訊, 考慮這兩種:
+		
+			1. 如果全部都集中在某一類，而且那一類不是 Happy，平均下去可能就不顯著	
+			
+					[ 10,  0,    ..., 100,    0   ] -->  Happy: _Happy = 10: 100  --> _Happy
+
+					[ 10,  0/39, ..., 100/39, 0/39] -->  Happy: _Happy = 10: 2.56 --> Happy
+
+			1. 如果都很分散，但都不是 Happy
+
+					[ 10,  5,    ..., 5,    5   ] -->  Happy: _Happy = 10: 195  --> _Happy
+
+					[ 10,  5/39, ..., 5/39, 5/39] -->  Happy: _Happy = 10: 5    --> Happy			
+			
+
+	
+	* formulate scoring functions 
+	
+		1. pattern
+		2. document
+
+* [討論照片](img/discuss.jpg)
+
+---
+
+* ####database
+
+	* ######LJ40K > pats
+	
+		index: `udocID`, `usentID`
+
 		```javascript
 		{
 			"_id" : ObjectId("531e8ba13681df1329f74705"),
@@ -129,97 +164,68 @@
 		}
 		```
 
-	* 建 40 個 *binary lexicon*
+	* ######LJ40K > sents
 	
-		* micro/macro average
-		
-		* 利用已知類別的資訊, 考慮這兩種:
-		
-			1. 如果全部都集中在某一類，而且那一類不是 Happy，平均下去可能就不顯著	
+		index: `udocID`, `usentID`
+
+		```javascript
+		{
+			"_id" : ObjectId("531944ac3681dfca09875205"),
+			"emotion" : "accomplished",
+			"udocID" : 0,
+			"usentID" : 0,
 			
-					[ 10,  0,    ..., 100,    0   ] -->  Happy: _Happy = 10: 100  --> _Happy
+			"sent_length" : 10,
+			"sent_pos" : "I/PRP got/VBD new/JJ hair/NN :/: O/RB omfg/VBG I/PRP love/VBP it/PRP",
+			"sent" : "I got new hair : O omfg I love it"
+		}
+		```
+	* ######LJ40K > mapping
 
-					[ 10,  0/39, ..., 100/39, 0/39] -->  Happy: _Happy = 10: 2.56 --> Happy
-
-			1. 如果都很分散，但都不是 Happy
-
-					[ 10,  5,    ..., 5,    5   ] -->  Happy: _Happy = 10: 195  --> _Happy
-
-					[ 10,  5/39, ..., 5/39, 5/39] -->  Happy: _Happy = 10: 5    --> Happy			
+		```javascript
+		{
+		        "_id" : ObjectId("52fc4aa93681df69081246f5"),
+		        "docID" : 0,
+		        "emotion" : "accomplished",
+		        "local_docID" : 0,
+		        "path" : "LJ40K/accomplished/0.txt"
+		}
+		```
+	* ######LJ40K > patterns (舊的)
+	
+		```javascript
+		{
+			"_id" : ObjectId("5305729f3681dfda4a9c52d5"),
+			"pattern": "you given me",
+			"structure": "SVO",
+			"df": [<40 elements>],
+			"ndf": [<40 elements>],
+			"pf": [<40 elements>],
+			"npf": [<40 elements>]
+		}
+		```
+	* ######LJ40K > deps
+	
+		index: `udocID`, `usentID`
+	
+		```javascript
+		{
+			"_id" : ObjectId("531944ac3681dfca098751fc"),
 			
-
-	
-	* formulate scoring functions 
-	
-		1. pattern
-		2. document
-
-* [討論照片](img/discuss.jpg)
-
----
-
-* ####database
-
-	* LJ40K > sents
-		```javascript
-			{
-				"_id" : ObjectId("531944ac3681dfca09875205"),
-				"emotion" : "accomplished",
-				"udocID" : 0,
-				"usentID" : 0,
+			"emotion" : "accomplished",
+			"udocID" : 0,
+			"usentID" : 0,
+			"sent_length" : 10,
 				
-				"sent_length" : 10,
-				"sent_pos" : "I/PRP got/VBD new/JJ hair/NN :/: O/RB omfg/VBG I/PRP love/VBP it/PRP",
-				"sent" : "I got new hair : O omfg I love it"
-			}		
-	
-		```
-	* LJ40K > mapping
-
-		```javascript
-		
-			{
-			        "_id" : ObjectId("52fc4aa93681df69081246f5"),
-			        "docID" : 0,
-			        "emotion" : "accomplished",
-			        "local_docID" : 0,
-			        "path" : "LJ40K/accomplished/0.txt"
-			}
+			"rel" : "nsubj",
+			"x" : "got",
+			"xIdx" : 2,
+			"xPos" : "VBD",
 			
-		```
-	* LJ40K > patterns
-	
-		```javascript
-
-			{
-				"_id" : ObjectId("5305729f3681dfda4a9c52d5"),
-				"pattern": "you given me",
-				"structure": "SVO",
-				"df": [<40 elements>],
-				"ndf": [<40 elements>],
-				"pf": [<40 elements>],
-				"npf": [<40 elements>]		
-			}
-		```
-	* LJ40K > deps
-		```javascript
-			{
-				"_id" : ObjectId("531944ac3681dfca098751fc"),
-				
-				"emotion" : "accomplished",
-				"udocID" : 0,
-				"usentID" : 0,
-				"sent_length" : 10,
-					
-				"rel" : "nsubj",
-				"x" : "got",				
-				"xIdx" : 2,
-				"xPos" : "VBD",
-				
-				"y" : "I",				
-				"yIdx" : 1,				
-				"yPos" : "PRP"
-			}
+			"y" : "I",
+			"yIdx" : 1,
+			"yPos" : "PRP"
+		}
 		```
 * ####容易發生的小 bugs
 	
