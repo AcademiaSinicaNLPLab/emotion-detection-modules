@@ -145,6 +145,14 @@
 			```latex
 			prob\left ( d_{i}, e_{j} \right ) =
 			```
+			
+			
+			考慮兩種 pattern
+
+			![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26p_%7B1%7D%20%3D%20%5Cleft%20%5B%2010%2C%200%2C%20...%2C%200%2C%20100%20%5Cright%5D%20%5C%5C%20%26p_%7B2%7D%20%3D%20%5Cleft%20%5B%2010%2C%205%2C%20...%2C%205%2C%205%20%5Cright%5D%20%5Cend%7Balign*%7D)
+			```latex
+			\begin{align*} &p_{1} = \left [ 10, 0, ..., 0, 100 \right] \\ &p_{2} = \left [ 10, 5, ..., 5, 5 \right] \end{align*}
+			```
 
 * [討論照片](img/discuss.jpg)
 
