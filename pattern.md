@@ -110,24 +110,40 @@
 		[CodeCogs](http://latex.codecogs.com/): convert LaTex into images
 
 		1. **Pattern**
-		
+			
+			一個 pattern 的 40 個分數
+
+			![equation](http://latex.codecogs.com/gif.latex?%5Cbar%7Bp%7D_%7Bi%7D%20%3D%20%5Cleft%20%5B%20score%5Cleft%20%28%20p_%7Bi%7D%2C%20e_%7B1%7D%20%5Cright%20%29%2C%20score%5Cleft%20%28%20p_%7Bi%7D%2C%20e_%7B2%7D%20%5Cright%20%29%2C%20...%2C%20score%5Cleft%20%28%20p_%7Bi%7D%2C%20e_%7B40%7D%20%5Cright%20%29%20%5Cright%20%5D)
+			
+			```latex
+			\bar{p}_{i} = \left [ score\left ( p_{i}, e_{1} \right ), score\left ( p_{i}, e_{2} \right ), ..., score\left ( p_{i}, e_{40} \right ) \right ]
+			```
+
+			某 pattern 在特定 emotion 中的分數
+			
 			![equation](http://latex.codecogs.com/gif.latex?score%20%5Cleft%20%28%20p_%7Bi%7D%2C%20e_%7Bj%7D%20%5Cright%20%29%20%3D%20%5Csum_%7Bd%20%5Cin%20e_%7Bj%7D%20%7D%20f%5Cleft%20%28%20p_%7Bi%7D%2C%20d%20%5Cright%20%29)
 			```latex
-			% 一個 pattern 在某個 emotion 中的分數
 			score \left ( p_{i}, e_{j} \right ) = \sum_{d \in e_{j} } f\left ( p_{i}, d \right )
 			```
-			*f*: pattern 在某情緒中的總出現次數
 			
-			*e*: document collection, a set of documents with certain emotion
-
-			*d*: a document
+			* _f_: pattern 在某情緒中的總出現次數 
+			* _e_: document collection, a set of documents with certain emotion 
+			* _d_: a document
 
 		2. **Document**
 		
+			一個 document 的 40 個分數
+
 			![equation](http://latex.codecogs.com/gif.latex?%5Cbar%7Bd%7D_%7Bi%7D%20%3D%20%5Cleft%20%5B%20prob%5Cleft%20%28%20d_%7Bi%7D%2C%20e_%7B1%7D%20%5Cright%20%29%2C%20prob%5Cleft%20%28%20d_%7Bi%7D%2C%20e_%7B2%7D%20%5Cright%20%29%2C%20...%2C%20prob%5Cleft%20%28%20d_%7Bi%7D%2C%20e_%7B40%7D%20%5Cright%20%29%20%5Cright%20%5D)
 			```latex
-			% 一個 document 的 40 個分數
 			\bar{d}_{i} = \left [ prob\left ( d_{i}, e_{1} \right ), prob\left ( d_{i}, e_{2} \right ), ..., prob\left ( d_{i}, e_{40} \right ) \right ]
+			```
+			
+			某篇 document 被判定成特定 emotion 的機率
+			
+			![equation](http://latex.codecogs.com/gif.latex?prob%5Cleft%20%28%20d_%7Bi%7D%2C%20e_%7Bj%7D%20%5Cright%20%29%20%3D)
+			```latex
+			prob\left ( d_{i}, e_{j} \right ) =
 			```
 
 * [討論照片](img/discuss.jpg)
