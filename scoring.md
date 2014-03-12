@@ -107,6 +107,12 @@
 				```
 			* 比例做 `幾何平均`
 
+				![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26d%28happy%2C%20%5Coverline%7Bhappy%7D%29%20%5C%5C%20%26%3D%20%5Csqrt%5B%5Cleft%20%7C%20P%20%5Cright%20%7C%5D%7B%5Cprod_%7Bp%20%5Cin%20P%7D%20%5Comega_%7Bp%7D%7D%20%5C%5C%20%26%3D%20%5Csqrt%7B%20%5Comega_%7Bp_%7B1%7D%7D%20*%20%5Comega_%7Bp_%7B2%7D%7D%20%7D%20%5C%5C%20%26%3D%20%5Cleft%20%28%20%5Csqrt%7B0.19*0.51%7D%2C%20%5Csqrt%7B0.81*0.49%7D%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%200.31%2C%200.63%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
+
+				```latex
+				\begin{align*} &d(happy, \overline{happy}) \\ &= \sqrt[\left | P \right |]{\prod_{p \in P} \omega_{p}} \\ &= \sqrt{ \omega_{p_{1}} * \omega_{p_{2}} } \\ &= \left ( \sqrt{0.19*0.51}, \sqrt{0.81*0.49} \right ) \\ &= \left ( 0.31, 0.63 \right ) \\ \end{align*}
+				```
+				
 		* Case 2 用 global 標準差
 		
 			![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26d%28happy%2C%20%5Coverline%7Bhappy%7D%29%20%5C%5C%20%26%3D%20d%5Cleft%20%28%20score%5Cleft%20%28%20%5Cfrac%7Bp_%7B1%7D%20&plus;%20p_%7B2%7D%7D%7B2%7D%2Chappy%20%5Cright%29%2C%20score%5Cleft%20%28%20%5Cfrac%7Bp_%7B1%7D%20&plus;%20p_%7B2%7D%7D%7B2%7D%2C%5Coverline%7Bhappy%7D%20%5Cright%20%29%20%5Cright%20%29%20%5C%5C%20%26%3D%20d%5Cleft%20%28%20%5Cfrac%7B10%7D%7B2%7D%2C%20%5Cfrac%7B%5Cfrac%7B490%7D%7B39%7D%7D%7B2%7D%20*%208.00%5Cright%20%29%20%5C%5C%20%26%3D%20d%5Cleft%285%2C%206.28%5Cright%29%20%5C%5C%20%26%3D%20d%5Cleft%28%200.44%2C%200.56%5Cright%29%20%5C%5C%20%5Cend%7Balign*%7D)
