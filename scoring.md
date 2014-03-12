@@ -96,6 +96,8 @@
 			```latex
 			\begin{align*} &p_{2}(happy, \overline{happy}) \\ &= \left ( 10, \frac{390}{39} * 0.98 \right ) \\ &= \left ( 10, 9.8 \right ) \\ &= \left ( 0.51, 0.49 \right ) \\ \end{align*}
 			```
+			
+			sqrt(0.19*0.51) = 0.31
 
 		* Case 2 用 global 標準差
 		
