@@ -88,21 +88,21 @@
 
 
 			{
-				pattern: "i _love you",
-				anchor: "love",
-				anchortype: "verb",
-				dID: 1,
-				sID: 2,
-				vidx: 13,
-				negation: True,
-				pLen: 3
-				sLen: 10
-				rule: 
-				{
-					'subject': 1,
-					'object' : 1,
-					'prep'   : 0
-				}
+				"_id" : ObjectId("531e8ba13681df1329f746b4"),
+				"emotion" : "accomplished",
+				"sent_length" : 42,
+				"udocID" : 1,
+				"anchor_type" : "JJ",
+				"weight" : 1,
+				"pattern" : "watch is __low",
+				"pattern_length" : 3,
+				"rule" : {
+					"cop" : 1,
+					"subj" : 1
+				},
+				"usentID" : 20,
+				"anchor_idx" : 42,
+				"anchor" : "__low"
 			}
 		```
 

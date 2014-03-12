@@ -146,11 +146,10 @@ def extract_pattern(sent, targets):
 
 
 			res = apply_rule(deps, rule)
-			# if not 
-			if not res: 
-				# print '-'*25,'skipped','-'*25
-				continue
+			if not res: continue
+
 			rels, matched_rule = res
+			if not rels: continue
 			# for dep in deps:
 
 				# print dict([(x, dep[x]) for x in dep if x not in ['emotion', 'sent_length', 'udocID', 'usentID']])
@@ -158,10 +157,7 @@ def extract_pattern(sent, targets):
 
 			combs = ListCombination(rels.values())
 
-			# pprint(combs)
-
 			for comb in combs:
-				# print comb
 				comb = restore_abbreviation(abbv, comb)
 
 				pat = form(comb, anchor_node)
@@ -233,10 +229,10 @@ if __name__ == '__main__':
 	
 	display = False
 
-	rule = [('subj',1), ('cop', 1)]
-	# rule = [('prep', 0), ('subj',0), ('obj',0), ('cop', 0)]
-	targets = ['JJ']
-	# targets = ['VB', 'JJ']
+	# rule = [('subj',1), ('cop', 1)]
+	rule = [('prep', 0), ('subj',0), ('obj',0)]
+	# targets = ['JJ']
+	targets = ['VB']
 
 	# udocIDs = range(10) # for dev
 	udocIDs = db['deps'].distinct('udocID')
@@ -262,7 +258,6 @@ if __name__ == '__main__':
 					pat_str = ' '.join([x[0] for x in p['pat']])
 					print '  '+color.render(pat_str.lower(), 'g'), round(p['weight'],2)
 
-			
 			## store back in mongo
 			store_mongo(sent, pats, db['pats'])
 
