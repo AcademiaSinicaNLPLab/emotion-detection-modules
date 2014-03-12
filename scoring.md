@@ -68,6 +68,35 @@
 		```latex
 		p_{3} = \left [ \{20\}, \{9, ..., 10, ...,111 \} \right], \Delta_{\overline{p_{3}}}= 15.99, \varepsilon_{\overline{p_{1}}} =4.82
 		```
+		pattern *k* 在 happy (emotion *l* ) 中的分數
+		
+		![equation](http://latex.codecogs.com/gif.latex?score%5Cleft%20%28%20p_%7Bk%7D%2C%20e_%7Bl%7D%20%5Cright%20%29)
+		```latex
+		score\left ( p_{k}, e_{l} \right )
+		```
+		
+		pattern *k* 在 非 happy 中的分數
+		
+		![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Csum_%7B%20i%2C%20j%20%5Cin%20%5C%5B1%3A40%20%5C%5D%2C%20i%5Cneq%20k%2C%20j%5Cneq%20l%20%7D%20score%5Cleft%20%28%20p_%7Bi%7D%2C%20e_%7Bj%7D%20%5Cright%20%29)
+		
+		```latex
+		\sum_{ i, j \in \[1:40 \], i\neq k, j\neq l } score\left ( p_{i}, e_{j} \right )
+		```
+		
+		* Case 1 用 local 標準差
+		
+			![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cbegin%7Balign*%7D%20%26p_%7B1%7D%28happy%2C%20%5Coverline%7Bhappy%7D%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%20score%5Cleft%20%28%20p_%7B1%7D%2Chappy%20%5Cright%20%29%2C%20score%5Cleft%20%28%20p_%7B1%7D%2C%5Coverline%7Bhappy%7D%20%5Cright%20%29%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%20score%5Cleft%20%28%20p_%7B1%7D%2Chappy%20%5Cright%20%29%2C%20%5Cfrac%7B%5Csum_%7Bi%2C%20j%20%5Cin%20%5Cleft%20%5B%201%3A40%20%5Cright%20%5D%2C%20i%5Cneq%20k%2C%20j%5Cneq%20l%7D%20score%5Cleft%20%28%20p_%7Bi%7D%2C%20e_%7Bj%7D%20%5Cright%20%29%7D%7B39%7D%20*%20%5CDelta%20%5Coverline%7Bp_%7B1%7D%7D%20%5Cright%20%29%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%20%5Cfrac%7B100%7D%7B39%7D%20*%2015.8%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%2040.51%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%200.19%2C%200.81%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
+			```latex
+			\begin{align*} &p_{1}(happy, \overline{happy}) \\ &= \left ( score\left ( p_{1},happy \right ), score\left ( p_{1},\overline{happy} \right ) \right ) \\ &= \left ( score\left ( p_{1},happy \right ), \frac{\sum_{i, j \in \left [ 1:40 \right ], i\neq k, j\neq l} score\left ( p_{i}, e_{j} \right )}{39} * \Delta \overline{p_{1}} \right )\\ &= \left ( 10, \frac{100}{39} * 15.8 \right ) \\ &= \left ( 10, 40.51 \right ) \\ &= \left ( 0.19, 0.81 \right ) \\ \end{align*}
+			```
+			![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cbegin%7Balign*%7D%20%26p_%7B2%7D%28happy%2C%20%5Coverline%7Bhappy%7D%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%20%5Cfrac%7B390%7D%7B39%7D%20*%200.98%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%209.8%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%200.51%2C%200.49%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
+
+			```latex
+			\begin{align*} &p_{2}(happy, \overline{happy}) \\ &= \left ( 10, \frac{390}{39} * 0.98 \right ) \\ &= \left ( 10, 9.8 \right ) \\ &= \left ( 0.51, 0.49 \right ) \\ \end{align*}
+			```
+
+		* Case 2 用 global 標準差
+		
 
 ---
 
