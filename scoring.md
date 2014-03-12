@@ -98,6 +98,14 @@
 			```
 			
 			sqrt(0.19*0.51) = 0.31
+			
+			* 比例做 `算術平均`
+			
+				![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26d%28happy%2C%20%5Coverline%7Bhappy%7D%29%20%5C%5C%20%26%3D%20%5Cfrac%7B%20%5Csum_%7Bp%20%5Cin%20P%7D%20%5Comega_%7Bp%7D%20%7D%7B%20%5Cleft%20%7C%20P%20%5Cright%20%7C%20%7D%20%5C%5C%20%26%3D%20%5Cfrac%7B%20%5Comega_%7Bp_%7B1%7D%7D%20&plus;%20%5Comega_%7Bp_%7B2%7D%7D%20%7D%7B%202%20%7D%20%5C%5C%20%26%3D%20%5Cleft%20%28%20%5Cfrac%7B0.19&plus;0.51%7D%7B2%7D%2C%20%5Cfrac%7B0.81&plus;0.49%7D%7B2%7D%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%200.35%2C%200.65%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
+				```latex
+				\begin{align*} &d(happy, \overline{happy}) \\ &= \frac{ \sum_{p \in P} \omega_{p} }{ \left | P \right | } \\ &= \frac{ \omega_{p_{1}} + \omega_{p_{2}} }{ 2 } \\ &= \left ( \frac{0.19+0.51}{2}, \frac{0.81+0.49}{2} \right ) \\ &= \left ( 0.35, 0.65 \right ) \\ \end{align*}
+				```
+			* 比例做 `幾何平均`
 
 		* Case 2 用 global 標準差
 		
