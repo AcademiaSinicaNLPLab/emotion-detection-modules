@@ -148,17 +148,29 @@
 			
 			加入分布資訊
 			
-			1. 標準差
+			1. 標準差 ![equation](http://latex.codecogs.com/gif.latex?%5CDelta_%7B%5Coverline%7Bp_%7Bi%7D%7D%7D)
 				
-			2. Entropy
+			2. Entropy ![equation](http://latex.codecogs.com/gif.latex?%5Cvarepsilon_%7B%5Coverline%7Bp_%7Bi%7D%7D%7D)
 			
-			考慮兩種 pattern
+			* example
 
-			![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26p_%7B1%7D%20%3D%20%5Cleft%20%5B%2010%2C%200%2C%20...%2C%200%2C%20100%20%5Cright%5D%20%5C%5C%20%26p_%7B2%7D%20%3D%20%5Cleft%20%5B%2010%2C%205%2C%20...%2C%205%2C%205%20%5Cright%5D%20%5Cend%7Balign*%7D)
-			```latex
-			\begin{align*} &p_{1} = \left [ 10, 0, ..., 0, 100 \right] \\ &p_{2} = \left [ 10, 5, ..., 5, 5 \right] \end{align*}
-			```
+				考慮兩種 pattern
 
+				![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26p_%7B1%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%20%5C%7D%2C%20%5C%7B0%2C%20...%2C%200%2C%20...%2C100%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%3D%2015.81%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%20%3D0%20%5C%5C%20%26p_%7B2%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%5C%7D%2C%20%5C%7B9%2C%20...%2C%2010%2C...%2C%2011%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%3D%200.98%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%20%3D%205.27%20%5Cend%7Balign*%7D)
+				```latex
+				% P2: 19個 9, 1 個 10, 19 個 11
+				\begin{align*} &p_{1} = \left [ \{10 \}, \{0, ..., 0, ...,100\} \right], \Delta_{\overline{p_{1}}}= 15.81, \varepsilon_{\overline{p_{1}}} =0 \\ &p_{2} = \left [ \{10\}, \{9, ..., 10,..., 11\} \right], \Delta_{\overline{p_{2}}}= 0.98, \varepsilon_{\overline{p_{2}}} = 5.27 \end{align*}
+				```
+			
+				加起來
+			
+				![equation](http://latex.codecogs.com/gif.latex?p_%7B3%7D%20%3D%20%5Cleft%20%5B%20%5C%7B20%5C%7D%2C%20%5C%7B9%2C%20...%2C%2010%2C%20...%2C111%20%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B3%7D%7D%7D%3D%2015.99%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%20%3D4.82)
+			
+				```latex
+				p_{3} = \left [ \{20\}, \{9, ..., 10, ...,111 \} \right], \Delta_{\overline{p_{3}}}= 15.99, \varepsilon_{\overline{p_{1}}} =4.82
+				```
+			
+			
 * [討論照片](img/discuss.jpg)
 
 --------------------------
