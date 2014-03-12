@@ -1,8 +1,12 @@
 ###Pattern
 
+* [討論照片](img/discuss.jpg)
+
 * #### Pattern 產生
 
-	verb + \< subj, obj, prep_obj, be_adj \>
+	scenario: verb + \< subj, obj, prep_obj \>
+	
+	status: be_verb + adj
 		
 
 * #### Pattern 結構
@@ -58,92 +62,168 @@
 
 				pk < 1, 0, ..., 0 >	
 
-* ####To do
+* ###To do
 
-	1. 只動testing stage: pattern占sentence的比例 (固定一種結構)
+	* #####[ testing ] pattern占sentence的比例 (固定一種結構)
 	
-	3. 只動testing stage: pattern占sentence的比例 (多種結構)
+	* #####[ testing ] pattern占sentence的比例 (多種結構)
 
-	2. 只動testing stage: pattern的長度 (多種結構) 
+	* #####[ testing ] pattern的長度 (多種結構) 
 
-	1. mongo sentences, deps 加 unique id
+	* ##### `done` [ preprocessing ] mongo sentences, deps 加 unique id
 	
-	1. 列出一篇可以抽出哪些 pattern，把 SV, SVO, VO, SVC, Args 都放在一起
+		* udocID: 0 ~ 39,999
+		* usentID: 0 ~ 937,143
 
-			{
-				pattern: "i _love you",
-				anchor: "love",
-				anchortype: "verb",
-				dID: 1,
-				sID: 2,
-				vidx: 13,
-				negation: True,
-				pLen: 3
-				sLen: 10
-				rule: 
-				{
-					'subject': 1,
-					'object' : 1,
-					'prep'   : 0
-				}
-			}
+		* 找 特定句子 (usentID = 100) [\[mongo structure\]](pattern.md#lj40k--sents)
+			```python
+			db['deps'].find( { 'usentID': 100 } )
+			```
+
+		* 找 一篇文章 (udocID = 0) 中的所有 dependency [\[mongo structure\]](pattern.md#lj40k--deps)
+			```python
+			db['deps'].find( { 'udocID': 0 } )
+			```
 	
-	1. 建lexicon
-	
-		i. micro/macro average
-		i. [10, 0, ..., 0, 100, 0, ...] -->  `not Happy` 	
-			[10, 0/39, ..., 0/39, 100/39, 0/39, ...] --> `Happy` 
+	* ##### `done` [ training + testing ] 統一有一個抽 pattern 的模組，抽出一篇文章所有的 pattern，記錄規則 (prep, subj, obj, cop, ...)。做 n-fold 可以用這邊篩選文章的 pattern [\[mongo structure\]](pattern.md#lj40k--pats)
 
-	2. 統一有一個抽 pattern 的模組，把 pattern 全部抽出來，才進行分類
-	
-	1. formulate scoring functions 
-	
-		1. pattern
-		2. document
+	* ##### 建 40 個 binary lexicon
 
-* 截圖
+		* micro/macro average
+		
+		* 利用已知類別的資訊, 考慮這兩種:
+		
+			1. 如果全部都集中在某一類，而且那一類不是 Happy，平均下去可能就不顯著	
+			
+					[ 10,  0,    ..., 100,    0   ] -->  Happy: _Happy = 10: 100  --> _Happy
 
-	![image](img/discuss.jpg) 
+					[ 10,  0/39, ..., 100/39, 0/39] -->  Happy: _Happy = 10: 2.56 --> Happy
 
----
+			1. 如果都很分散，但都不是 Happy
+
+					[ 10,  5,    ..., 5,    5   ] -->  Happy: _Happy = 10: 195  --> _Happy
+
+					[ 10,  5/39, ..., 5/39, 5/39] -->  Happy: _Happy = 10: 5    --> Happy			
+
+	* ##### [Formulate scoring functions](scoring.md)
+
+--------------------------
 
 * ####database
 
-	* mongo > sentences
+	* ######LJ40K > pats
 	
-			{
-			        "_id" : ObjectId("5316a7a0d4388c0a6ae1bb9a"),
-			        "emotion" : "annoyed",
-			        "docID" : 3000,
-			        "sent" : "hey , today i took the freaking ao euro test it was bad",
-			        "sentID" : 0
-			}		
-	
-		---
-	
-	* mongo > mapping
-	
-			{
-			        "_id" : ObjectId("52fc4aa93681df69081246f5"),
-			        "docID" : 0,
-			        "emotion" : "accomplished",
-			        "local_docID" : 0,
-			        "path" : "LJ40K/accomplished/0.txt"
-			}
-	
-	* mongo > patterns
-	
-			{
-				"_id" : ObjectId("5305729f3681dfda4a9c52d5"),
-				"pattern": "you given me",
-				"structure": "SVO",
-				"df": [<40 elements>],
-				"ndf": [<40 elements>],
-				"pf": [<40 elements>],
-				"npf": [<40 elements>]		
-			}
+		index: `udocID`, `usentID`
 
+		```javascript
+		{
+			"_id" : ObjectId("531e8ba13681df1329f74705"),
+			
+			"udocID" : 37,
+			"usentID" : 734,
+			"emotion" : "accomplished",
+			"sent_length" : 34,
+			
+			"anchor" : "__depressed",
+			"anchor_idx" : 30,
+			"anchor_type" : "JJ",
+			
+			"pattern" : "i am __depressed",
+			"pattern_length" : 3,
+			"rule" : {
+				"cop" : 1,
+				"subj" : 1
+			},
+			"weight" : 1
+		}
+		```
+		```javascript
+		{
+			"_id" : ObjectId("531eb5e33681df14af39be08"),
+			
+			"udocID" : 12,
+			"usentID" : 247,
+			"emotion" : "accomplished",
+			"sent_length" : 20,
+			
+			"anchor" : "talk",
+			"anchor_idx" : 6,
+			"anchor_type" : "VB",
+			
+			"pattern" : "people talk with me",
+			"pattern_length" : 4,
+			"rule" : {
+				"obj" : 0,
+				"subj" : 1,
+				"prep" : 1
+			},
+			"weight" : 1,
+		}
+		```
 
+	* ######LJ40K > sents
+	
+		index: `udocID`, `usentID`
+
+		```javascript
+		{
+			"_id" : ObjectId("531944ac3681dfca09875205"),
+			"emotion" : "accomplished",
+			"udocID" : 0,
+			"usentID" : 0,
+			
+			"sent_length" : 10,
+			"sent_pos" : "I/PRP got/VBD new/JJ hair/NN :/: O/RB omfg/VBG I/PRP love/VBP it/PRP",
+			"sent" : "I got new hair : O omfg I love it"
+		}
+		```
+	* ######LJ40K > mapping
+
+		```javascript
+		{
+		        "_id" : ObjectId("52fc4aa93681df69081246f5"),
+		        "docID" : 0,
+		        "emotion" : "accomplished",
+		        "local_docID" : 0,
+		        "path" : "LJ40K/accomplished/0.txt"
+		}
+		```
+	* ######LJ40K > patterns (舊的)
+	
+		```javascript
+		{
+			"_id" : ObjectId("5305729f3681dfda4a9c52d5"),
+			"pattern": "you given me",
+			"structure": "SVO",
+			"df": [<40 elements>],
+			"ndf": [<40 elements>],
+			"pf": [<40 elements>],
+			"npf": [<40 elements>]
+		}
+		```
+	* ######LJ40K > deps
+	
+		index: `udocID`, `usentID`
+	
+		```javascript
+		{
+			"_id" : ObjectId("531944ac3681dfca098751fc"),
+			
+			"emotion" : "accomplished",
+			"udocID" : 0,
+			"usentID" : 0,
+			"sent_length" : 10,
+				
+			"rel" : "nsubj",
+			"x" : "got",
+			"xIdx" : 2,
+			"xPos" : "VBD",
+			
+			"y" : "I",
+			"yIdx" : 1,
+			"yPos" : "PRP"
+		}
+		```
 * ####容易發生的小 bugs
 	
 
