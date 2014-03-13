@@ -46,20 +46,24 @@
 	
 * 加入分布資訊
 	
-	* 標準差 ![equation](http://latex.codecogs.com/gif.latex?%5CDelta_%7B%5Coverline%7Bp_%7Bi%7D%7D%7D)
+	* 標準差 ![equation](http://latex.codecogs.com/gif.latex?%5CDelta_%7B%5Coverline%7Bp_%7Bi%7D%7D%7D) 
+		* 先對 occurrence vector 做完 normalization 再取標準差
+		* std( [ 1,  2,  3] ) = 0.816
+		* std( [10, 20, 30] ) = 8.16
 		
 	* Entropy ![equation](http://latex.codecogs.com/gif.latex?%5Cvarepsilon_%7B%5Coverline%7Bp_%7Bi%7D%7D%7D)
 	
 	* example:
 
 		考慮 document d  
-		兩種 pattern p1, p2
+		兩種 pattern p1, p2  
+		( np1: normalized p1, np2: normalized p2 )
 
-		![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26p_%7B1%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%20%5C%7D%2C%20%5C%7B0%2C%20...%2C%200%2C%20...%2C100%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%3D%2015.81%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%20%3D0%20%5C%5C%20%26p_%7B2%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%5C%7D%2C%20%5C%7B9%2C%20...%2C%2010%2C...%2C%2011%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%3D%200.98%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%20%3D%205.27%20%5Cend%7Balign*%7D)
+		![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26p_%7B1%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%20%5C%7D%2C%20%5C%7B0%2C%20...%2C%200%2C%20...%2C100%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%3D%2015.81%2C%20%5CDelta_%7B%5Coverline%7Bnp_%7B1%7D%7D%7D%3D%200.15806%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%20%3D0%20%5C%5C%20%26p_%7B2%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%5C%7D%2C%20%5C%7B9%2C%20...%2C%2010%2C...%2C%2011%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%3D%200.98%2C%20%5CDelta_%7B%5Coverline%7Bnp_%7B2%7D%7D%7D%3D%200.00253%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%20%3D%205.27%20%5Cend%7Balign*%7D)
 		
 		```latex
 		% P2: 19個 9, 1 個 10, 19 個 11
-		\begin{align*} &p_{1} = \left [ \{10 \}, \{0, ..., 0, ...,100\} \right], \Delta_{\overline{p_{1}}}= 15.81, \varepsilon_{\overline{p_{1}}} =0 \\ &p_{2} = \left [ \{10\}, \{9, ..., 10,..., 11\} \right], \Delta_{\overline{p_{2}}}= 0.98, \varepsilon_{\overline{p_{2}}} = 5.27 \end{align*}
+		\begin{align*} &p_{1} = \left [ \{10 \}, \{0, ..., 0, ...,100\} \right], \Delta_{\overline{p_{1}}}= 15.81, \Delta_{\overline{np_{1}}}= 0.15806, \varepsilon_{\overline{p_{1}}} =0 \\ &p_{2} = \left [ \{10\}, \{9, ..., 10,..., 11\} \right], \Delta_{\overline{p_{2}}}= 0.98, \Delta_{\overline{np_{2}}}= 0.00253, \varepsilon_{\overline{p_{2}}} = 5.27 \end{align*}
 		```
 	
 		p1, p2平均
@@ -79,22 +83,22 @@
 		
 		pattern *k* 在 非 happy 中的分數
 		
-		![equation](http://latex.codecogs.com/gif.latex?%5Csum_%7B%20j%20%5Cin%20%5C%5B1%3A40%20%5C%5D%2C%20j%5Cneq%20l%20%7D%20score%5Cleft%20%28%20p_%7Bk%7D%2C%20e_%7Bj%7D%20%5Cright%20%29)
+		![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26%20score%5Cleft%20%28%20p_%7Bk%7D%2C%5Coverline%7Be_l%7D%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cfrac%7B%5Csum_%7B%20e_j%20%5Cin%20%5Coverline%7Be_l%7D%20%7D%20score%5Cleft%20%28%20p_%7Bk%7D%2C%20e_%7Bj%7D%20%5Cright%20%29%7D%7B%5Cleft%20%7C%20%5Coverline%7Be_l%7D%20%5Cright%20%7C%7D%20*%20%5Cleft%28%201%20&plus;%20%5Calpha%20*%20%5CDelta_%7B%20%5Coverline%7Bnp_k%7D%20%7D%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
 		
 		```latex
-		\sum_{ j \in \[1:40 \], j\neq l } score\left ( p_{k}, e_{j} \right )
+		\begin{align*} & score\left ( p_{k},\overline{e_l} \right ) \\ &= \frac{\sum_{ e_j \in \overline{e_l} } score\left ( p_{k}, e_{j} \right )}{\left | \overline{e_l} \right |} * \left( 1 + \alpha * \Delta_{ \overline{np_k} } \right ) \\ \end{align*}
 		```
 		
 		* Case 1 用 local 標準差
 		
-			![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26p_%7B1%7D%28happy%2C%20%5Coverline%7Bhappy%7D%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%20score%5Cleft%20%28%20p_%7B1%7D%2Chappy%20%5Cright%20%29%2C%20score%5Cleft%20%28%20p_%7B1%7D%2C%5Coverline%7Bhappy%7D%20%5Cright%20%29%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%20score%5Cleft%20%28%20p_%7B1%7D%2Chappy%20%5Cright%20%29%2C%20%5Cfrac%7B%5Csum_%7Be%20%5Cin%20%5Coverline%7Bhappy%7D%20%7D%20score%5Cleft%20%28%20p_%7B1%7D%2C%20e%20%5Cright%20%29%7D%7B%20%5Cleft%20%7C%20%5Coverline%7Bhappy%7D%20%5Cright%20%7C%20%7D%20*%20%5CDelta%20%5Coverline%7Bp_%7B1%7D%7D%20%5Cright%20%29%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%20%5Cfrac%7B100%7D%7B39%7D%20*%2015.8%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%2040.51%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%200.19%2C%200.81%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
+			![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26%5Comega_%7Bp_%7B1%7D%7D%20%3D%20p_%7B1%7D%28happy%2C%20%5Coverline%7Bhappy%7D%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%20score%5Cleft%20%28%20p_%7B1%7D%2Chappy%20%5Cright%20%29%2C%20score%5Cleft%20%28%20p_%7B1%7D%2C%5Coverline%7Bhappy%7D%20%5Cright%20%29%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%20score%5Cleft%20%28%20p_%7B1%7D%2Chappy%20%5Cright%20%29%2C%20%5Cfrac%7B%5Csum_%7Be%20%5Cin%20%5Coverline%7Bhappy%7D%20%7D%20score%5Cleft%20%28%20p_%7B1%7D%2C%20e%20%5Cright%20%29%7D%7B%20%5Cleft%20%7C%20%5Coverline%7Bhappy%7D%20%5Cright%20%7C%20%7D%20*%20%5CDelta%20%5Coverline%7Bp_%7B1%7D%7D%20%5Cright%20%29%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%20%5Cfrac%7B100%7D%7B39%7D%20*%2015.8%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%2040.51%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%200.19%2C%200.81%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
 			```latex
-			\begin{align*} &p_{1}(happy, \overline{happy}) \\ &= \left ( score\left ( p_{1},happy \right ), score\left ( p_{1},\overline{happy} \right ) \right ) \\ &= \left ( score\left ( p_{1},happy \right ), \frac{\sum_{e \in \overline{happy} } score\left ( p_{1}, e \right )}{ \left | \overline{happy} \right | } * \Delta \overline{p_{1}} \right )\\ &= \left ( 10, \frac{100}{39} * 15.8 \right ) \\ &= \left ( 10, 40.51 \right ) \\ &= \left ( 0.19, 0.81 \right ) \\ \end{align*}
+			\begin{align*} &\omega_{p_{1}} = p_{1}(happy, \overline{happy}) \\ &= \left ( score\left ( p_{1},happy \right ), score\left ( p_{1},\overline{happy} \right ) \right ) \\ &= \left ( score\left ( p_{1},happy \right ), \frac{\sum_{e \in \overline{happy} } score\left ( p_{1}, e \right )}{ \left | \overline{happy} \right | } * \Delta \overline{p_{1}} \right )\\ &= \left ( 10, \frac{100}{39} * 15.8 \right ) \\ &= \left ( 10, 40.51 \right ) \\ &= \left ( 0.19, 0.81 \right ) \\ \end{align*}
 			```
-			![equation](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cbegin%7Balign*%7D%20%26p_%7B2%7D%28happy%2C%20%5Coverline%7Bhappy%7D%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%20%5Cfrac%7B390%7D%7B39%7D%20*%200.98%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%209.8%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%200.51%2C%200.49%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
-
+			![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26%5Comega_%7Bp_%7B2%7D%7D%20%3Dp_%7B2%7D%28happy%2C%20%5Coverline%7Bhappy%7D%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%20%5Cfrac%7B390%7D%7B39%7D%20*%200.98%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%2010%2C%209.8%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cleft%20%28%200.51%2C%200.49%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
+			
 			```latex
-			\begin{align*} &p_{2}(happy, \overline{happy}) \\ &= \left ( 10, \frac{390}{39} * 0.98 \right ) \\ &= \left ( 10, 9.8 \right ) \\ &= \left ( 0.51, 0.49 \right ) \\ \end{align*}
+			\begin{align*} &\omega_{p_{2}} =p_{2}(happy, \overline{happy}) \\ &= \left ( 10, \frac{390}{39} * 0.98 \right ) \\ &= \left ( 10, 9.8 \right ) \\ &= \left ( 0.51, 0.49 \right ) \\ \end{align*}
 			```
 			
 			sqrt(0.19*0.51) = 0.31

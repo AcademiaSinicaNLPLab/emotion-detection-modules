@@ -64,7 +64,8 @@
 
 * ###To do
 
-	* #####[ testing ] pattern占sentence的比例 (固定一種結構)
+	* ##### `done` [ testing ] pattern占sentence的比例 (固定一種結構)  
+		* SVO: 50.16% -> 50.21% ... 
 	
 	* #####[ testing ] pattern占sentence的比例 (多種結構)
 
@@ -222,6 +223,20 @@
 			"y" : "I",
 			"yIdx" : 1,
 			"yPos" : "PRP"
+		}
+		```
+		
+	* ######LJ40K > docs
+		
+		training: `$lt: 800`, testing: `$gte: 800`
+	
+		```javascript
+		> db.docs.findOne({ emotion: 'happy', ldocID: {$lt : 800} })
+		{
+			"_id" : ObjectId("53214e24d4388c479220c2e8"),
+			"emotion" : "happy",
+			"ldocID" : 0,
+			"udocID" : 29000
 		}
 		```
 * ####容易發生的小 bugs
