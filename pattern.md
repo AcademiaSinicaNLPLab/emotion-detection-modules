@@ -64,7 +64,8 @@
 
 * ###To do
 
-	* #####[ testing ] pattern占sentence的比例 (固定一種結構)
+	* ##### `done` [ testing ] pattern占sentence的比例 (固定一種結構)  
+		* SVO: 50.16% -> 50.21% ... 
 	
 	* #####[ testing ] pattern占sentence的比例 (多種結構)
 
