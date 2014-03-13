@@ -83,10 +83,10 @@
 		
 		pattern *k* 在 非 happy 中的分數
 		
-		![equation](http://latex.codecogs.com/gif.latex?%5Csum_%7B%20j%20%5Cin%20%5C%5B1%3A40%20%5C%5D%2C%20j%5Cneq%20l%20%7D%20score%5Cleft%20%28%20p_%7Bk%7D%2C%20e_%7Bj%7D%20%5Cright%20%29)
+		![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26%20score%5Cleft%20%28%20p_%7Bk%7D%2C%5Coverline%7Be_l%7D%20%5Cright%20%29%20%5C%5C%20%26%3D%20%5Cfrac%7B%5Csum_%7B%20e_j%20%5Cin%20%5Coverline%7Be_l%7D%20%7D%20score%5Cleft%20%28%20p_%7Bk%7D%2C%20e_%7Bj%7D%20%5Cright%20%29%7D%7B%5Cleft%20%7C%20%5Coverline%7Be_l%7D%20%5Cright%20%7C%7D%20*%20%5Cleft%28%201%20&plus;%20%5Calpha%20*%20%5CDelta_%7B%20%5Coverline%7Bnp_k%7D%20%7D%20%5Cright%20%29%20%5C%5C%20%5Cend%7Balign*%7D)
 		
 		```latex
-		\sum_{ j \in \[1:40 \], j\neq l } score\left ( p_{k}, e_{j} \right )
+		\begin{align*} & score\left ( p_{k},\overline{e_l} \right ) \\ &= \frac{\sum_{ e_j \in \overline{e_l} } score\left ( p_{k}, e_{j} \right )}{\left | \overline{e_l} \right |} * \left( 1 + \alpha * \Delta_{ \overline{np_k} } \right ) \\ \end{align*}
 		```
 		
 		* Case 1 用 local 標準差
