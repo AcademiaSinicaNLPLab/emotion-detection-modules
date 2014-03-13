@@ -3,10 +3,10 @@
 * [3.03 討論照片](img/discuss.jpg)
 * 3.13 新版討論
 
-	1. `train`: 計算 pattern occurrence
-	2. (train) [建 Lexicon：pattern scoring](img/discuss.0313.2.jpg)
-	3. (test) [一篇文章是不是分到某情緒](img/discuss.0313.3.jpg)
-	4. (eval) [算 accuracy, precision](img/discuss.0313.4.jpg)
+	1. (train): [計算 pattern occurrence](img/new.0313.1.jpg)
+	2. (train) [Lexicon construct：pattern scoring](img/new.0313.2.jpg)
+	3. (test) [Emotion detection: 一篇文章是不是分到某情緒](img/new.0313.3.jpg)
+	4. (eval) [Evaluation: 算 accuracy, precision](img/new.0313.4.jpg)
 
 
 * #### Pattern 產生
