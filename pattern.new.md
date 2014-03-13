@@ -43,7 +43,11 @@
 		# if function 1 ...
 		# if function 2...
 		return (score or prob of pattern in emotion)
+	```
 	
+	```
+	補 pattern scoring function
+	...
 	```
 	
 3. ###emotion detection
@@ -54,7 +58,7 @@
 	模組 input: 文章 d + 情緒 e
 	模組 output: 1 (Yes) or 0 (No)
 	```
-
+	
 	1. ####考慮 significance factor (sf)
 	
 		把算出來的機率分數，套上 pattern 長度 (sf1), 原始句子長度 (sf2) or pattern 占句子比例 (sf3)
@@ -64,6 +68,13 @@
 		```latex
 		S_{d, e} = \omega_{p}*sf_{k} \left( p\right ) *prob \left(p, e \right ) ,p \in \textrm{collection of patterns in } d
 		```
+		
+		type | value |
+		------------ | ------------- |
+		![equation](http://latex.codecogs.com/gif.latex?sf_%7B0%7D) | 1  |
+		![equation](http://latex.codecogs.com/gif.latex?sf_%7B1%7D) | ![equation](http://latex.codecogs.com/gif.latex?%7Cp%7C)  |
+		![equation](http://latex.codecogs.com/gif.latex?sf_%7B2%7D) | ![equation](http://latex.codecogs.com/gif.latex?1/%7Csent%7C)  |
+		![equation](http://latex.codecogs.com/gif.latex?sf_%7B3%7D) | ![equation](http://latex.codecogs.com/gif.latex?sf_%7B1%7D) * ![equation](http://latex.codecogs.com/gif.latex?sf_%7B2%7D)  |
 	
 	1. ####計算一篇文章 (i.e., 一堆 patterns ) 的分數
 	
@@ -84,7 +95,14 @@
 		```latex
 		docscore \left( d, e \right ) = \left\{\begin{matrix} & 1, f_{DS} \left( S_{d, e} \right ) \geq \epsilon \\ & 0, f_{DS} \left( S_{d, e} \right ) < \epsilon \end{matrix}\right.
 		```
+	
+	```
+	補 document scoring function
+	...
+	```
 
 4. ###evaluation
 
 	[白板](img/new.0313.4.jpg)
+	
+	
