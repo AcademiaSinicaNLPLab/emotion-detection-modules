@@ -46,20 +46,24 @@
 	
 * 加入分布資訊
 	
-	* 標準差 ![equation](http://latex.codecogs.com/gif.latex?%5CDelta_%7B%5Coverline%7Bp_%7Bi%7D%7D%7D)
+	* 標準差 ![equation](http://latex.codecogs.com/gif.latex?%5CDelta_%7B%5Coverline%7Bp_%7Bi%7D%7D%7D) 
+		* 先對 occurrence vector 做完 normalization 再取標準差
+		* std( [ 1,  2,  3] ) = 0.816
+		* std( [10, 20, 30] ) = 8.16
 		
 	* Entropy ![equation](http://latex.codecogs.com/gif.latex?%5Cvarepsilon_%7B%5Coverline%7Bp_%7Bi%7D%7D%7D)
 	
 	* example:
 
 		考慮 document d  
-		兩種 pattern p1, p2
+		兩種 pattern p1, p2  
+		( np1: normalized p1, np2: normalized p2 )
 
-		![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26p_%7B1%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%20%5C%7D%2C%20%5C%7B0%2C%20...%2C%200%2C%20...%2C100%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%3D%2015.81%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%20%3D0%20%5C%5C%20%26p_%7B2%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%5C%7D%2C%20%5C%7B9%2C%20...%2C%2010%2C...%2C%2011%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%3D%200.98%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%20%3D%205.27%20%5Cend%7Balign*%7D)
+		![equation](http://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20%26p_%7B1%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%20%5C%7D%2C%20%5C%7B0%2C%20...%2C%200%2C%20...%2C100%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%3D%2015.81%2C%20%5CDelta_%7B%5Coverline%7Bnp_%7B1%7D%7D%7D%3D%200.15806%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B1%7D%7D%7D%20%3D0%20%5C%5C%20%26p_%7B2%7D%20%3D%20%5Cleft%20%5B%20%5C%7B10%5C%7D%2C%20%5C%7B9%2C%20...%2C%2010%2C...%2C%2011%5C%7D%20%5Cright%5D%2C%20%5CDelta_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%3D%200.98%2C%20%5CDelta_%7B%5Coverline%7Bnp_%7B2%7D%7D%7D%3D%200.00253%2C%20%5Cvarepsilon_%7B%5Coverline%7Bp_%7B2%7D%7D%7D%20%3D%205.27%20%5Cend%7Balign*%7D)
 		
 		```latex
 		% P2: 19個 9, 1 個 10, 19 個 11
-		\begin{align*} &p_{1} = \left [ \{10 \}, \{0, ..., 0, ...,100\} \right], \Delta_{\overline{p_{1}}}= 15.81, \varepsilon_{\overline{p_{1}}} =0 \\ &p_{2} = \left [ \{10\}, \{9, ..., 10,..., 11\} \right], \Delta_{\overline{p_{2}}}= 0.98, \varepsilon_{\overline{p_{2}}} = 5.27 \end{align*}
+		\begin{align*} &p_{1} = \left [ \{10 \}, \{0, ..., 0, ...,100\} \right], \Delta_{\overline{p_{1}}}= 15.81, \Delta_{\overline{np_{1}}}= 0.15806, \varepsilon_{\overline{p_{1}}} =0 \\ &p_{2} = \left [ \{10\}, \{9, ..., 10,..., 11\} \right], \Delta_{\overline{p_{2}}}= 0.98, \Delta_{\overline{np_{2}}}= 0.00253, \varepsilon_{\overline{p_{2}}} = 5.27 \end{align*}
 		```
 	
 		p1, p2平均
