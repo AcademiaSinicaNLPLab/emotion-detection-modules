@@ -224,6 +224,25 @@
 			"yPos" : "PRP"
 		}
 		```
+	* ######LJ40K > local_mapping
+	
+		index: `emotion+ldocID+lsentID`, `emotion+ldocID`
+
+		```python
+		db['local_mapping'].find_one( { 'emotion': 'accomplished', 'ldocID': 882, 'lsentID': 3 } ) # python
+		```
+
+		```javascript
+		{
+			"_id" : ObjectId("53211209d4388c3c68913934"),
+		        "emotion" : "accomplished",
+		        "sent_length" : 39,
+		        "udocID" : 870,
+		        "ldocID" : 882,
+		        "usentID" : 23174,
+		        "lsentID" : 3
+		}		
+		```
 * ####容易發生的小 bugs
 	
 
