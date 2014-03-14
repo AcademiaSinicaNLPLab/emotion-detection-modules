@@ -6,25 +6,22 @@ pats = mc['LJ40K']['pats']
 lexicon = mc['LJ40K']['lexicon']
 
 # patCnt: num of patterns in each emotion
-# sentlenCnt: sum of sentence length in each emotion
-patCnt, sentlenCnt = defaultdict(Counter), defaultdict(Counter)
+patCnt = defaultdict(Counter)
 
 ### cal_pattern_occurrence
 ## input:  mongo data
 ## output: { 'pattern': Counter({'emotion': 1, ...}), ... }
 def cal_pattern_occurrence():
 	for mdoc in pats.find():
-		patCnt[mdoc['pattern']][mdoc['emotion']] += 1
-		sentlenCnt[mdoc['pattern']][mdoc['emotion']] += mdoc['sent_length']
+		patCnt[mdoc['pattern'].lower()][mdoc['emotion']] += 1
 
 ### construct_lexicon
-## input: <dict> patCnt, <dict> sentlenCnt
+## input: <dict> patCnt
 ## output: inject to mongo directly
 def construct_lexicon():
 	for pattern in patCnt:
 		for emotion in patCnt[pattern]:
-			avg_sent_len = sentlenCnt[pattern][emotion] / float( patCnt[pattern][emotion] )
-			lexicon.insert( {'emotion': emotion, 'pattern': pattern, 'count': patCnt[pattern][emotion], 'avg_sent_len': avg_sent_len} )
+			lexicon.insert( {'emotion': emotion, 'pattern': pattern, 'count': patCnt[pattern][emotion] } )
 
 if __name__ == '__main__':
 	cal_pattern_occurrence()
