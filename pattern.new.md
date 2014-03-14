@@ -2,7 +2,7 @@
 
 1. ###Lexicon construction
 
-	[白板](img/new.0313.1.jpg)
+	[白板](img/new.0313.1.jpg), [程式](pattern_scoring.py)
 	
 	算出 pattern 在 training 各 emotion 中出現次數，作為 pattern scoring function 的 input
 	
