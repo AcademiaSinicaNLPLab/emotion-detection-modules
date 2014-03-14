@@ -3,9 +3,9 @@
 * [3.03 討論照片](img/discuss.jpg)
 * [3.13 新版討論](pattern.new.md)
 
-	1. (train): [計算 pattern occurrence](pattern.new.md#preprocessing)
-	2. (train) [Lexicon construct：pattern scoring](pattern.new.md#lexicon-construct)
-	3. (test) [Emotion detection: 一篇文章是不是分到某情緒](pattern.new.md#emotion-detection)
+	1. (train): [計算 pattern occurrence](pattern.new.md#lexicon-construction)
+	2. (train) [pattern scoring](pattern.new.md#pattern-scoring)
+	3. (test) [Emotion detection: 一篇文章是不是分到某情緒](pattern.new.md#document-scoring-emotion-detection)
 	4. (eval) [Evaluation: 算 accuracy, precision](pattern.new.md#evaluation)
 
 
