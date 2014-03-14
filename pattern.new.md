@@ -11,13 +11,15 @@
 		"emotion" : "pissed off",
 		"pattern" : "i am pissed",
 		"count" : 25
+		// 要把 sentence length 存在這邊?
+		// 還是用 db.pats.find( {pattern: 'i am pissed'}, {sent_length:1} ) 去查?
 	}
 	```
 	
 2. ###Lexicon construct
 
-	[白板](img/new.0313.2.jpg)
-
+	[白板](img/new.0313.2.jpg), [程式](lexicon_construction.py)
+	
 	套用不同的 pattern scoring function，得出一個 pattern 出現在某 emotion 中的機率
 
 	![equation](http://latex.codecogs.com/gif.latex?f_%7BPS_%7Bk%7D%7D%20%5Cleft%28p%2C%20e%20%5Cright%20%29%20%3D%20%5Ctextrm%7Bpattern%20scoring%20function%20%7D%20k)
@@ -39,7 +41,7 @@
 	
 	```python
 	# python module
-	def pattern_scoring_functions(pattern, emotion, function=1):
+	def pattern_scoring_functions(pattern, pattern_vector, emotion, function=1):
 		# if function 1 ...
 		# if function 2...
 		return (score or prob of pattern in emotion)

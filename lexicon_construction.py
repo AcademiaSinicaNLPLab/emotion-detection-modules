@@ -5,8 +5,7 @@ mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
 pats = mc['LJ40K']['pats']
 lexicon = mc['LJ40K']['lexicon']
 
-patCnt, sentCnt = defaultdict(Counter), defaultdict(Counter)
-
+### cal_pattern_occurrence
 ## input:  mongo data
 ## output: { 'pattern': Counter({'emotion': 1, ...}), ... }
 def cal_pattern_occurrence():
@@ -14,6 +13,7 @@ def cal_pattern_occurrence():
 		patCnt[mdoc['pattern']][mdoc['emotion']] += 1
 		sentCnt[mdoc['pattern']][mdoc['emotion']] += mdoc['sent_length']
 
+### construct_lexicon
 ## input: <dict> patCnt, <dict> sentCnt
 ## output: inject to mongo directly
 def construct_lexicon():

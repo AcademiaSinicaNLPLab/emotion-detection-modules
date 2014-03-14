@@ -7,11 +7,7 @@ lexicon = mc['LJ40K']['lexicon']
 
 ### get_pattern_dist
 ## input: 'i am pissed'
-## output: {
-##				'happy': 1, 
-#				'crazy': 3,
-#				'pissed off': 25, ...
-#			}
+## output: { 'happy': 1, 'crazy': 3, 'pissed off': 25, ...}
 def get_pattern_dist(pattern):
 	return dict([(x['emotion'],x['count']) for x in list(lexicon.find( { 'pattern': pattern }))])
 
