@@ -3,3 +3,5 @@ venv
 *.db
 *.db3
 .DS_Store
+._.DS_Store
+eval/test

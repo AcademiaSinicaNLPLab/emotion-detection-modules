@@ -1,28 +1,27 @@
-import pymongo
-from collections import Counter, defaultdict
+import pickle	
+import pymongo	
+from collections import Counter
+
+emoList = pickle.load(open('emoList.pkl', 'r'))
 
 mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
-pats = mc['LJ40K']['pats']
-lexicon = mc['LJ40K']['lexicon_new']
+db = mc['LJ40K']	
+co_docs = db['docs']	
+co_pats = db['pats']		
+co_lexicon = db['lexicon']
+patCount = dict()	
 
-# patCnt: num of patterns in each emotion
-patCnt = defaultdict(Counter)
+# count patterns
+for _emo in emoList:
+	patCount[_emo] = Counter()
+	for _ldocID in range(800):
+		_udocID = co_docs.find_one( { 'emotion': _emo, 'ldocID': _ldocID} )['udocID']
+		mdocs = list( co_pats.find( {'udocID': _udocID} ) )
+		for mdoc in mdocs:
+			patCount[_emo][mdoc['pattern'].lower()] += 1
 
-### cal_pattern_occurrence
-## input:  mongo data
-## output: { 'pattern': Counter({'emotion': 1, ...}), ... }
-def cal_pattern_occurrence():
-	for mdoc in pats.find():
-		patCnt[mdoc['pattern'].lower()][mdoc['emotion']] += 1
+# build lexicon
+for _emo in emoList:
+	for _pat in patCount[_emo].keys():
+		co_lexicon.insert( { 'pattern': _pat, 'emotion': _emo, 'count': patCount[_emo][_pat] } )
 
-### construct_lexicon
-## input: <dict> patCnt
-## output: inject to mongo directly
-def construct_lexicon():
-	for pattern in patCnt:
-		for emotion in patCnt[pattern]:
-			lexicon.insert( {'emotion': emotion, 'pattern': pattern, 'count': patCnt[pattern][emotion] } )
-
-if __name__ == '__main__':
-	cal_pattern_occurrence()
-	construct_lexicon()
