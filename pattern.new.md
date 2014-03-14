@@ -11,6 +11,8 @@
 		"emotion" : "pissed off",
 		"pattern" : "i am pissed",
 		"count" : 25
+		// 要把 sentence length 存在這邊?
+		// 還是用 db.pats.find( {pattern: 'i am pissed'}, {sent_length:1} ) 去查?
 	}
 	```
 	
