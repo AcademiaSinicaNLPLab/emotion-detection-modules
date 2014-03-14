@@ -16,7 +16,7 @@
 	
 2. ###Lexicon construct
 
-	[白板](img/new.0313.2.jpg), [程式](exicon_construction.py)
+	[白板](img/new.0313.2.jpg), [程式](lexicon_construction.py)
 	
 	套用不同的 pattern scoring function，得出一個 pattern 出現在某 emotion 中的機率
 
