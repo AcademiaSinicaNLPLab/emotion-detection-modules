@@ -1,6 +1,13 @@
 ###Pattern
 
-* [討論照片](img/discuss.jpg)
+* [3.03 討論照片](img/discuss.jpg)
+* [3.13 新版討論](pattern.new.md)
+
+	1. (train): [計算 pattern occurrence](pattern.new.md#preprocessing)
+	2. (train) [Lexicon construct：pattern scoring](pattern.new.md#lexicon-construct)
+	3. (test) [Emotion detection: 一篇文章是不是分到某情緒](pattern.new.md#emotion-detection)
+	4. (eval) [Evaluation: 算 accuracy, precision](pattern.new.md#evaluation)
+
 
 * #### Pattern 產生
 
@@ -64,7 +71,8 @@
 
 * ###To do
 
-	* #####[ testing ] pattern占sentence的比例 (固定一種結構)
+	* ##### `done` [ testing ] pattern占sentence的比例 (固定一種結構)  
+		* SVO: 50.16% -> 50.21% ... 
 	
 	* #####[ testing ] pattern占sentence的比例 (多種結構)
 
@@ -222,6 +230,20 @@
 			"y" : "I",
 			"yIdx" : 1,
 			"yPos" : "PRP"
+		}
+		```
+		
+	* ######LJ40K > docs
+		
+		training: `$lt: 800`, testing: `$gte: 800`
+	
+		```javascript
+		> db.docs.findOne({ emotion: 'happy', ldocID: {$lt : 800} })
+		{
+			"_id" : ObjectId("53214e24d4388c479220c2e8"),
+			"emotion" : "happy",
+			"ldocID" : 0,
+			"udocID" : 29000
 		}
 		```
 * ####容易發生的小 bugs
