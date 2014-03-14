@@ -2,7 +2,7 @@
 
 1. ###Lexicon construction
 
-	[白板](img/new.0313.1.jpg), [程式](pattern_scoring.py)
+	[白板](img/new.0313.1.jpg), [程式](lexicon_construction.py)
 	
 	算出 pattern 在 training 各 emotion 中出現次數，作為 pattern scoring function 的 input
 	
@@ -54,7 +54,7 @@
 	
 2. ###Pattern scoring
 
-	[白板](img/new.0313.2.jpg), [程式](lexicon_construction.py)
+	[白板](img/new.0313.2.jpg), [程式](pattern_scoring.py)
 	
 	套用不同的 pattern scoring function，得出一個 pattern 出現在某 emotion 中的機率
 
