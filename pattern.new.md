@@ -2,6 +2,8 @@
 
 1. ###Lexicon construction
 
+	`training`
+
 	[白板](img/new.0313.1.jpg), [程式](lexicon_construction.py)
 	
 	算出 pattern 在 training 各 emotion 中出現次數，作為 pattern scoring function 的 input
@@ -11,48 +13,13 @@
 	{
 		"emotion" : "pissed off",
 		"pattern" : "i am pissed",
-		"count" : 25 
-		// count 貌似有點怪怪的
-		// > db.pats.find({pattern: 'i am pissed', emotion: 'pissed off'}).length()
-		//   10
+		"count" : 25
 	}
-	```
-	```javascript
-	> db.lexicon.findOne({pattern: 'i am pissed', emotion: 'pissed off'})
-	{
-	        "_id" : ObjectId("5322a451d4388c4bebbb7165"),
-	        "emotion" : "pissed off",
-	        "pattern" : "i am pissed",
-	        // 更新 count
-	        "count" : 10,
-	        // 加入 average sentence length of this pattern in the current emotion
-	        "avg_sent_len" : 28.1
-	}	
-	```
-	
-	```javascript
-	// 下面在 db.pats 中沒有出現
-	
-	> db.lexicon.old.find( { pattern: 'i am pissed' } )
-		{ "emotion" : "blank", "pattern" : "i am pissed", "count" : 1 }
-		{ "emotion" : "chipper", "pattern" : "i am pissed", "count" : 1 }
-		{ "emotion" : "contemplative", "pattern" : "i am pissed", "count" : 1 }
-		{ "emotion" : "content", "pattern" : "i am pissed", "count" : 1 }
-		{ "emotion" : "crazy", "pattern" : "i am pissed", "count" : 3 }
-		{ "emotion" : "crushed", "pattern" : "i am pissed", "count" : 1 }
-		{ "emotion" : "depressed", "pattern" : "i am pissed", "count" : 1 }
-		{ "emotion" : "drained", "pattern" : "i am pissed", "count" : 2 }
-		{ "emotion" : "ecstatic", "pattern" : "i am pissed", "count" : 1 }
-		{ "emotion" : "exhausted", "pattern" : "i am pissed", "count" : 1 }
-		{ "emotion" : "happy", "pattern" : "i am pissed", "count" : 1 }
-		{ "emotion" : "hungry", "pattern" : "i am pissed", "count" : 2 }
-		{ "emotion" : "sad", "pattern" : "i am pissed", "count" : 2 }
-	
-	> db.pats.findOne( { emotion: 'blank', pattern: 'i am pissed' } )
-		null
 	```
 	
 2. ###Pattern scoring
+
+	`training`
 
 	[白板](img/new.0313.2.jpg), [程式](pattern_scoring.py)
 	
@@ -89,6 +56,8 @@
 	```
 	
 3. ###Document scoring (emotion detection)
+
+	`testing`
 
 	[白板](img/new.0313.3.jpg)
 	
