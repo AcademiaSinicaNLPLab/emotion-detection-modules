@@ -1,29 +1,23 @@
 import pymongo
-from mathutil import standard_deviation as std
-from mathutil import entropy as ent
+from collections import Counter, defaultdict
 
 mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
+pats = mc['LJ40K']['pats']
 lexicon = mc['LJ40K']['lexicon']
 
-### get_pattern_dist
-## input: 'i am pissed'
-## output: {
-##				'happy': 1, 
-#				'crazy': 3,
-#				'pissed off': 25, ...
-#			}
-def get_pattern_dist(pattern):
-	return dict([(x['emotion'],x['count']) for x in list(lexicon.find( { 'pattern': pattern }))])
+patCnt, sentCnt = defaultdict(Counter), defaultdict(Counter)
 
-### pattern_scoring
-## input:  { emotion: count, ... }
-## output: score(pattern, emotion)
-def pattern_scoring(pattern_dist, emotion):
-	p = pattern_dist[emotion]
-	p_bar = [pattern_dist[x] for x in pattern_dist if x != emotion]
-	np_bar = [x/float(sum(p_bar)) for x in p_bar]
-	delta_p_bar = std(np_bar)
-	omega_p = (p, sum(p_bar)/float(len(p_bar))*delta_p_bar )
-	prob_p_e = omega_p[0]/float(sum(omega_p))
-	return prob_p_e
+## input:  mongo data
+## output: { 'pattern': Counter({'emotion': 1, ...}), ... }
+def cal_pattern_occurrence():
+	for mdoc in pats.find():
+		patCnt[mdoc['pattern']][mdoc['emotion']] += 1
+		sentCnt[mdoc['pattern']][mdoc['emotion']] += mdoc['sent_length']
 
+## input: <dict> patCnt, <dict> sentCnt
+## output: inject to mongo directly
+def construct_lexicon():
+	for pattern in patCnt:
+		for emotion in patCnt[pattern]:
+			avg_sent_len = sentCnt[pattern][emotion] / float( patCnt[pattern][emotion] )
+			lexicon.insert( {'emotion': emotion, 'pattern': pattern, 'avg_sent_len': avg_sent_len} )
