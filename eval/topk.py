@@ -13,7 +13,7 @@ LP = '\033[1;35m'
 LC = '\033[1;36m'
 W = '\033[1;37m'
 
-data_path = '../data'
+data_path = '../data/'
 
 # input format: [doc_id]   [gold]   [system]
 
