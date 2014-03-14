@@ -68,7 +68,7 @@ def topk_eval(input_doc, target_gold, K=1):
 
 	return result
 
-def topk(input_doc, target_gold, K=3):
+def topk(input_doc, target_gold, K=1):
 
 
 	for line in open(input_doc):
@@ -156,7 +156,7 @@ if __name__ == '__main__':
 			fw.write('\n'.join([res_entry['target']+'\t'+str(res_entry['accuracy']) for res_entry in SR]))
 		
 		## reduce res
-		emolist_pathes = [data_path+'LJ40K.emolist', data_path+'Mishne05.emolist']
+		emolist_pathes = [os.path.join(data_path,'LJ40K.emolist'), os.path.join(data_path,'Mishne05.emolist')]
 		lines = reduce_target.filter_lines(res_path, emolist_pathes)
 		reduce_target.output(lines, res_path, emolist_pathes)
 
