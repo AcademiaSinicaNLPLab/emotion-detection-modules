@@ -7,13 +7,22 @@
 	算出 pattern 在 training 各 emotion 中出現次數，作為 pattern scoring function 的 input
 	
 	```javascript
+	> db.lexicon.old.findOne({pattern: 'i am pissed', emotion: 'pissed off'})
 	{
 		"emotion" : "pissed off",
 		"pattern" : "i am pissed",
 		"count" : 25
-		// 要把 sentence length 存在這邊?
-		// 還是用 db.pats.find( {pattern: 'i am pissed'}, {sent_length:1} ) 去查?
 	}
+	```
+	```javascript
+	> db.lexicon.findOne({pattern: 'i am pissed', emotion: 'pissed off'})
+	{
+	        "_id" : ObjectId("5322a451d4388c4bebbb7165"),
+	        "emotion" : "pissed off",
+	        "pattern" : "i am pissed",
+	        "count" : 10,
+	        "avg_sent_len" : 28.1
+	}	
 	```
 	
 	```javascript
