@@ -11,7 +11,10 @@
 	{
 		"emotion" : "pissed off",
 		"pattern" : "i am pissed",
-		"count" : 25
+		"count" : 25 
+		// count 貌似有點怪怪的
+		// > db.pats.find({pattern: 'i am pissed', emotion: 'pissed off'}).length()
+		//   10
 	}
 	```
 	```javascript
@@ -20,7 +23,9 @@
 	        "_id" : ObjectId("5322a451d4388c4bebbb7165"),
 	        "emotion" : "pissed off",
 	        "pattern" : "i am pissed",
+	        // 更新 count
 	        "count" : 10,
+	        // 加入 average sentence length of this pattern in the current emotion
 	        "avg_sent_len" : 28.1
 	}	
 	```
