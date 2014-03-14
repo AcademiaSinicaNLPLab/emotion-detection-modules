@@ -135,12 +135,17 @@
 	...
 	```
 	```python
-	def document_scoring(udocID, emotion, epsilon): 
+	def document_scoring(udocID, emotion, epsilon, function=1): 
 		## patterns with "udocID": udocID
 		mDocs = list( co_pats.find( {'udocID': udocID} ) ) 
-		ds = sum( patScore(pat, emotion, probType=1) for pat in mDocs ) / len(mDocs)
-		if ds >= epsilon: return 1
-		else: return 0
+		if function == 1:
+			## 算數平均
+			ds = sum( patScore(pat, emotion, probType=1) for pat in mDocs ) / len(mDocs)
+			if ds >= epsilon: return 1
+			else: return 0
+		if function == 2:
+			## 幾何平均
+		...
 	```
 
 4. ###Evaluation
