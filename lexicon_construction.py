@@ -3,7 +3,7 @@ from collections import Counter, defaultdict
 
 mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
 pats = mc['LJ40K']['pats']
-lexicon = mc['LJ40K']['lexicon']
+lexicon = mc['LJ40K']['lexicon_new']
 
 # patCnt: num of patterns in each emotion
 patCnt = defaultdict(Counter)
