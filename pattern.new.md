@@ -1,6 +1,6 @@
 ##Pattern - 新架構！
 
-1. ###Preprocessing
+1. ###Lexicon construction
 
 	[白板](img/new.0313.1.jpg)
 	
@@ -16,7 +16,29 @@
 	}
 	```
 	
-2. ###Lexicon construct
+	```javascript
+	// 下面在 db.pats 中沒有出現
+	
+	> db.lexicon.old.find( { pattern: 'i am pissed' } )
+		{ "emotion" : "blank", "pattern" : "i am pissed", "count" : 1 }
+		{ "emotion" : "chipper", "pattern" : "i am pissed", "count" : 1 }
+		{ "emotion" : "contemplative", "pattern" : "i am pissed", "count" : 1 }
+		{ "emotion" : "content", "pattern" : "i am pissed", "count" : 1 }
+		{ "emotion" : "crazy", "pattern" : "i am pissed", "count" : 3 }
+		{ "emotion" : "crushed", "pattern" : "i am pissed", "count" : 1 }
+		{ "emotion" : "depressed", "pattern" : "i am pissed", "count" : 1 }
+		{ "emotion" : "drained", "pattern" : "i am pissed", "count" : 2 }
+		{ "emotion" : "ecstatic", "pattern" : "i am pissed", "count" : 1 }
+		{ "emotion" : "exhausted", "pattern" : "i am pissed", "count" : 1 }
+		{ "emotion" : "happy", "pattern" : "i am pissed", "count" : 1 }
+		{ "emotion" : "hungry", "pattern" : "i am pissed", "count" : 2 }
+		{ "emotion" : "sad", "pattern" : "i am pissed", "count" : 2 }
+	
+	> db.pats.findOne( { emotion: 'blank', pattern: 'i am pissed' } )
+		null
+	```
+	
+2. ###Pattern scoring
 
 	[白板](img/new.0313.2.jpg), [程式](lexicon_construction.py)
 	
@@ -52,7 +74,7 @@
 	...
 	```
 	
-3. ###emotion detection
+3. ###Document scoring (emotion detection)
 
 	[白板](img/new.0313.3.jpg)
 	
@@ -103,7 +125,7 @@
 	...
 	```
 
-4. ###evaluation
+4. ###Evaluation
 
 	[白板](img/new.0313.4.jpg)
 	
