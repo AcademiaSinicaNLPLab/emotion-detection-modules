@@ -78,9 +78,9 @@
 	模組 output: 1 (Yes) or 0 (No)
 	```
 	
-	1. ####考慮 significance factor (sf)
+	1. ####Event scoring: 考慮 significance factor (sf)
 	
-		把算出來的機率分數，套上 pattern 長度 (sf1), 句子長度 (sf2) or pattern 占句子比例 (sf3)
+		sf: 把算出來的機率分數，套上 pattern 長度 (sf1), 句子長度 (sf2) or pattern 占句子比例 (sf3)
 
 		![equation](http://latex.codecogs.com/gif.latex?S_%7Bd%2C%20e%7D%20%3D%20weight_%7Bp%7D*sf_%7Bk%7D%20%5Cleft%28%20p%5Cright%20%29%20*prob%20%5Cleft%28p%2C%20e%20%5Cright%20%29%20%2Cp%20%5Cin%20%5Ctextrm%7Bcollection%20of%20patterns%20in%20%7D%20d)
 	
@@ -94,8 +94,23 @@
 		![equation](http://latex.codecogs.com/gif.latex?sf_%7B1%7D) | ![equation](http://latex.codecogs.com/gif.latex?%7Cp%7C)  |
 		![equation](http://latex.codecogs.com/gif.latex?sf_%7B2%7D) | ![equation](http://latex.codecogs.com/gif.latex?1/%7Csent%7C)  |
 		![equation](http://latex.codecogs.com/gif.latex?sf_%7B3%7D) | ![equation](http://latex.codecogs.com/gif.latex?sf_%7B1%7D) * ![equation](http://latex.codecogs.com/gif.latex?sf_%7B2%7D)  |
+
+		```python
+		def significance_factor(pat, function=0):
+			if function == 0: return 1
+			if function == 1: return pat['pattern_length']
+			if function == 2: return float(1)/pat['sent_length']
+			if function == 3: return pat['pattern_length'] * ( float(1)/pat['sent_length'] )
+		```
+		
+		```python
+		def event_scoring(pat, emotion, probType=1):
+			prob_p_e = co_lexicon.find_one( {'pattern': pat['pattern'].lower(), 'emotion': emotion} )['prob_' + str(probType)]
+			return pat['weight'] * sigFactor(pat, function) * prob_p_e
+		```
+
 	
-	1. ####計算一篇文章 (i.e., 一堆 patterns ) 的分數
+	2. ####Document scoring: 計算一篇文章 (i.e., 一堆 patterns ) 的分數
 	
 		given a document _d_ in emotion _e_, 
 	
@@ -118,6 +133,14 @@
 	```
 	補 document scoring function
 	...
+	```
+	```python
+	def document_scoring(udocID, emotion, epsilon): 
+		## patterns with "udocID": udocID
+		mDocs = list( co_pats.find( {'udocID': udocID} ) ) 
+		ds = sum( patScore(pat, emotion, probType=1) for pat in mDocs ) / len(mDocs)
+		if ds >= epsilon: return 1
+		else: return 0
 	```
 
 4. ###Evaluation
