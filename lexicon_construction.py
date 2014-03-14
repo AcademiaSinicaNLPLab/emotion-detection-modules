@@ -24,7 +24,7 @@ def construct_lexicon():
 	for pattern in patCnt:
 		for emotion in patCnt[pattern]:
 			avg_sent_len = sentlenCnt[pattern][emotion] / float( patCnt[pattern][emotion] )
-			lexicon.insert( {'emotion': emotion, 'pattern': pattern, 'avg_sent_len': avg_sent_len} )
+			lexicon.insert( {'emotion': emotion, 'pattern': pattern, 'count': patCnt[pattern][emotion], 'avg_sent_len': avg_sent_len} )
 
 if __name__ == '__main__':
 	cal_pattern_occurrence()
