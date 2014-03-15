@@ -31,40 +31,40 @@
 	```
 	
 	```javascript
-	// mongo 資料結構
+	// mongo.lexicon: pattern occurrence
 	{
-		"emotion" : "pissed off",
-		"pattern" : "i am pissed",
-		"count" : 25,
-		
-		"prob_1": 0.8,  // use pattern scoring function 1
-		"prob_2": 0.7   // use pattern scoring function 2
+	        "_id" : ObjectId("53242746d4388c1f1443e1a8"),
+	        "emotion" : "pissed off",
+	        "pattern" : "i am pissed",
+	        "count" : 25
+	}
+	
+	// mongo.patscore: pattern scores（跑完 scoring function 後的結果）
+	{
+	        "emotion" : "crazy",
+	        "pattern" : "i am pissed",
+	        "prob" : 0.9669999980078527,
+	        "scoring" : 1,
+	        "smoothing" : 0
+	},
+	{
+	        "emotion" : "crazy",
+	        "pattern" : "i am pissed",
+	        "prob" : 0.6223404255319149,
+	        "scoring" : 0,
+	        "smoothing" : 0
 	}
 	```
 	
-	```python
-	# python module
-	def pattern_scoring_functions(pattern, emotion, function=1):
-		pattern_dist = get_pattern_dist(pattern)
-		if function == 1:
-			pattern_scoring_1 (pattern_dist, emotion)
-			...
-		if function == 2
-			pattern_scoring_2 (pattern_dist, emotion)
-			...
-		return (score or prob of pattern in emotion)
-	```
-	在 mongo 中新增一個 key-value pair
+	新增一種新分數
 	```python
 	mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
-	lexicon = mc['LJ40K']['lexicon']
-	## update prob_1 score of pattern "i am pissed" in emotion "pissed off"
-	lexicon.update( { "emotion": "pissed off",  "pattern": "i am pissed"}, { "$set": { "prob_1": score } } )
-	```
+	patscore = mc['LJ40K']['patscore']
 	
-	```
-	補 pattern scoring function
-	...
+	probs = pattern_scoring_function(pattern, function, smoothing_method)
+	
+	## update prob of pattern "i am pissed" in emotion "pissed off" using scoring function 1, smoothing method: 0
+	patscore.update( { 'emotion': 'pissed off', 'pattern': 'i am pissed', 'scoring': 1, 'smoothing': 0 }, { '$set': { 'prob': prob } } )
 	```
 	
 3. ###Document scoring (emotion detection)
