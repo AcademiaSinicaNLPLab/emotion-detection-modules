@@ -5,6 +5,7 @@ from mathutil import entropy as ent
 
 mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
 lexicon = mc['LJ40K']['lexicon']
+patscore = mc['LJ40K']['patscore']
 
 # get all emotinos in LJ40K
 emotions = sorted([x['emotion'] for x in mc['LJ40K']['emotions'].find({'label':'LJ40K'}, {'_id':0, 'emotion':1})])
@@ -37,7 +38,11 @@ def get_pattern_dist(pattern, smoothing_method):
 def scoring(pattern_dist, emotion, f):
 	p = pattern_dist[emotion]
 	p_bar = [pattern_dist[x] for x in pattern_dist if x != emotion]
-	np_bar = [x/float(sum(p_bar)) for x in p_bar]
+	## all zero
+	if sum(p_bar) > 0:
+		np_bar = [x/float(sum(p_bar)) for x in p_bar]
+	else:
+		np_bar = p_bar
 
 	if f == 0:
 		omega_p = (p, sum(p_bar)/float(len(p_bar)) )
@@ -87,7 +92,7 @@ def update_all_pattern_scores(function, smoothing_method, debug=False):
 			update = { '$set': { 'prob': prob } }
 
 			# upsert to mongo
-			lexicon.update( query, update, upsert=True )
+			patscore.update( query, update, upsert=True )
 
 		if debug:
 			print 'processed', pattern
