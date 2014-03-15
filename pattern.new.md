@@ -25,47 +25,76 @@
 	
 	套用不同的 pattern scoring function，得出一個 pattern 出現在某 emotion 中的機率
 
-	![equation](http://latex.codecogs.com/gif.latex?f_%7BPS_%7Bk%7D%7D%20%5Cleft%28p%2C%20e%20%5Cright%20%29%20%3D%20%5Ctextrm%7Bpattern%20scoring%20function%20%7D%20k)
-	```latex
-	f_{PS_{k}} \left(p, e \right ) = \textrm{pattern scoring function } k
-	```
+	* #### 定義 pattern scoring function
+		
+		pattern scoring function k
+
+		![equation](http://latex.codecogs.com/gif.latex?f_%7BPS_%7Bk%7D%7D%20%5Cleft%28p%2C%20e%20%5Cright%20%29%20%3D%20%5Cfrac%7Bscore_%7Bk%7D%20%5Cleft%20%28%20p%2C%20e%20%5Cright%20%29%7D%7Bscore_%7Bk%7D%20%5Cleft%20%28%20p%2C%20e%20%5Cright%20%29%20&plus;%20score_%7Bk%7D%20%5Cleft%20%28%20p%2C%20%5Coverline%7B%20e%20%7D%20%5Cright%20%29%7D)
+		```latex
+		f_{PS_{k}} \left(p, e \right ) = \frac{score_{k} \left ( p, e \right )}{score_{k} \left ( p, e \right ) + score_{k} \left ( p, \overline{ e } \right )}
+		```
+		where
 	
-	```javascript
-	// mongo.lexicon: pattern occurrence
-	{
-	        "_id" : ObjectId("53242746d4388c1f1443e1a8"),
-	        "emotion" : "pissed off",
-	        "pattern" : "i am pissed",
-	        "count" : 25
-	}
+		![equation](http://latex.codecogs.com/gif.latex?score_%7Bi%7D%20%5Cleft%20%28%20p%2C%20e%20%5Cright%20%29%20%3D%20%5Csum_%7Bd%20%5Ctextrm%7B%20annotated%20as%20%7D%20e%20%7D%20occur%5Cleft%20%28%20p%2C%20d%20%5Cright%20%29)
+		```latex
+		score_{i} \left ( p, e \right ) = \sum_{d \textrm{ annotated as } e } occur\left ( p, d \right )
+		```
 	
-	// mongo.patscore: pattern scores（跑完 scoring function 後的結果）
-	{
-	        "emotion" : "crazy",
-	        "pattern" : "i am pissed",
-	        "prob" : 0.9669999980078527,
-	        "scoring" : 1,
-	        "smoothing" : 0
-	},
-	{
-	        "emotion" : "crazy",
-	        "pattern" : "i am pissed",
-	        "prob" : 0.6223404255319149,
-	        "scoring" : 0,
-	        "smoothing" : 0
-	}
-	```
+		![equation](http://latex.codecogs.com/gif.latex?score_%7B0%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20%3D%20%5Cfrac%7B%5Csum_%7B%20e_j%20%5Cin%20%5Coverline%7Be_l%7D%20%7D%20score%5Cleft%20%28%20p%2C%20e_%7Bj%7D%20%5Cright%20%29%7D%7B%5Cleft%20%7C%20%5Coverline%7Be%7D%20%5Cright%20%7C%7D)
+		```latex
+		score_{0} \left ( p,\overline{e} \right ) = \frac{\sum_{ e_j \in \overline{e_l} } score\left ( p, e_{j} \right )}{\left | \overline{e} \right |}
+		```
 	
-	新增一種新分數
-	```python
-	mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
-	patscore = mc['LJ40K']['patscore']
+		![equation](http://latex.codecogs.com/gif.latex?score_%7B1%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20%3D%20score_%7B0%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20*%20%5CDelta_%7B%20%5Coverline%7Bnp%7D%20%7D)
+		```latex
+		score_{1} \left ( p,\overline{e} \right ) = score_{0} \left ( p,\overline{e} \right ) * \Delta_{ \overline{np} }
+		```
 	
-	probs = pattern_scoring_function(pattern, function, smoothing_method)
+		![equation](http://latex.codecogs.com/gif.latex?score_%7B2%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20%3D%20score_%7B0%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20*%20%5Cleft%28%201%20&plus;%20%5Calpha%20*%20%5CDelta_%7B%20%5Coverline%7Bnp%7D%20%7D%20%5Cright%20%29)
+		```latex
+		score_{2} \left ( p,\overline{e} \right ) = score_{0} \left ( p,\overline{e} \right ) * \left( 1 + \alpha * \Delta_{ \overline{np} } \right )
+		```	
 	
-	## update prob of pattern "i am pissed" in emotion "pissed off" using scoring function 1, smoothing method: 0
-	patscore.update( { 'emotion': 'pissed off', 'pattern': 'i am pissed', 'scoring': 1, 'smoothing': 0 }, { '$set': { 'prob': prob } } )
-	```
+	* #### 資料結構
+ 
+		* `lexicon`, `patscore`
+		
+			```javascript
+			// mongo.lexicon: pattern occurrence
+			{
+			        "_id" : ObjectId("53242746d4388c1f1443e1a8"),
+			        "emotion" : "pissed off",
+			        "pattern" : "i am pissed",
+			        "count" : 25
+			}
+			
+			// mongo.patscore: pattern scores（跑完 scoring function 後的結果）
+			{
+			        "emotion" : "crazy",
+			        "pattern" : "i am pissed",
+			        "prob" : 0.9669999980078527,
+			        "scoring" : 1,
+			        "smoothing" : 0
+			},
+			{
+			        "emotion" : "crazy",
+			        "pattern" : "i am pissed",
+			        "prob" : 0.6223404255319149,
+			        "scoring" : 0,
+			        "smoothing" : 0
+			}
+			```
+		
+		* 從程式裡用新方法跑出 prob 後 update mongo
+			```python
+			mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
+			patscore = mc['LJ40K']['patscore']
+			
+			probs = pattern_scoring_function(pattern, function, smoothing_method)
+			
+			## update prob of pattern "i am pissed" in emotion "pissed off" using scoring function 1, smoothing method: 0
+			patscore.update( { 'emotion': 'pissed off', 'pattern': 'i am pissed', 'scoring': 1, 'smoothing': 0 }, { '$set': { 'prob': prob } } )
+		```
 	
 3. ###Document scoring (emotion detection)
 
