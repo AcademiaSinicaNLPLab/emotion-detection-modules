@@ -1,6 +1,12 @@
 ##Pattern - 新架構！
 
-1. ###Lexicon construction
+* Steps
+	1. [Lexicon construction](#lexicon-construction)
+	2. [Pattern scoring](#pattern-scoring)
+	3. [Document scoring (emotion detection)](#document-scoring-emotion-detection)
+	4. [Evaluation](#evaluation)
+
+* ###Lexicon construction
 
 	`training`
 
@@ -17,7 +23,7 @@
 	}
 	```
 	
-2. ###Pattern scoring
+* ###Pattern scoring
 
 	`training`
 
@@ -96,7 +102,7 @@
 			patscore.update( { 'emotion': 'pissed off', 'pattern': 'i am pissed', 'scoring': 1, 'smoothing': 0 }, { '$set': { 'prob': prob } } )
 		```
 	
-3. ###Document scoring (emotion detection)
+* ###Document scoring (emotion detection)
 
 	`testing`
 
@@ -185,7 +191,7 @@
 			...
 		```
 
-4. ###Evaluation
+* ###Evaluation
 
 	[白板](img/new.0313.4.jpg)
 	
