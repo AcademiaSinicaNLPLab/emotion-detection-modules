@@ -100,7 +100,7 @@
 
 	`testing`
 
-	[白板](img/new.0313.3.jpg)
+	[白板](img/new.0313.3.jpg), 程式
 	
 	```
 	模組 input: 文章 d + 情緒 e
@@ -133,8 +133,16 @@
 		```
 		
 		```python
-		def event_scoring(pat, emotion, probType=1):
-			prob_p_e = co_lexicon.find_one( {'pattern': pat['pattern'].lower(), 'emotion': emotion} )['prob_' + str(probType)]
+		def event_scoring(pat, emotion, opt):
+
+			# build query
+			query = {'pattern': pat['pattern'].lower(), 'emotion': emotion}
+			query.update(opt)  # add entries in opt: scoring: 1, smoothing: 0
+			
+			# fetch pattern score from mongo collection "patscore"
+			res = patscore.find_one( query )
+			prob_p_e = 0.0 if not res else res['prob']
+			
 			return pat['weight'] * sigFactor(pat, function) * prob_p_e
 		```
 
