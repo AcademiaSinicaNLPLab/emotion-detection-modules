@@ -16,10 +16,11 @@ emotions = sorted([x['emotion'] for x in mc['LJ40K']['emotions'].find({'label':'
 ## 		smoothing_method: 0 --> no smoothing
 ##		smoothing_method: 1 --> +1
 def get_pattern_dist(pattern, smoothing_method):
-
-	if smoothing_method == 0: pdist = dict(zip(emotions, [0]*len(emotions)))
-	elif smoothing_method == 1: pdist = dict(zip(emotions, [1]*len(emotions)))
-		
+	
+	if smoothing_method == 0: 
+		pdist = dict(zip(emotions, [0]*len(emotions)))
+	elif smoothing_method == 1: 
+		pdist = dict(zip(emotions, [1]*len(emotions)))
 	for mdoc in lexicon.find( { 'pattern': pattern } ):
 		pdist[mdoc['emotion']] += mdoc['count']
 
@@ -86,7 +87,7 @@ def update_all_pattern_scores(function, smoothing_method, debug=False):
 			update = { '$set': { 'prob': prob } }
 
 			# upsert to mongo
-			lexicon.update( query, update, { 'upsert': True } )
+			lexicon.update( query, update, upsert=True )
 
 		if debug:
 			print 'processed', pattern
@@ -120,9 +121,9 @@ if __name__ == '__main__':
 			_show_help()
 			sys.exit()
 		elif opt in ('-f','--function'):
-			function = arg
+			function = int(arg.strip())
 		elif opt in ('-s','--smoothing'):
-			smoothing_method = arg
+			smoothing_method = int(arg.strip())
 		elif opt in ('-d','--debug'):
 			debug = True
 
