@@ -6,6 +6,8 @@
 	3. [Document scoring (emotion detection)](#document-scoring-emotion-detection)
 	4. [Evaluation](#evaluation)
 
+---
+
 * ###Lexicon construction
 
 	`training`
