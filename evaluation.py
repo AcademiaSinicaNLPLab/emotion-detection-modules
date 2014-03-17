@@ -64,11 +64,40 @@ def fetch_insts(cfg):
 
 def evals(cfg):
 
-	insts = fetch_insts(cfg)
-	for inst in insts:
-		gold_emotion = inst['gold_emotion']
-		
+	Positive, Negative = True, False
 
+	insts = fetch_insts(cfg)
+
+	emotinos = sorted(list(set([ x['gold_emotion'] for x in insts ])))
+
+	# target: happy
+	# really is happy
+	# 	classify as happy	
+	#	classify as ~happy	
+	# really is ~happy		
+	# 	classify as happy	
+	# 	classify as ~happy	
+
+	results = {}
+	for target_gold in emotinos:
+
+		for inst in insts:
+
+			really_is = Positive if target_gold == inst['gold_emotion'] else Negative
+			classified_as = Positive if inst['predict'][target_gold] == 1 else Negative
+
+			TP = classified_as == Positive and really_is == Positive
+			TN = classified_as == Negative and really_is == Negative
+			FP = classified_as == Positive and really_is == Negative
+			FN = classified_as == Negative and really_is == Positive
+
+			results['TP'] += 1 if TP else 0
+			results['TN'] += 1 if TN else 0
+			results['FP'] += 1 if FP else 0
+			results['FN'] += 1 if FN else 0
+
+
+	return results
 
 if __name__ == '__main__':
 
