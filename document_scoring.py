@@ -10,16 +10,25 @@ co_lexicon = db['lexicon']
 co_patscore = db['patscore']
 co_docscore = db['docscore']
 
+from collections import defaultdict
+T = defaultdict(list)
 ## udocID=1000, emotion='happy'
 ## ds_function=1, opt={'scoring': 1, 'smoothing': 0}, sig_function=0, epsilon=0.5
 def document_scoring(udocID, emotion, ds_function, opt, sig_function, epsilon=0.5):
 
+	s = time.time()
 	mDocs = list( co_pats.find( {'udocID': udocID} ) ) 
+	T['co_pats.find'].append(time.time()-s)
+
+	
 	# arithmetic mean
 	if ds_function == 1:
+		s = time.time()
 		eventscores = filter( lambda x: x >=0, [event_scoring(pat, emotion, opt, sig_function) for pat in mDocs] )
+		T['event_scoring'].append(time.time()-s)
 		# all events not in lexicon
-		if len(eventscores) == 0 : return (None, 0)
+		if len(eventscores) == 0 : 
+			return (None, 0)
 		docscore = sum(eventscores) / float( len(eventscores) )
 	# geometric mean
 	elif ds_function == 2:
@@ -58,27 +67,18 @@ if __name__ == '__main__':
 	sig_function = 0
 	epsilon = 0.5
 
-	import time
-
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 	# ts = {}
 	for gold_emotion in emotions:	
 		print gold_emotion
-		s = time.time()
 		docs = list(co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ))
-		t['co_docs.find'].append(time.time() - s)
-
-		t_co_docs_find, t_document_scoring, t_co_docscore_insert = 0.0, 0.0, 0.0
-
 		for doc in docs:
 			_udocID = doc['udocID']
 			for test_emotion in emotions:
 
-				s = time.time()
 				(doc_score, predict) = document_scoring(_udocID, test_emotion, ds_function, opt, sig_function, epsilon)
-				t_document_scoring += time.time() - s
 
-				d = {
+				query = {
 						'udocID': _udocID,
 						'gold_emotion': gold_emotion,
 						'test_emotion': test_emotion,
@@ -87,15 +87,15 @@ if __name__ == '__main__':
 						'smoothing':  smoothing,
 						'sig_function': sig_function,
 						'epsilon':  epsilon,
-						'doc_score':  doc_score,
-						'predict': predict
-					}
-
-				s = time.time()
-				db['test'].insert(d)
-				t_co_docscore_insert += time.time() - s
-
-		print 't_co_docs_find: ', t_co_docs_find
-		print 't_co_docs_find: ', t_document_scoring
-		print 't_co_docs_find: ', t_co_docscore_insert
-
+				}
+				u = {
+						'$set': {
+							'doc_score':  doc_score,
+							'predict': predict
+						}						
+				}
+				query.update(u)
+				db['test'].insert(query)
+		for k in T:
+			print k, '\t', sum(T[k]), '\t', sum(T[k])/float(len(T[k]))
+				# co_docscore.update(query, update, upsert=True)
