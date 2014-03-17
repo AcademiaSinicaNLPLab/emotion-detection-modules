@@ -1,6 +1,30 @@
 emotion-detection-modules
 =========================
 
+``` 
+git clone git@github.com:AcademiaSinicaNLPLab/emotion-detection-modules.git
+```
+
+```javascript
+// check (un)tracked, (un)staged files
+git st
+
+// add files for this commit
+git add <files>
+git ci -m "add a new line blah..."
+
+// push commit to remote
+git push -u origin master	// first time using push
+git push
+
+// if cannot push to remote (fast forward), pull first
+git pull -u origin master	// first time using pull
+git pull
+```
+
+
+---
+
 * #####[pattern.md](pattern.md)
 
 	pattern extraction modules and database structures
