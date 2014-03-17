@@ -173,11 +173,7 @@
 		```latex
 		docscore \left( d, e \right ) = \left\{\begin{matrix} & 1, f_{DS} \left( S_{d, e} \right ) \geq \epsilon \\ & 0, f_{DS} \left( S_{d, e} \right ) < \epsilon \end{matrix}\right.
 		```
-	
-		```
-		補 document scoring function
-		...
-		```
+		
 		```python
 		def document_scoring(udocID, emotion, epsilon, ds_function, opt, sig_function): 
 			mDocs = list( co_pats.find( {'udocID': udocID} ) ) 
@@ -189,7 +185,22 @@
 			if ds_function == 2:
 			...
 		```
-
+		
+		mongo db.docscores 資料結構
+		```javascript
+		{
+			// query
+			gold_emotion: 'pissed off',
+			test_emotion: 'pissed off',
+			ds_function: 1,
+			ps_function: 0,
+			smoothing: 0,
+	
+			// results
+			docscore: 0.95,
+			predict: 1
+		}
+		```
 * ###Evaluation
 
 	[白板](img/new.0313.4.jpg)
