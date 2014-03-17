@@ -58,25 +58,16 @@ if __name__ == '__main__':
 	sig_function = 0
 	epsilon = 0.5
 
-	import time
-
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
-	# ts = {}
 	for gold_emotion in emotions:	
 		print gold_emotion
-		s = time.time()
 		docs = list(co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ))
-		t['co_docs.find'].append(time.time() - s)
-
-		t_co_docs_find, t_document_scoring, t_co_docscore_insert = 0.0, 0.0, 0.0
 
 		for doc in docs:
 			_udocID = doc['udocID']
 			for test_emotion in emotions:
 
-				s = time.time()
 				(doc_score, predict) = document_scoring(_udocID, test_emotion, ds_function, opt, sig_function, epsilon)
-				t_document_scoring += time.time() - s
 
 				d = {
 						'udocID': _udocID,
@@ -91,11 +82,5 @@ if __name__ == '__main__':
 						'predict': predict
 					}
 
-				s = time.time()
-				db['test'].insert(d)
-				t_co_docscore_insert += time.time() - s
-
-		print 't_co_docs_find: ', t_co_docs_find
-		print 't_co_docs_find: ', t_document_scoring
-		print 't_co_docs_find: ', t_co_docscore_insert
+				co_docscore.insert(d)
 
