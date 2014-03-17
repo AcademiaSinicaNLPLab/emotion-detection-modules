@@ -1,11 +1,14 @@
 import pymongo
+from itertools import product
 
 mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
 db = mc['LJ40K']
+co_emotions = db['emotions']
 co_docs = db['docs']
 co_pats = db['pats']
 co_lexicon = db['lexicon']
 co_patscore = db['patscore']
+co_docscore = db['docscore']
 
 ## udocID=1000, emotion='happy'
 ## ds_function=1, opt={'scoring': 1, 'smoothing': 0}, sig_function=0, epsilon=0.5
@@ -14,15 +17,17 @@ def document_scoring(udocID, emotion, ds_function, opt, sig_function, epsilon=0.
 	mDocs = list( co_pats.find( {'udocID': udocID} ) ) 
 	# arithmetic mean
 	if ds_function == 1:
-		docscore = sum( [event_scoring(pat, emotion, opt, sig_function) for pat in mDocs] ) / len(mDocs)
+		eventscores = filter( lambda x: x >=0, [event_scoring(pat, emotion, opt, sig_function) for pat in mDocs] )
+		# all events not in lexicon
+		if len(eventscores) == 0 : return (None, 0)
+		docscore = sum(eventscores) / float( len(eventscores) )
 	# geometric mean
 	elif ds_function == 2:
 		docscore = reduce(lambda x,y:x*y, [event_scoring(pat, emotion, opt, sig_function) for pat in mDocs] )**(1/float(len(a)))
 	## undefined ds_function
 	else:
 		return False
-	
-	return 1 if docscore >= epsilon else 0
+	return (docscore, 1) if docscore >= epsilon else (docscore, 0)
 
 def event_scoring(pat, emotion, opt, sig_function):
 
@@ -32,7 +37,7 @@ def event_scoring(pat, emotion, opt, sig_function):
 	
 	# fetch pattern score from mongo collection "patscore"
 	res = co_patscore.find_one( query )
-	prob_p_e = 0.0 if not res else res['prob']
+	prob_p_e = -1 if not res else res['prob']
 	
 	return pat['weight'] * significance_factor(pat, sig_function) * prob_p_e
 
@@ -46,11 +51,31 @@ def significance_factor(pat, sig_function):
 
 if __name__ == '__main__':
 
-	udocID = 1000
-	emotion = 'happy'
 	ds_function = 1
-	opt={'scoring': 1, 'smoothing': 0}
+	scoring = 1
+	smoothing = 0
+	opt = {'scoring': scoring, 'smoothing': smoothing}
 	sig_function = 0
 	epsilon = 0.5
 
-	print udocID, emotion, '-->', document_scoring(udocID, emotion, ds_function, opt, sig_function, epsilon)
+	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
+	for gold_emotion in emotions:	
+		print gold_emotion
+		for doc in co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ):
+			_udocID = doc['udocID']
+			for test_emotion in emotions:
+				(doc_score, predict) = document_scoring(_udocID, test_emotion, ds_function, opt, sig_function, epsilon)
+				d = {
+						'udocID': _udocID,
+						'gold_emotion': gold_emotion,
+						'test_emotion': test_emotion,
+						'ds_function': ds_function,
+						'ps_function': scoring,
+						'smoothing':  smoothing,
+						'sig_function': sig_function,
+						'epsilon':  epsilon,
+						'doc_score':  doc_score,
+						'predict': predict
+					}
+				co_docscore.insert(d)
+

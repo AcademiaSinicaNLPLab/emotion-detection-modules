@@ -14,8 +14,8 @@ patCount = dict()
 # count patterns
 for _emo in emoList:
 	patCount[_emo] = Counter()
-	for _ldocID in range(800):
-		_udocID = co_docs.find_one( { 'emotion': _emo, 'ldocID': _ldocID} )['udocID']
+	for _doc in co_docs.find( { 'emotion': _emo, 'ldocID': {'$lt': 800}} ):
+		_udocID = _doc['udocID']
 		mdocs = list( co_pats.find( {'udocID': _udocID} ) )
 		for mdoc in mdocs:
 			patCount[_emo][mdoc['pattern'].lower()] += 1
@@ -24,4 +24,3 @@ for _emo in emoList:
 for _emo in emoList:
 	for _pat in patCount[_emo].keys():
 		co_lexicon.insert( { 'pattern': _pat, 'emotion': _emo, 'count': patCount[_emo][_pat] } )
-
