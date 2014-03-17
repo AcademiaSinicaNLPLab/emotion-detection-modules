@@ -9,7 +9,7 @@ db = mc['LJ40K']
 co_docs = db['docs']	
 co_pats = db['pats']		
 co_lexicon = db['lexicon']
-patCount = dict()	
+patCount = dict()
 
 # count patterns
 for _emo in emoList:
