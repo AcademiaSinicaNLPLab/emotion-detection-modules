@@ -52,7 +52,7 @@ def gen_test(cfg):
 			}
 			test_instance.update(cfg)
 
-			co_test_instances.update( test_instance, { '$set': res_vector }, upsert=True )
+			co_test_instances.update( test_instance, { '$set': {'predict': res_vector } }, upsert=True )
 
 			# test_instance['predict'] = res_vector
 
