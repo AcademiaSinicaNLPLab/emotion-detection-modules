@@ -58,9 +58,21 @@ def gen_test(cfg):
 
 			# co_test_instances.insert( test_instance )
 
+def fetch_insts(cfg):
+	return list(db['test_instances'].find( cfg, {'_id':0, 'gold_emotion':1, 'predict': 1, 'udocID':1} ))
+
+
+def evals(cfg):
+
+	insts = fetch_insts(cfg)
+	for inst in insts:
+		gold_emotion = inst['gold_emotion']
+		
+
+
 if __name__ == '__main__':
-	gen_test(cfg)
 
+	# gen_test(cfg)
 
-
-
+	
+	evals(cfg)
