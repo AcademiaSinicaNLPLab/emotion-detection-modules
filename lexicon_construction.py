@@ -25,6 +25,3 @@ for _emo in emoList:
 	for _pat in patCount[_emo].keys():
 		co_lexicon.insert( { 'pattern': _pat, 'emotion': _emo, 'count': patCount[_emo][_pat] } )
 
-
-
-
