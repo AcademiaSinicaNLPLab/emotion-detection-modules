@@ -14,12 +14,19 @@ co_docscore = db['docscore']
 ## ds_function=1, opt={'scoring': 1, 'smoothing': 0}, sig_function=0, epsilon=0.5
 def document_scoring(udocID, emotion, ds_function, opt, sig_function, epsilon=0.5):
 
+	s = time.time()
 	mDocs = list( co_pats.find( {'udocID': udocID} ) ) 
+	T['co_pats.find'].append(time.time()-s)
+
+	
 	# arithmetic mean
 	if ds_function == 1:
+		s = time.time()
 		eventscores = filter( lambda x: x >=0, [event_scoring(pat, emotion, opt, sig_function) for pat in mDocs] )
+		T['event_scoring'].append(time.time()-s)
 		# all events not in lexicon
-		if len(eventscores) == 0 : return (None, 0)
+		if len(eventscores) == 0 : 
+			return (None, 0)
 		docscore = sum(eventscores) / float( len(eventscores) )
 	# geometric mean
 	elif ds_function == 2:
@@ -62,14 +69,13 @@ if __name__ == '__main__':
 	for gold_emotion in emotions:	
 		print gold_emotion
 		docs = list(co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ))
-
 		for doc in docs:
 			_udocID = doc['udocID']
 			for test_emotion in emotions:
 
 				(doc_score, predict) = document_scoring(_udocID, test_emotion, ds_function, opt, sig_function, epsilon)
 
-				d = {
+				query = {
 						'udocID': _udocID,
 						'gold_emotion': gold_emotion,
 						'test_emotion': test_emotion,
