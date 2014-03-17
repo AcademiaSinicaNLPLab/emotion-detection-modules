@@ -108,7 +108,7 @@
 
 	`testing`
 
-	[白板](img/new.0313.3.jpg), 程式
+	[白板](img/new.0313.3.jpg), [程式](document_scoring.py)
 	
 	```
 	模組 input: 文章 d + 情緒 e
