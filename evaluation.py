@@ -59,7 +59,7 @@ def gen_test(cfg):
 			# co_test_instances.insert( test_instance )
 
 if __name__ == '__main__':
-	gen_test()
+	gen_test(cfg)
 
 
 
