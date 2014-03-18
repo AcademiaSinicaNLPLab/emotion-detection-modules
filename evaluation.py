@@ -1,4 +1,5 @@
 import pymongo, sys
+from collections import Counter
 mc = pymongo.Connection('doraemon')
 db = mc['LJ40K']
 
@@ -61,6 +62,31 @@ def gen_test(cfg):
 def fetch_insts(cfg):
 	return list(db['test_instances'].find( cfg, {'_id':0, 'gold_emotion':1, 'predict': 1, 'udocID':1} ))
 
+def accuracy(res, ratio=1):
+	TP = res['TP']
+	TN = res['TN']/float(ratio)
+	FP = res['FP']/float(ratio)
+	FN = res['FN']
+	return round((TP+TN)/float(TP+TN+FN+FP))
+
+def precision(res, ratio=1):
+	TP = res['TP']
+	TN = res['TN']/float(ratio)
+	FP = res['FP']/float(ratio)
+	FN = res['FN']
+	return round((TP)/float(TP+FP))
+
+def recall(res, ratio=1):
+	TP = res['TP']
+	TN = res['TN']/float(ratio)
+	FP = res['FP']/float(ratio)
+	FN = res['FN']
+	return round((TP)/float(TP+FN))
+
+# def fscore(P, R, f=1, ratio=1):
+# 	P = precision(res, ratio=ratio)
+# 	R = recall(res, ratio=ratio)
+# 	return 2*P*R/float(P+R)
 
 def evals(cfg):
 
@@ -76,26 +102,22 @@ def evals(cfg):
 	# 	classify as happy	
 	# 	classify as ~happy	
 
-	
-
-	
-	
+	Results = {}
 
 	for target_gold in emotions:
 
 		really_is_positive = 0
 		really_is_negative = 0
 
-		res = {}
+		res = Counter()
 		for inst in insts:
+
+			really_is = Positive if target_gold == inst['gold_emotion'] else Negative
+			classified_as = Positive if inst['predict'][target_gold] == 1 else Negative
 
 			## stat really_is_Positive: really_is_Negative = 200: 7900
 			really_is_positive += 1 if really_is == Positive else 0
 			really_is_negative += 1 if really_is == Negative else 0
-
-
-			really_is = Positive if target_gold == inst['gold_emotion'] else Negative
-			classified_as = Positive if inst['predict'][target_gold] == 1 else Negative
 
 			TP = classified_as == Positive and really_is == Positive
 			TN = classified_as == Negative and really_is == Negative
@@ -108,23 +130,44 @@ def evals(cfg):
 			res['FN'] += 1 if FN else 0
 
 
-		r = really_is_positive/float(really_is_negative)
+		r = really_is_negative/float(really_is_positive)
+
+
+		Results[target_gold] = {
+			'res': res,
+			'ratio': r
+		}
+
 
 	for target_gold in emotions:
-		accuracy(results, ratio=r)
 
-	return 
+		res = Results[target_gold]['res']
+		r = Results[target_gold]['ratio']
 
-def accuracy(results, ratio=1):
+		query = {}
+		query.update(cfg)
+		query['emotion'] = target_gold
 
-	results['TP']
-	results['TN']/ratio
-	results['FP']/ratio
-	results['FN']
 
-	Accuracy = round((TP+TN)/float(TP+TN+FN+FP), 4)
 
-	return Accuracy
+		A = accuracy(res, ratio=r)
+		P = precision(res, ratio=r)
+		R = recall(res, ratio=r)
+
+
+		upadte = { 
+			'ratio': r, 
+			'res': res,
+			'accuracy': A,
+			'precision': P,
+			'recall': R,
+			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0
+		}
+		
+		db['results'].update( query, { '$set': upadte }, upsert=True )
+
+
+
 
 if __name__ == '__main__':
 
