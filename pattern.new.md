@@ -290,15 +290,15 @@
 	> db.results.findOne()
 	{
 	        "_id" : ObjectId("5327a22618db058cd1828bb7"),
-	        "accuracy" : 0,
+	        "accuracy" : 0.4869,
 	        "ds_function" : 1,
 	        "emotion" : "accomplished",
 	        "epsilon" : 0.5,
-	        "f1" : 0,
-	        "precision" : 0,
+	        "f1" : 0.48849539406345954,
+	        "precision" : 0.487,
 	        "ps_function" : 1,
 	        "ratio" : 39,
-	        "recall" : 0,
+	        "recall" : 0.49,
 	        "res" : {
 	                "TN" : 3774,
 	                "FP" : 4026,
