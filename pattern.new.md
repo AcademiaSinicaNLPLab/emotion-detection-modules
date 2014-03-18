@@ -1,5 +1,7 @@
 ##Pattern - 新架構！
 
+* Pattern scoring [討論照片](discuss.0318.jpg)
+
 * Steps
 	1. [Lexicon construction](#lexicon-construction)
 	2. [Pattern scoring](#pattern-scoring)
@@ -310,6 +312,3 @@
 	}
 	```
 
----
-
-[討論](discuss.0318.jpg)
