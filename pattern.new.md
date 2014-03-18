@@ -30,7 +30,8 @@
 	算出 pattern 在 training 各 emotion 中出現次數，作為 pattern scoring function 的 input
 	
 	```javascript
-	> db.lexicon.old.findOne({pattern: 'i am pissed', emotion: 'pissed off'})
+	// mongo.lexicon: pattern occurrence
+	> db.lexicon.findOne({pattern: 'i am pissed', emotion: 'pissed off'})
 	{
 		"emotion" : "pissed off",
 		"pattern" : "i am pissed",
@@ -41,10 +42,10 @@
 * ###Pattern scoring
 
 	`training`
-
-	[白板](img/new.0313.2.jpg), [程式](pattern_scoring.py)
 	
-	套用不同的 pattern scoring function，得出一個 pattern 出現在某 emotion 中的機率
+	[白板](img/new.0313.2.jpg), [[新公式]](img/discuss.0318.jpg), [程式](pattern_scoring.py), 
+	
+	套用不同的 pattern scoring function (`ps_function`)，得出一個 pattern 出現在某 emotion 中的 ~~機率~~ 分數
 
 	* #### 定義 pattern scoring function
 		
@@ -78,18 +79,10 @@
 	
 	* #### 資料結構
  
-		* `lexicon`, `patscore`
+		* current `db.patscore`
 		
 			```javascript
-			// mongo.lexicon: pattern occurrence
-			{
-			        "_id" : ObjectId("53242746d4388c1f1443e1a8"),
-			        "emotion" : "pissed off",
-			        "pattern" : "i am pissed",
-			        "count" : 25
-			}
-			
-			// mongo.patscore: pattern scores（跑完 scoring function 後的結果）
+			// db.patscore: pattern scores（跑完 scoring function 後的結果）
 			{
 			        "emotion" : "crazy",
 			        "pattern" : "i am pissed",
@@ -105,7 +98,25 @@
 			        "smoothing" : 0
 			}
 			```
+		* to-do `db.patscore`
 		
+			```javascript
+			// db.patscore: pattern scores  (output of ps_function)
+			{
+				"emotion": "crazy",
+				"pattern": "i am pissed",
+				"cfg": "fs_function=1,smoothing=0",
+				"score": 0.9669999980078527
+			},
+			{
+				"emotion": "crazy",
+				"pattern": "i am pissed",
+				"cfg": "fs_function=1,smoothing=0",
+				"score": 0.9669999980078527
+			}
+			```
+
+
 		* 從程式裡用新方法跑出 prob 後 update mongo
 			```python
 			mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
