@@ -206,4 +206,106 @@
 
 	[白板](img/new.0313.4.jpg), [程式](evaluation.py)
 	
+	```python
+	# 用 cfg 來選擇 test instance
+	cfg = {
+		'ds_function': 1,
+		'ps_function': 1,
+		'smoothing':  0,
+		'sig_function': 0,
+		'epsilon':  0.5	
+	}
+	```
 	
+	- 產生 test file, 記錄用某個設定的 predict 結果 [[output]](#-test_instances)
+	```python
+	def gen_test(cfg) 
+	```
+	- 計算 true/false positive/negative, accuracy, P,R,F [[output]](#-results)
+	```python
+	def eval(cfg, output='accuracy')
+	```	
+	
+	###### * test_instances
+	
+	```javascript
+	> db.test_instances.findOne()
+	{
+	        "_id" : ObjectId("5326b8c918db058cd1826c77"),
+	        "ds_function" : 1,
+	        "epsilon" : 0.5,
+	        "gold_emotion" : "accomplished",
+	        "predict" : {
+	                "crazy" : 1,
+	                "pissed off" : 1,
+	                "tired" : 1,
+	                "exhausted" : 1,
+	                "sleepy" : 1,
+	                "confused" : 1,
+	                "sad" : 1,
+	                "cheerful" : 1,
+	                "blah" : 1,
+	                "bouncy" : 1,
+	                "lonely" : 1,
+	                "blank" : 1,
+	                "cold" : 1,
+	                "busy" : 1,
+	                "drained" : 1,
+	                "hopeful" : 1,
+	                "creative" : 1,
+	                "content" : 1,
+	                "contemplative" : 1,
+	                "calm" : 1,
+	                "sick" : 1,
+	                "bored" : 1,
+	                "frustrated" : 1,
+	                "excited" : 1,
+	                "happy" : 1,
+	                "good" : 1,
+	                "okay" : 1,
+	                "ecstatic" : 1,
+	                "loved" : 1,
+	                "crushed" : 1,
+	                "crappy" : 1,
+	                "awake" : 1,
+	                "aggravated" : 1,
+	                "depressed" : 1,
+	                "hungry" : 1,
+	                "amused" : 1,
+	                "anxious" : 1,
+	                "accomplished" : 1,
+	                "chipper" : 1,
+	                "annoyed" : 1
+	        },
+	        "ps_function" : 1,
+	        "sig_function" : 0,
+	        "smoothing" : 0,
+	        "udocID" : 800
+	}	
+	```
+	
+	###### * results
+	
+	```javascript
+	> db.results.findOne()
+	{
+	        "_id" : ObjectId("5327a22618db058cd1828bb7"),
+	        "accuracy" : 0,
+	        "ds_function" : 1,
+	        "emotion" : "accomplished",
+	        "epsilon" : 0.5,
+	        "f1" : 0,
+	        "precision" : 0,
+	        "ps_function" : 1,
+	        "ratio" : 39,
+	        "recall" : 0,
+	        "res" : {
+	                "TN" : 3774,
+	                "FP" : 4026,
+	                "FN" : 102,
+	                "TP" : 98
+	        },
+	        "sig_function" : 0,
+	        "smoothing" : 0
+	}
+	```
