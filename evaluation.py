@@ -15,7 +15,7 @@ cfg = {
 	'ps_function': 1,
 	'smoothing':  0,
 	'sig_function': 0,
-	'epsilon':  0.5	
+	'epsilon':  0.5
 }
 
 ## input: config
@@ -67,21 +67,21 @@ def accuracy(res, ratio=1):
 	TN = res['TN']/float(ratio)
 	FP = res['FP']/float(ratio)
 	FN = res['FN']
-	return round((TP+TN)/float(TP+TN+FN+FP))
+	return round((TP+TN)/float(TP+TN+FN+FP), 4)
 
 def precision(res, ratio=1):
 	TP = res['TP']
 	TN = res['TN']/float(ratio)
 	FP = res['FP']/float(ratio)
 	FN = res['FN']
-	return round((TP)/float(TP+FP))
+	return round((TP)/float(TP+FP), 4)
 
 def recall(res, ratio=1):
 	TP = res['TP']
 	TN = res['TN']/float(ratio)
 	FP = res['FP']/float(ratio)
 	FN = res['FN']
-	return round((TP)/float(TP+FN))
+	return round((TP)/float(TP+FN), 4)
 
 # def fscore(P, R, f=1, ratio=1):
 # 	P = precision(res, ratio=ratio)
@@ -167,14 +167,35 @@ def evals(cfg):
 		db['results'].update( query, { '$set': upadte }, upsert=True )
 
 
+def average(cfg):
+	
 
+	LJ40K = [x['emotion'] for x in db.emotions.find( { 'label': 'LJ40K' }, {'_id':0, 'emotion':1}  )]
+	Mishne05 = [x['emotion'] for x in db.emotions.find( { 'label': 'Mishne05' }, {'_id':0, 'emotion':1}  )]
+
+	results = list(db['results'].find( cfg ))
+
+	mdocs = [x for x in results if x['emotion'] in LJ40K]
+	avg_LJ40K = sum([x['accuracy'] for x in mdocs])/float(len(mdocs))
+
+	mdocs = [x for x in results if x['emotion'] in Mishne05]
+	avg_Mishne05 = sum([x['accuracy'] for x in mdocs])/float(len(mdocs))
+
+	U = set(LJ40K + Mishne05)
+	shared_emotions = [x for x in U if x in Mishne05 and x in LJ40K]
+
+	mdocs = [x for x in results if x['emotion'] in shared_emotions]
+	avg_shared = sum([x['accuracy'] for x in mdocs])/float(len(mdocs))
+
+	return avg_LJ40K, avg_Mishne05, avg_shared
 
 if __name__ == '__main__':
 
 	# gen_test(cfg)
 
-	res = evals(cfg)
+	# res = evals(cfg)
 
+	average(cfg)
 
 
 	
