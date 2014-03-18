@@ -4,6 +4,8 @@ import sys, pymongo
 from mathutil import standard_deviation as std
 from mathutil import entropy as ent
 
+db = pymongo.Connection(config.mongo_addr)['LJ40K']
+
 co_lexicon = db[config.co_lexicon_name]
 co_patscore = db[config.co_patscore_name]
 
@@ -80,6 +82,9 @@ def update_all_pattern_scores(fs_function, smoothing_method, debug=False):
 	for mdoc in co_lexicon.find():
 		patterns.add( mdoc['pattern'] )
 
+	if debug:
+		print >> sys.stderr, 'get all distinct patterns'
+
 	# calculate pattern scores
 	for pattern in patterns:
 
@@ -99,7 +104,7 @@ def update_all_pattern_scores(fs_function, smoothing_method, debug=False):
 			## generate cfg string
 			cfg = { 
 					config.ps_function_name: fs_function, 
-					config.smoothing_method_name: smoothing_method 
+					config.smoothing_name: smoothing_method 
 			}
 			cfg = config.transform_cfg(cfg)
 
@@ -110,6 +115,7 @@ def update_all_pattern_scores(fs_function, smoothing_method, debug=False):
 			# upsert to mongo
 			co_patscore.update( query, update, upsert=True )
 
+			
 		if debug:
 			print 'processed', pattern
 
@@ -137,8 +143,8 @@ if __name__ == '__main__':
 		_show_help(exit=2)
 
 
-	ps_function = config.ps_function
-	smoothing_method =  config.smoothing_method
+	ps_function = config.ps_function_type
+	smoothing =  config.smoothing_type
 
 	debug = False
 	for opt, arg in opts:
@@ -148,16 +154,16 @@ if __name__ == '__main__':
 		elif opt in ('-f','--function'):
 			ps_function = int(arg.strip())
 		elif opt in ('-s','--smoothing'):
-			smoothing_method = int(arg.strip())
+			smoothing = int(arg.strip())
 		elif opt in ('-d','--debug'):
 			debug = True
 
 	print 'scoring function:', ps_function
-	print 'smoothing method:', smoothing_method
+	print 'smoothing method:', smoothing
 	print 'debug mode:', debug
 	print '...correct?', raw_input()
 
-	update_all_pattern_scores( ps_function, smoothing_method, debug=debug )
+	update_all_pattern_scores( ps_function, smoothing, debug=debug )
 
 
 
