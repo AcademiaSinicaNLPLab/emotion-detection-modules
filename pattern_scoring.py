@@ -1,14 +1,14 @@
+# -*- coding: utf-8 -*-
+import config
 import sys, pymongo
 from mathutil import standard_deviation as std
 from mathutil import entropy as ent
 
-
-mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
-lexicon = mc['LJ40K']['lexicon']
-patscore = mc['LJ40K']['patscore']
+co_lexicon = db[config.co_lexicon_name]
+co_patscore = db[config.co_patscore_name]
 
 # get all emotinos in LJ40K
-emotions = sorted([x['emotion'] for x in mc['LJ40K']['emotions'].find({'label':'LJ40K'}, {'_id':0, 'emotion':1})])
+emotions = sorted([x['emotion'] for x in db[config.co_emotions_name].find({'label':'LJ40K'}, {'_id':0, 'emotion':1})])
 
 ### get_pattern_dist
 ## input: 'i am pissed'
@@ -20,9 +20,11 @@ def get_pattern_dist(pattern, smoothing_method):
 	
 	if smoothing_method == 0: 
 		pdist = dict(zip(emotions, [0]*len(emotions)))
+
 	elif smoothing_method == 1: 
 		pdist = dict(zip(emotions, [1]*len(emotions)))
-	for mdoc in lexicon.find( { 'pattern': pattern } ):
+
+	for mdoc in co_lexicon.find( { 'pattern': pattern } ):
 		pdist[mdoc['emotion']] += mdoc['count']
 
 	return pdist
@@ -65,34 +67,48 @@ def pattern_scoring_function(pattern, function, smoothing_method):
 	pattern_dist = get_pattern_dist(pattern, smoothing_method)
 
 	## score pattern in each emotion
-	probs = {}
+	scores = {}
 	for emotion in pattern_dist:
-		prob_p_e = scoring(pattern_dist, emotion, function)
-		probs[emotion] = prob_p_e
-	return probs
+		score_p_e = scoring(pattern_dist, emotion, function)
+		scores[emotion] = score_p_e
+	return scores
 
-def update_all_pattern_scores(function, smoothing_method, debug=False):
+def update_all_pattern_scores(fs_function, smoothing_method, debug=False):
 
 	# fetch all distinct patterns
 	patterns = set()
-	for mdoc in lexicon.find():
+	for mdoc in co_lexicon.find():
 		patterns.add( mdoc['pattern'] )
 
 	# calculate pattern scores
 	for pattern in patterns:
+
 		# get a set of prob of pattern in each emotion
-		probs = pattern_scoring_function(pattern, function, smoothing_method)
+		scores = pattern_scoring_function(pattern, fs_function, smoothing_method)
 
 		# update mongo
-		for emotion in probs:
-			prob = probs[emotion]
+		for emotion in scores:
+			score = scores[emotion]
 
 			# form query and update doc
-			query = { 'emotion': emotion, 'pattern': pattern, 'scoring': function, 'smoothing': smoothing_method }
-			update = { '$set': { 'prob': prob } }
+			##### old version #####
+			# query = { 'emotion': emotion, 'pattern': pattern, 'scoring': fs_function, 'smoothing': smoothing_method }
+
+			##### new version #####
+
+			## generate cfg string
+			cfg = { 
+					config.ps_function_name: fs_function, 
+					config.smoothing_method_name: smoothing_method 
+			}
+			cfg = config.transform_cfg(cfg)
+
+			## generate mongo query
+			query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
+			update = { '$set': { 'score': score } }
 
 			# upsert to mongo
-			patscore.update( query, update, upsert=True )
+			co_patscore.update( query, update, upsert=True )
 
 		if debug:
 			print 'processed', pattern
@@ -113,12 +129,16 @@ if __name__ == '__main__':
 
 	import getopt
 	
-	if len(sys.argv) == 1: _show_help(exit=1)
+	# if len(sys.argv) == 1: _show_help(exit=1)
 	
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'hf:s:d',['help','function=', 'smoothing=', 'debug'])
 	except getopt.GetoptError:
 		_show_help(exit=2)
+
+
+	ps_function = config.ps_function
+	smoothing_method =  config.smoothing_method
 
 	debug = False
 	for opt, arg in opts:
@@ -126,18 +146,18 @@ if __name__ == '__main__':
 			_show_help()
 			sys.exit()
 		elif opt in ('-f','--function'):
-			function = int(arg.strip())
+			ps_function = int(arg.strip())
 		elif opt in ('-s','--smoothing'):
 			smoothing_method = int(arg.strip())
 		elif opt in ('-d','--debug'):
 			debug = True
 
-	print 'scoring function:', function
+	print 'scoring function:', ps_function
 	print 'smoothing method:', smoothing_method
 	print 'debug mode:', debug
 	print '...correct?', raw_input()
 
-	update_all_pattern_scores( function, smoothing_method, debug=debug )
+	update_all_pattern_scores( ps_function, smoothing_method, debug=debug )
 
 
 
