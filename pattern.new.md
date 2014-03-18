@@ -1,6 +1,7 @@
 ##Pattern - 新架構！
 
 * #### Steps
+ 	1. [pattern extraction]
 	1. [Lexicon construction](#lexicon-construction)
 	2. [Pattern scoring](#pattern-scoring)
 	3. [Document scoring (emotion detection)](#document-scoring-emotion-detection)
@@ -21,11 +22,20 @@
 
 ---
 
+* ###Pattern extraction
+
+	[extract_pattern.py](extract_pattern.py)
+	
+	* anchor: __verb__, __adj__
+	* structure
+	 	- event: [subj, __verb__, obj, prep_obj]
+	 	- state: [subj, be, __adj__] 
+
 * ###Lexicon construction
 
 	`training`
 
-	[白板](img/new.0313.1.jpg), [程式](lexicon_construction.py)
+	[白板](img/new.0313.1.jpg), [lexicon_construction.py](lexicon_construction.py)
 	
 	算出 pattern 在 training 各 emotion 中出現次數，作為 pattern scoring function 的 input
 	
@@ -43,7 +53,7 @@
 
 	`training`
 	
-	[白板](img/new.0313.2.jpg), [[新公式]](img/discuss.0318.jpg), [程式](pattern_scoring.py), 
+	[白板](img/new.0313.2.jpg), [[新公式]](img/discuss.0318.jpg), [pattern_scoring.py](pattern_scoring.py), 
 	
 	套用不同的 pattern scoring function (`ps_function`)，得出一個 pattern 出現在某 emotion 中的 ~~機率~~ 分數
 
@@ -132,7 +142,7 @@
 
 	`testing`
 
-	[白板](img/new.0313.3.jpg), [程式](document_scoring.py)
+	[白板](img/new.0313.3.jpg), [document_scoring.py](document_scoring.py)
 	
 	```
 	模組 input: 文章 d + 情緒 e
@@ -228,7 +238,7 @@
 		```
 * ###Evaluation
 
-	[白板](img/new.0313.4.jpg), [程式](evaluation.py)
+	[白板](img/new.0313.4.jpg), [evaluation.py](evaluation.py)
 	
 	```python
 	# 用 cfg 來選擇 test instance
