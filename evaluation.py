@@ -68,20 +68,31 @@ def evals(cfg):
 
 	insts = fetch_insts(cfg)
 
-	emotinos = sorted(list(set([ x['gold_emotion'] for x in insts ])))
-
 	# target: happy
-	# really is happy
+	# really is Positive
 	# 	classify as happy	
 	#	classify as ~happy	
-	# really is ~happy		
+	# really is Negative	
 	# 	classify as happy	
 	# 	classify as ~happy	
 
-	results = {}
-	for target_gold in emotinos:
+	
 
+	
+	
+
+	for target_gold in emotions:
+
+		really_is_positive = 0
+		really_is_negative = 0
+
+		res = {}
 		for inst in insts:
+
+			## stat really_is_Positive: really_is_Negative = 200: 7900
+			really_is_positive += 1 if really_is == Positive else 0
+			really_is_negative += 1 if really_is == Negative else 0
+
 
 			really_is = Positive if target_gold == inst['gold_emotion'] else Negative
 			classified_as = Positive if inst['predict'][target_gold] == 1 else Negative
@@ -91,17 +102,37 @@ def evals(cfg):
 			FP = classified_as == Positive and really_is == Negative
 			FN = classified_as == Negative and really_is == Positive
 
-			results['TP'] += 1 if TP else 0
-			results['TN'] += 1 if TN else 0
-			results['FP'] += 1 if FP else 0
-			results['FN'] += 1 if FN else 0
+			res['TP'] += 1 if TP else 0
+			res['TN'] += 1 if TN else 0
+			res['FP'] += 1 if FP else 0
+			res['FN'] += 1 if FN else 0
 
 
-	return results
+		r = really_is_positive/float(really_is_negative)
+
+	for target_gold in emotions:
+		accuracy(results, ratio=r)
+
+	return 
+
+def accuracy(results, ratio=1):
+
+	results['TP']
+	results['TN']/ratio
+	results['FP']/ratio
+	results['FN']
+
+	Accuracy = round((TP+TN)/float(TP+TN+FN+FP), 4)
+
+	return Accuracy
 
 if __name__ == '__main__':
 
 	# gen_test(cfg)
 
+	res = evals(cfg)
+
+
+
 	
-	evals(cfg)
+
