@@ -79,7 +79,7 @@ def pattern_scoring_function(pattern):
 	return scores
 
 
-def update_all_pattern_scores(DEBUG=False):
+def update_all_pattern_scores(UPDATE=False, DEBUG=False):
 
 	cfg = config.toStr(fields="ps_function,smoothing")
 
@@ -95,8 +95,8 @@ def update_all_pattern_scores(DEBUG=False):
 	# calculate pattern scores
 	for i,pattern in enumerate(patterns):
 
-		if DEBUG:
-			print i,'/',len(patterns),' --> ',pattern
+		if DEBUG and i % 100 == 0:
+			print >> sys.stderr, i,'/',len(patterns)
 
 		# get a set of prob of pattern in each emotion
 		#### time: 0.00168, exec: len(patterns);  5.057 when len(patterns) == 3000
@@ -116,51 +116,42 @@ def update_all_pattern_scores(DEBUG=False):
 			#### v [update] time: 0.000025, exec, len(patterns)*40;  0.807 when len(patterns) == 1000
 			#### x [insert] time: 0.000020, exec, len(patterns)*40;  1.002 when len(patterns) == 1000
 			#### x [save]   time: 0.000026, exec, len(patterns)*40;  1.043 when len(patterns) == 1000
-			query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
-			update = { '$set': { 'score': score } }
-			co_patscore.update( query, update, upsert=True )
 
-def _show_help(exit=1):
-	print 
-	print 'usage: pattern_scoring.py -f <scoring function> -s <smoothing method>'
-	print 
-	print '  -s, --smoothing: smoothing method'
-	print '                   0: no smoothig'
-	print '                   1: naive smoothing (+1)'
-	print '  -f, --ps_function: scoring function'
-	print '                   0: no distribution information, only consider occurrence portion'
-	print '                   1: consider distribution information by multiplying the standard deviation (delta of p_bar)'
-	if exit: sys.exit(exit)
+			if UPDATE:
+				query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
+				update = { '$set': { 'score': score } }
+				co_patscore.update( query, update, upsert=True )
+			else:
+				mdoc = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg, 'score': score }
+				co_patscore.insert( mdoc )
+
+	if DEBUG:
+		print >> sys.stderr, 'processed done.'
 
 if __name__ == '__main__':
 
 	import getopt
 	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hf:s:d',['help','ps_function=', 'smoothing=', 'debug'])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:s:v',['help','ps_function=', 'smoothing=', 'verbose'])
 	except getopt.GetoptError:
-		_show_help(exit=2)
+		config.help('pattern_scoring', exit=2)
 
-
-	debug = False
+	verbose = False
 	for opt, arg in opts:
-		if opt in ('-h', '--help'):
-			_show_help()
-			sys.exit()
-		elif opt in ('-f','--function'):
-			config.ps_function_type = int(arg.strip())
-		elif opt in ('-s','--smoothing'):
-			config.smoothing_type = int(arg.strip())
-		elif opt in ('-d','--debug'):
-			debug = True
+		if opt in ('-h', '--help'): config.help('pattern_scoring')
+		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
+		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
+		elif opt in ('-v','--verbose'): verbose = True
+	
 
 	print config.ps_function_name, '=', config.ps_function_type
 	print config.smoothing_name, '=', config.smoothing_type
-	print 'debug mode:', debug
+	print 'verbose =', verbose
 	print '='*40
 	print 'press any key to start...', raw_input()
 
-	update_all_pattern_scores(DEBUG=debug)
+	update_all_pattern_scores(UPDATE=False, VERBOSE=verbose)
 
 
 
