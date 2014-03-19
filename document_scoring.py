@@ -83,7 +83,7 @@ def document_scoring(udocID, emotion):
 
 	return doc_score
 
-def update_all_document_scores(UPDATE=False, DEBUG=False):
+def update_all_document_scores(UPDATE=False, VERBOSE=False):
 
 	cfg_docscore = config.toStr(fields="ps_function,ds_function,sig_function,smoothing")
 	cfg_patscore = config.toStr(fields="ps_function,smoothing")

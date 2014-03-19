@@ -79,7 +79,7 @@ def pattern_scoring_function(pattern):
 	return scores
 
 
-def update_all_pattern_scores(UPDATE=False, DEBUG=False):
+def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 
 	cfg = config.toStr(fields="ps_function,smoothing")
 
@@ -95,7 +95,7 @@ def update_all_pattern_scores(UPDATE=False, DEBUG=False):
 	# calculate pattern scores
 	for i,pattern in enumerate(patterns):
 
-		if DEBUG and i % 100 == 0:
+		if VERBOSE and i % 100 == 0:
 			print >> sys.stderr, i,'/',len(patterns)
 
 		# get a set of prob of pattern in each emotion
@@ -125,7 +125,7 @@ def update_all_pattern_scores(UPDATE=False, DEBUG=False):
 				mdoc = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg, 'score': score }
 				co_patscore.insert( mdoc )
 
-	if DEBUG:
+	if VERBOSE:
 		print >> sys.stderr, 'processed done.'
 
 if __name__ == '__main__':
