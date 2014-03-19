@@ -145,11 +145,11 @@ if __name__ == '__main__':
 		elif opt in ('-v','--verbose'): verbose = True
 	
 
-	print config.ps_function_name, '=', config.ps_function_type
-	print config.smoothing_name, '=', config.smoothing_type
-	print 'verbose =', verbose
-	print '='*40
-	print 'press any key to start...', raw_input()
+	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
+	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
+	print >> sys.stderr, 'verbose =', verbose
+	print >> sys.stderr, '='*40
+	print >> sys.stderr, 'press any key to start...', raw_input()
 
 	update_all_pattern_scores(UPDATE=False, VERBOSE=verbose)
 

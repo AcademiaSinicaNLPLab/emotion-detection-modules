@@ -20,15 +20,13 @@ co_docscore = db[config.co_docscore_name]
 cache = {}
 
 def significance_factor(pat):
-	if config.sig_function == 0: return 1
-	elif config.sig_function == 1: return pat['pattern_length']
-	elif config.sig_function == 2: return float(1)/pat['sent_length']
-	elif config.sig_function == 3: return pat['pattern_length'] * ( float(1)/pat['sent_length'] )
+	sf = config.sig_function_type
+	if sf == 0: return 1
+	elif sf == 1: return pat['pattern_length']
+	elif sf == 2: return float(1)/pat['sent_length']
+	elif sf == 3: return pat['pattern_length'] * ( float(1)/pat['sent_length'] )
 	else: return False
 	
-
-
-
 def event_scoring(pat, emotion, cfg_patscore):
 
 	# global cache
@@ -46,42 +44,54 @@ def event_scoring(pat, emotion, cfg_patscore):
 	# 		cache[key] = res['prob']
 	# score_p_e = cache[key]
 
+	ses_each = time.time()
+
 	patscore_res = co_patscore.find_one( query )
-	score_p_e if not patscore_res else patscore_res['score']
+
+	score_p_e = -1 if not patscore_res else patscore_res['score']
 
 	pat_weight = 1.0 if 'weight' not in pat else pat['weight']
+	S_d_e = pat_weight * significance_factor(pat) * score_p_e
 
-	return pat_weight * significance_factor(pat) * score_p_e
+	T['cal-a-event-score'].append( time.time() - ses_each )
+
+	return S_d_e
 
 
 ## udocID=1000, emotion='happy'
 ## ds_function=1, opt={'scoring': 1, 'smoothing': 0}, sig_function=0, epsilon=0.5
-def document_scoring(udocID, emotion):
+def document_scoring(udocID, emotion, cfg_patscore):
 
+	sfind_pats = time.time()
 	## find all pats in the document <udocID>
 	# avg: 0.0008 sec 
 	mDocs = list( co_pats.find( {'udocID': udocID} ) )
+	T['find-pats-in-doc'].append( time.time() - sfind_pats )
 
+
+	ses = time.time()
 	## calculate event scores
 	event_scores = filter( lambda x: x >=0, [ event_scoring(pat, emotion, cfg_patscore) for pat in mDocs ] )
+	T['cal-all-event-scores'].append( time.time() - ses )
 
 	# [ event_scoring(pat, emotion, cfg_patscore) for pat in mDocs ]
 
+	sds = time.time()
 	# arithmetic mean
 	if config.ds_function_type == 0:
-
 		doc_score = 0 if len(event_scores) == 0 else sum(event_scores) / float( len(event_scores) )
-
 	# geometric mean
 	elif config.ds_function_type == 1:
-
 		doc_score = 0 if len(event_scores) == 0 else reduce(lambda x,y:x*y, event_scores )**(1/float(len(event_scores)))
-
 	## undefined ds_function
 	else:
 		return False
+	T['cal-doc-scores'].append( time.time() - sds )
+
 
 	return doc_score
+
+T = defaultdict(list)
 
 def update_all_document_scores(UPDATE=False, VERBOSE=False):
 
@@ -90,44 +100,56 @@ def update_all_document_scores(UPDATE=False, VERBOSE=False):
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
+	_processed = 0
+
 	for gold_emotion in emotions:
 
+		# print 
+
+		s = time.time()
 		## get all document with emotions <gold_emotion> and ldocID is great than 800
 		docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ) )
+		T['find-docs'].append( time.time() - s )
 
 		for doc in docs:
 
-			# {
-			# 	'udocID': udocID,
-			# 	'gold_emotion': gold_emotion,
-			#	'cfg': "",
-			# 	'scores' : 
-			# 	{
-			# 		'happy': 0.67,
-			# 		'sad': ...,
-			# 		...
-			# 	}	
-			# }
-
-			scores = {}
+			print gold_emotion, doc['udocID']
 
 			# score a document in 40 diff emotions
+			scores = {}
+
+			stest_emotion = time.time()
 			for test_emotion in emotions:
-				doc_score = document_scoring(doc['udocID'], test_emotion)
+
+				print '\t>',test_emotion
+				sds = time.time()
+				doc_score = document_scoring(doc['udocID'], test_emotion, cfg_patscore)
+				T['document_socring'].append( time.time() - sds )
+				
 				scores[test_emotion] = doc_score
+			T['all-test-emotion'].append( time.time() - stest_emotion )
 
 
+			smongo = time.time()
+			# save to mongo
 			if UPDATE:
-
 				query = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore }
 				update = { '$set': { 'scores': scores } }
 				co_docscore.update(query, update, upsert=True)
 			
 			else:
 				mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore, 'scores': scores }
-				co_docscore.update( mdoc )
+				# co_docscore.insert( mdoc )
+			T['save-mongo'].append( time.time() - smongo )
 
+			_processed += 1
 
+			print 'processed %d documents, current: udocID = %d' % (_processed, doc['udocID'])
+			
+			if _processed == 1:
+				for key in T:
+					print key, '\t', 'Total:',sum(T[key]), '\t', 'Exec:', len(T[key]), '\t', 'Single:', sum(T[key])/float(len(T[key]))
+				exit(1)
 
 if __name__ == '__main__':
 	import getopt
@@ -146,6 +168,6 @@ if __name__ == '__main__':
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-v','--verbose'): verbose = True
 			
-
+	update_all_document_scores(UPDATE=False, VERBOSE=verbose)
 
 				
