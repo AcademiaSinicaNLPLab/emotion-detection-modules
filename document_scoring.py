@@ -96,8 +96,6 @@ def document_scoring(udocID, emotions, cfg_patscore):
 
 	return scores
 
-T = defaultdict(list)
-
 def update_all_document_scores(UPDATE=False):
 
 	cfg_docscore = config.toStr(fields="ps_function,ds_function,sig_function,smoothing")
