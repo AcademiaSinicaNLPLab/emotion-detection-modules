@@ -30,30 +30,34 @@ def significance_factor(pat):
 	
 def event_scoring(pat, emotion, cfg_patscore):
 
-	# global cache
-	query = { 'pattern': pat['pattern'].lower(), 'emotion': emotion, 'cfg': cfg_patscore }
 	
-	# # form key to access cache
-	# key = tuple([query[x] for x in sorted(query.keys())])
+	query = { 'pattern': pat['pattern'].lower(), 'emotion': emotion, 'cfg': cfg_patscore }
+	projector = { '_id': 0, 'score':1 }
 
-	# if key not in cache:
-	# 	# fetch pattern score from mongo collection "patscore"
-	# 	res = co_patscore.find_one( query )
-	# 	if not res:
-	# 		cache[key] = -1
-	# 	else:
-	# 		cache[key] = res['prob']
-	# score_p_e = cache[key]
+	global cache
+	# form key to access cache
+	key = tuple([query[x] for x in sorted(query.keys())])
 
-	ses_each = time.time()
-	patscore_res = co_patscore.find_one( query )
-	score_p_e = -1 if not patscore_res else patscore_res['score']
+	if key not in cache:
+		# fetch pattern score from mongo collection "patscore"
+		patscore_res = co_patscore.find_one( query, projector )
+		if not patscore_res:
+			cache[key] = -1
+			score_p_e = -1
+		else:
+			cache[key] = patscore_res['score']
+			score_p_e = patscore_res['score']
+	else:
+		score_p_e = cache[key]
+
+	## Total: 25.9145987034, Exec: 106120, Single: 0.000244200892418
+	# ses_each = time.time()
+	# patscore_res = co_patscore.find_one( query )
+	# score_p_e = -1 if not patscore_res else patscore_res['score']
 	pat_weight = 1.0 if 'weight' not in pat else pat['weight']
+	# T['cal-a-event-score'].append( time.time() - ses_each )
 
-	S_d_e = pat_weight * significance_factor(pat) * score_p_e
-	T['cal-a-event-score'].append( time.time() - ses_each )
-
-	return S_d_e
+	return pat_weight * significance_factor(pat) * score_p_e
 
 
 ## udocID=1000, emotion='happy'
@@ -64,11 +68,11 @@ def event_scoring(pat, emotion, cfg_patscore):
 # 	'sad': 0.6,
 # }
 def document_scoring(udocID, emotions, cfg_patscore):
-
 	## find all pats in the document <udocID>
-	sfind_pats = time.time()
+	## Total: 0.0572915077209, Exec: 50, Single: 0.00114583015442
+	# sfind_pats = time.time()
 	pats = list( co_pats.find( {'udocID': udocID} ) )
-	T['find-pats-in-doc'].append( time.time() - sfind_pats )
+	# T['find-pats-in-doc'].append( time.time() - sfind_pats )
 
 	if config.verbose:
 		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats)),
@@ -82,14 +86,13 @@ def document_scoring(udocID, emotions, cfg_patscore):
 			sys.stderr.flush()
 
 		## calculate event scores
-		ses = time.time()
+		## Total: 26.184949398, Exec: 2000, Single: 0.013092474699
+		# ses = time.time()
 		event_scores = filter( lambda x: x >=0, [ event_scoring(pat, test_emotion, cfg_patscore) for pat in pats ] )
-		T['cal-event-score-in-emotion'].append( time.time() - ses )
-
-		# print event_scores
-		# raw_input()
+		# T['cal-event-score-in-emotion'].append( time.time() - ses )
 
 		## calculate documet scores
+		## Total: 0.0136754512787, Exec: 2000, Single: 6.83772563934e-06	
 		sds = time.time()
 		# arithmetic mean
 		if config.ds_function_type == 0:
@@ -121,24 +124,30 @@ def update_all_document_scores(UPDATE=False):
 
 	for gold_emotion in emotions:
 
-		s = time.time()
+		# s = time.time()
 		## get all document with emotions <gold_emotion> and ldocID is great than 800
+		# Total: 0.000894069671631, Exec: 1, Single: 0.000894069671631
 		docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ) )
-		T['find-docs'].append( time.time() - s )
+		# T['find-docs'].append( time.time() - s )
 
 		if config.verbose:
 			print >> sys.stderr, '%s ( %d docs )' % ( color.render(gold_emotion, 'g'), len(docs) )
 
 		for doc in docs:
 
-			# score a document in 40 diff emotions
-			## scoring a document: 0.316713166237,   Total: 3.1671 (10 docs)
-			stest_emotion = time.time()
-			scores = document_scoring(doc['udocID'], emotions, cfg_patscore)
-			T['all-test-emotion'].append( time.time() - stest_emotion )
+			_processed += 1
+			if _processed <= 50: continue
 
-			smongo = time.time()
+			# score a document in 40 diff emotions
+			## scoring a document: Total: 26.2910494804, Exec: 50, Single: 0.525820989609
+			# stest_emotion = time.time()
+			scores = document_scoring(doc['udocID'], emotions, cfg_patscore)
+			# T['all-test-emotion'].append( time.time() - stest_emotion )
+
+
+			# smongo = time.time()
 			# save to mongo
+			## Total: 0.0056939125061, Exec: 50, Single: 0.000113878250122
 			if UPDATE:
 				query = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore }
 				update = { '$set': { 'scores': scores } }
@@ -147,25 +156,19 @@ def update_all_document_scores(UPDATE=False):
 			else:
 				mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore, 'scores': scores }
 				co_docscore.insert( mdoc )
-			T['save-mongo'].append( time.time() - smongo )
+			# T['save-mongo'].append( time.time() - smongo )
 
-			_processed += 1
+			
 
 			# print 'processed %d/%d documents, current: udocID = %d' % (_processed, len(docs), doc['udocID'])
 			
-			if _processed == 1:
+			if _processed == 100:
 				for key in T:
 					print key, '\t', 'Total:',sum(T[key]), '\t', 'Exec:', len(T[key]), '\t', 'Single:', sum(T[key])/float(len(T[key]))
 				exit(1)
 
 if __name__ == '__main__':
-	
-
-	# find-pats-in-doc        		Total: 0.0191071033478  	Exec: 10        Single: 0.00191071033478
-	# find-docs       				Total: 0.000972032546997    Exec: 1         Single: 0.000972032546997
-	# cal-a-event-score       		Total: 3.09357309341    	Exec: 14520     Single: 0.000213055998169
-	# save-mongo      				Total: 0.00114464759827     Exec: 10        Single: 0.000114464759827
-	# cal-event-score-in-emotion    Total: 3.1272110939     	Exec: 400       Single: 0.00781802773476	
+	  
 	import getopt
 	
 	try:
