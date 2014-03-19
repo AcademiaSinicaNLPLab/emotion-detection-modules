@@ -85,7 +85,7 @@ def document_scoring(udocID, emotions, cfg_patscore):
 		ses = time.time()
 		event_scores = filter( lambda x: x >=0, [ event_scoring(pat, test_emotion, cfg_patscore) for pat in pats ] )
 		T['cal-event-score-in-emotion'].append( time.time() - ses )
-		
+
 		# print event_scores
 		# raw_input()
 
@@ -100,7 +100,7 @@ def document_scoring(udocID, emotions, cfg_patscore):
 		## undefined ds_function
 		else:
 			return False
-		T['cal-doc-score-in-emotion'].append( time.time() - ses )
+		T['cal-doc-score-in-emotion'].append( time.time() - sds )
 
 		scores[test_emotion] = doc_score
 
@@ -132,6 +132,7 @@ def update_all_document_scores(UPDATE=False):
 		for doc in docs:
 
 			# score a document in 40 diff emotions
+			## scoring a document: 0.316713166237,   Total: 3.1671 (10 docs)
 			stest_emotion = time.time()
 			scores = document_scoring(doc['udocID'], emotions, cfg_patscore)
 			T['all-test-emotion'].append( time.time() - stest_emotion )
@@ -158,6 +159,13 @@ def update_all_document_scores(UPDATE=False):
 				exit(1)
 
 if __name__ == '__main__':
+	
+
+	# find-pats-in-doc        		Total: 0.0191071033478  	Exec: 10        Single: 0.00191071033478
+	# find-docs       				Total: 0.000972032546997    Exec: 1         Single: 0.000972032546997
+	# cal-a-event-score       		Total: 3.09357309341    	Exec: 14520     Single: 0.000213055998169
+	# save-mongo      				Total: 0.00114464759827     Exec: 10        Single: 0.000114464759827
+	# cal-event-score-in-emotion    Total: 3.1272110939     	Exec: 400       Single: 0.00781802773476	
 	import getopt
 	
 	try:
