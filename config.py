@@ -22,7 +22,7 @@ smoothing_name = 'smoothing'
 ps_function_type = 0
 smoothing_type = 0
 
-ds_function_type = 1
+ds_function_type = 0
 sig_function_type = 0
 # epsilon = 0.5
 

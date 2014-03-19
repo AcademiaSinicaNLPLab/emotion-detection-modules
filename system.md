@@ -1,0 +1,11 @@
+```
+python document_scoring.py -p 0 -d 0 -s 0 -g 0 -v
+```
+
+```
+Cache hit: 6292880
+Cache miss: 11082280
+Cache hit rate: 0.362176808732
+Time total: 2067.79474998 sec
+```
+
