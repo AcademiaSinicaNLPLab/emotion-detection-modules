@@ -192,20 +192,56 @@
 		
 		mongo db.docscores 資料結構
 		```javascript
+		> db.docscore.findOne()
 		{
-			// query
-			udocID: 35000,
-			gold_emotion: 'pissed off',
-			test_emotion: 'pissed off',
-			ds_function: 1,
-			ps_function: 0,
-			smoothing: 0,
-	
-			// results
-			docscore: 0.95,
-			predict: 1
+		        "gold_emotion" : "sleepy",
+		        "udocID" : 38800,
+		        "cfg" : "ds_function=0,ps_function=0,sig_function=0,smoothing=0",
+		        "scores" : {
+		                "crazy" : 0.09193028567852563,
+		                "pissed off" : 0.2177708906814343,
+		                "tired" : 0.29250258968536014,
+		                "exhausted" : 0.3348375855292895,
+		                "sleepy" : 0.30457481625381205,
+		                "confused" : 0.3072008541783851,
+		                "sad" : 0.30589910187199343,
+		                "cheerful" : 0.37936526822920524,
+		                "blah" : 0.14167632671517247,
+		                "bouncy" : 0.21390231798680925,
+		                "good" : 0.22710887788432604,
+		                "blank" : 0.1519147957051693,
+		                "cold" : 0.15588083022200153,
+		                "busy" : 0.2866807724796811,
+		                "drained" : 0.40376355449028917,
+		                "hopeful" : 0.18732554842508656,
+		                "creative" : 0.189474336307377,
+		                "content" : 0.23102533889252175,
+		                "contemplative" : 0.2577801839480085,
+		                "calm" : 0.1921181853494458,
+		                "sick" : 0.15082862253645227,
+		                "bored" : 0.08997821918379256,
+		                "frustrated" : 0.2865260396599878,
+		                "excited" : 0.19295011083048627,
+		                "happy" : 0.16139217594419128,
+		                "lonely" : 0.23140748296154115,
+		                "okay" : 0.2416651307993018,
+		                "ecstatic" : 0.219785442876466,
+		                "loved" : 0.2888760163031374,
+		                "crushed" : 0.1683106072270861,
+		                "crappy" : 0.19745382944052145,
+		                "awake" : 0.1465454976797652,
+		                "aggravated" : 0.13278848794619966,
+		                "depressed" : 0.1398701238500988,
+		                "hungry" : 0.3205546113171841,
+		                "amused" : 0.29617292505246084,
+		                "anxious" : 0.1897809387259515,
+		                "accomplished" : 0.14167632671517247,
+		                "chipper" : 0.23622586480354021,
+		                "annoyed" : 0.16094862969426668
+		        }
 		}
 		```
+
 * ###Evaluation
 
 	[白板](img/new.0313.4.jpg), [evaluation.py](evaluation.py)
