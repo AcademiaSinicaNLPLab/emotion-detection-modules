@@ -95,7 +95,7 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 	# calculate pattern scores
 	for i,pattern in enumerate(patterns):
 
-		if VERBOSE and i % 100 == 0:
+		if config.verbose and i % 100 == 0:
 			print >> sys.stderr, i,'/',len(patterns)
 
 		# get a set of prob of pattern in each emotion
@@ -125,7 +125,7 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 				mdoc = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg, 'score': score }
 				co_patscore.insert( mdoc )
 
-	if VERBOSE:
+	if config.verbose:
 		print >> sys.stderr, 'processed done.'
 
 if __name__ == '__main__':
@@ -137,21 +137,24 @@ if __name__ == '__main__':
 	except getopt.GetoptError:
 		config.help('pattern_scoring', exit=2)
 
-	verbose = False
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('pattern_scoring')
 		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
-		elif opt in ('-v','--verbose'): verbose = True
+		elif opt in ('-v','--verbose'): config.verbose = True
 	
 
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
 	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
-	print >> sys.stderr, 'verbose =', verbose
+	print >> sys.stderr, 'verbose =', config.verbose
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
 
-	update_all_pattern_scores(UPDATE=False, VERBOSE=verbose)
+	import time
+	s = time.time()
+	update_all_pattern_scores(UPDATE=False)
+	print 'Time total:',time.time() - s,'sec'
+	
 
 
 
