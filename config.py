@@ -2,6 +2,7 @@
 import sys
 
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
+verbose = False
 
 ## mongo collection name
 co_emotions_name = 'emotions'

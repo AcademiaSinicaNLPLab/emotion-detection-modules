@@ -1,4 +1,4 @@
-import config
+import config, color
 import pymongo,sys
 from itertools import product
 
@@ -6,6 +6,7 @@ from itertools import product
 from collections import defaultdict
 import time
 from pprint import pprint
+
 
 db = pymongo.Connection(config.mongo_addr)['LJ40K']
 
@@ -45,55 +46,71 @@ def event_scoring(pat, emotion, cfg_patscore):
 	# score_p_e = cache[key]
 
 	ses_each = time.time()
-
 	patscore_res = co_patscore.find_one( query )
-
 	score_p_e = -1 if not patscore_res else patscore_res['score']
-
 	pat_weight = 1.0 if 'weight' not in pat else pat['weight']
-	S_d_e = pat_weight * significance_factor(pat) * score_p_e
 
+	S_d_e = pat_weight * significance_factor(pat) * score_p_e
 	T['cal-a-event-score'].append( time.time() - ses_each )
 
 	return S_d_e
 
 
 ## udocID=1000, emotion='happy'
-## ds_function=1, opt={'scoring': 1, 'smoothing': 0}, sig_function=0, epsilon=0.5
-def document_scoring(udocID, emotion, cfg_patscore):
+## input: udocID, emotions to be tested, cfg for fetching pat scores
+## output: a dictionary of emotion, doc_score
+# {
+# 	'happy': 0.2,
+# 	'sad': 0.6,
+# }
+def document_scoring(udocID, emotions, cfg_patscore):
 
-	sfind_pats = time.time()
 	## find all pats in the document <udocID>
-	# avg: 0.0008 sec 
-	mDocs = list( co_pats.find( {'udocID': udocID} ) )
+	sfind_pats = time.time()
+	pats = list( co_pats.find( {'udocID': udocID} ) )
 	T['find-pats-in-doc'].append( time.time() - sfind_pats )
 
+	if config.verbose:
+		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats)),
+		sys.stderr.flush()
 
-	ses = time.time()
-	## calculate event scores
-	event_scores = filter( lambda x: x >=0, [ event_scoring(pat, emotion, cfg_patscore) for pat in mDocs ] )
-	T['cal-all-event-scores'].append( time.time() - ses )
+	scores = {}
+	for test_emotion in emotions:
 
-	# [ event_scoring(pat, emotion, cfg_patscore) for pat in mDocs ]
+		if config.verbose:
+			print >> sys.stderr, '.',
+			sys.stderr.flush()
 
-	sds = time.time()
-	# arithmetic mean
-	if config.ds_function_type == 0:
-		doc_score = 0 if len(event_scores) == 0 else sum(event_scores) / float( len(event_scores) )
-	# geometric mean
-	elif config.ds_function_type == 1:
-		doc_score = 0 if len(event_scores) == 0 else reduce(lambda x,y:x*y, event_scores )**(1/float(len(event_scores)))
-	## undefined ds_function
-	else:
-		return False
-	T['cal-doc-scores'].append( time.time() - sds )
+		## calculate event scores
+		ses = time.time()
+		event_scores = filter( lambda x: x >=0, [ event_scoring(pat, test_emotion, cfg_patscore) for pat in pats ] )
+		T['cal-event-score-in-emotion'].append( time.time() - ses )
+		
+		# print event_scores
+		# raw_input()
 
+		## calculate documet scores
+		sds = time.time()
+		# arithmetic mean
+		if config.ds_function_type == 0:
+			doc_score = 0 if len(event_scores) == 0 else sum(event_scores) / float( len(event_scores) )
+		# geometric mean
+		elif config.ds_function_type == 1:
+			doc_score = 0 if len(event_scores) == 0 else reduce(lambda x,y:x*y, event_scores )**(1/float(len(event_scores)))
+		## undefined ds_function
+		else:
+			return False
+		T['cal-doc-score-in-emotion'].append( time.time() - ses )
 
-	return doc_score
+		scores[test_emotion] = doc_score
+
+	if config.verbose:
+		print 
+	return scores
 
 T = defaultdict(list)
 
-def update_all_document_scores(UPDATE=False, VERBOSE=False):
+def update_all_document_scores(UPDATE=False):
 
 	cfg_docscore = config.toStr(fields="ps_function,ds_function,sig_function,smoothing")
 	cfg_patscore = config.toStr(fields="ps_function,smoothing")
@@ -104,31 +121,20 @@ def update_all_document_scores(UPDATE=False, VERBOSE=False):
 
 	for gold_emotion in emotions:
 
-		# print 
-
 		s = time.time()
 		## get all document with emotions <gold_emotion> and ldocID is great than 800
 		docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ) )
 		T['find-docs'].append( time.time() - s )
 
+		if config.verbose:
+			print >> sys.stderr, '%s ( %d docs )' % ( color.render(gold_emotion, 'g'), len(docs) )
+
 		for doc in docs:
 
-			print gold_emotion, doc['udocID']
-
 			# score a document in 40 diff emotions
-			scores = {}
-
 			stest_emotion = time.time()
-			for test_emotion in emotions:
-
-				print '\t>',test_emotion
-				sds = time.time()
-				doc_score = document_scoring(doc['udocID'], test_emotion, cfg_patscore)
-				T['document_socring'].append( time.time() - sds )
-				
-				scores[test_emotion] = doc_score
+			scores = document_scoring(doc['udocID'], emotions, cfg_patscore)
 			T['all-test-emotion'].append( time.time() - stest_emotion )
-
 
 			smongo = time.time()
 			# save to mongo
@@ -139,12 +145,12 @@ def update_all_document_scores(UPDATE=False, VERBOSE=False):
 			
 			else:
 				mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore, 'scores': scores }
-				# co_docscore.insert( mdoc )
+				co_docscore.insert( mdoc )
 			T['save-mongo'].append( time.time() - smongo )
 
 			_processed += 1
 
-			print 'processed %d documents, current: udocID = %d' % (_processed, doc['udocID'])
+			# print 'processed %d/%d documents, current: udocID = %d' % (_processed, len(docs), doc['udocID'])
 			
 			if _processed == 1:
 				for key in T:
@@ -159,15 +165,14 @@ if __name__ == '__main__':
 	except getopt.GetoptError:
 		config.help('document_scoring', exit=2)
 
-	verbose = False
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('document_scoring')
 		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
 		elif opt in ('-d','--ds_function'): config.ds_function_type = int(arg.strip())
 		elif opt in ('-g','--sig_function'): config.sig_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
-		elif opt in ('-v','--verbose'): verbose = True
+		elif opt in ('-v','--verbose'): config.verbose = True
 			
-	update_all_document_scores(UPDATE=False, VERBOSE=verbose)
+	update_all_document_scores(UPDATE=False)
 
 				
