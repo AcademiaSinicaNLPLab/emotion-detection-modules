@@ -158,7 +158,7 @@ if __name__ == '__main__':
 	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type
 	print >> sys.stderr, config.sig_function_type, '=', config.sig_function_type
 	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
-	print >> sys.stderr, 'verbose =', verbose
+	print >> sys.stderr, 'verbose =', config.verbose
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
 
