@@ -28,34 +28,56 @@ def significance_factor(pat):
 	elif sf == 3: return pat['pattern_length'] * ( float(1)/pat['sent_length'] )
 	else: return False
 	
+
+miss = 0
+hit = 0
+
 def event_scoring(pat, emotion, cfg_patscore):
 
 	
 	query = { 'pattern': pat['pattern'].lower(), 'emotion': emotion, 'cfg': cfg_patscore }
 	projector = { '_id': 0, 'score':1 }
 
-	global cache
+	global cache, miss, hit
 	# form key to access cache
 	key = tuple([query[x] for x in sorted(query.keys())])
 
+	# if key not in cache:
+	# 	# fetch pattern score from mongo collection "patscore"
+	# 	patscore_res = co_patscore.find_one( query, projector )
+	# 	if not patscore_res:
+	# 		cache[key] = -1
+	# 		score_p_e = -1
+	# 	else:
+	# 		cache[key] = patscore_res['score']
+	# 		score_p_e = patscore_res['score']
+	# else:
+	# 	score_p_e = cache[key]
+
+	XX = time.time()
+	patscore_res = co_patscore.find_one( query, projector )
+	T['co_patscore.find_one'].append( time.time() - XX )
+
+
+
+	XX = time.time()
 	if key not in cache:
-		# fetch pattern score from mongo collection "patscore"
-		patscore_res = co_patscore.find_one( query, projector )
+		miss += 1
 		if not patscore_res:
 			cache[key] = -1
-			score_p_e = -1
 		else:
 			cache[key] = patscore_res['score']
-			score_p_e = patscore_res['score']
 	else:
-		score_p_e = cache[key]
+		hit += 1
+	score_p_e = cache[key]
+	T['cache[key]'].append( time.time() - XX )
 
 	## Total: 25.9145987034, Exec: 106120, Single: 0.000244200892418
-	# ses_each = time.time()
-	# patscore_res = co_patscore.find_one( query )
+	
+	# patscore_res = co_patscore.find_one( query, projector )
 	# score_p_e = -1 if not patscore_res else patscore_res['score']
 	pat_weight = 1.0 if 'weight' not in pat else pat['weight']
-	# T['cal-a-event-score'].append( time.time() - ses_each )
+	
 
 	return pat_weight * significance_factor(pat) * score_p_e
 
@@ -93,7 +115,7 @@ def document_scoring(udocID, emotions, cfg_patscore):
 
 		## calculate documet scores
 		## Total: 0.0136754512787, Exec: 2000, Single: 6.83772563934e-06	
-		sds = time.time()
+		# sds = time.time()
 		# arithmetic mean
 		if config.ds_function_type == 0:
 			doc_score = 0 if len(event_scores) == 0 else sum(event_scores) / float( len(event_scores) )
@@ -103,7 +125,7 @@ def document_scoring(udocID, emotions, cfg_patscore):
 		## undefined ds_function
 		else:
 			return False
-		T['cal-doc-score-in-emotion'].append( time.time() - sds )
+		# T['cal-doc-score-in-emotion'].append( time.time() - sds )
 
 		scores[test_emotion] = doc_score
 
@@ -136,7 +158,7 @@ def update_all_document_scores(UPDATE=False):
 		for doc in docs:
 
 			_processed += 1
-			if _processed <= 50: continue
+			if _processed <= 100: continue
 
 			# score a document in 40 diff emotions
 			## scoring a document: Total: 26.2910494804, Exec: 50, Single: 0.525820989609
@@ -162,9 +184,15 @@ def update_all_document_scores(UPDATE=False):
 
 			# print 'processed %d/%d documents, current: udocID = %d' % (_processed, len(docs), doc['udocID'])
 			
-			if _processed == 100:
+			if _processed == 150:
 				for key in T:
 					print key, '\t', 'Total:',sum(T[key]), '\t', 'Exec:', len(T[key]), '\t', 'Single:', sum(T[key])/float(len(T[key]))
+				global miss, hit
+				print '='*50
+				print 'cache hit:',hit
+				print 'cache miss:',hit
+				print 'hit rate:',hit/float(hit+miss)
+
 				exit(1)
 
 if __name__ == '__main__':
