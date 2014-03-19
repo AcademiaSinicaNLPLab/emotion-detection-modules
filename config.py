@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-## for time
-from collections import defaultdict
-import time
-from pprint import pprint
-
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
 
 ## mongo collection name

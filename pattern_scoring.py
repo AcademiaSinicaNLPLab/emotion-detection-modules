@@ -4,6 +4,11 @@ import sys, pymongo
 from mathutil import standard_deviation as std
 from mathutil import entropy as ent
 
+## for time
+from collections import defaultdict
+import time
+from pprint import pprint
+
 db = pymongo.Connection(config.mongo_addr)['LJ40K']
 
 co_lexicon = db[config.co_lexicon_name]
