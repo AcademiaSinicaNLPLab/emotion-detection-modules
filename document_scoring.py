@@ -156,6 +156,14 @@ if __name__ == '__main__':
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 	
+	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
+	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type
+	print >> sys.stderr, config.sig_function_type, '=', config.sig_function_type
+	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
+	print >> sys.stderr, 'verbose =', verbose
+	print >> sys.stderr, '='*40
+	print >> sys.stderr, 'press any key to start...', raw_input()
+
 	import time
 	s = time.time()
 	update_all_document_scores(UPDATE=False)
