@@ -90,8 +90,6 @@ def update_all_pattern_scores(DEBUG=False):
 	patterns = set()
 	for mdoc in co_lexicon.find():
 		patterns.add( mdoc['pattern'] )
-		if len(patterns) == 200: break
-
 	print >> sys.stderr, 'done'
 
 	# calculate pattern scores
