@@ -93,7 +93,7 @@ def document_scoring(udocID, emotions, cfg_patscore):
 
 	if config.verbose:
 		print >> sys.stderr, ''
-	
+
 	return scores
 
 T = defaultdict(list)
@@ -155,7 +155,10 @@ if __name__ == '__main__':
 		elif opt in ('-g','--sig_function'): config.sig_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
-			
+	
+	import time
+	s = time.time()
 	update_all_document_scores(UPDATE=False)
+	print 'Time total:',time.time() - s,'sec'
 
 				
