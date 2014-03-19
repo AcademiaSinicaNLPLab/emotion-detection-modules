@@ -4,11 +4,6 @@ import sys, pymongo
 from mathutil import standard_deviation as std
 from mathutil import entropy as ent
 
-## for time
-from collections import defaultdict
-import time
-from pprint import pprint
-
 db = pymongo.Connection(config.mongo_addr)['LJ40K']
 
 co_lexicon = db[config.co_lexicon_name]
@@ -83,9 +78,8 @@ def pattern_scoring_function(pattern):
 		scores[emotion] = score_p_e
 	return scores
 
-T = defaultdict(list)
 
-def update_all_pattern_scores(UPDATE=False, DEBUG=False):
+def update_all_pattern_scores(DEBUG=False):
 
 	cfg = config.toStr(fields="ps_function,smoothing")
 
@@ -96,57 +90,37 @@ def update_all_pattern_scores(UPDATE=False, DEBUG=False):
 	patterns = set()
 	for mdoc in co_lexicon.find():
 		patterns.add( mdoc['pattern'] )
-		if len(patterns) > 200:
-			break
+		if len(patterns) == 200: break
+
 	print >> sys.stderr, 'done'
 
 	# calculate pattern scores
 	for i,pattern in enumerate(patterns):
 
-		if i == 200:
-			break
-
-		print i,'/',len(patterns),' --> ',pattern
-
+		if DEBUG:
+			print i,'/',len(patterns),' --> ',pattern
 
 		# get a set of prob of pattern in each emotion
+		#### time: 0.00168, exec: len(patterns);  5.057 when len(patterns) == 3000
 		scores = pattern_scoring_function(pattern)
 
-		
-		s = time.time()
-		# update mongo
+		# insert  Total: 1.00297856331    Loop: 40000     Each: 2.50744640827e-05
+		# update  Total: 0.807085752487   Loop: 40000     Each: 2.01771438122e-05
+		# save    Total: 1.04345178604    Loop: 40000     Each: 2.6086294651e-05
+
+		## save score to mongo
+		#### time: 0.00096, exec, len(patterns);  2.898 when len(patterns) == 3000
 		for emotion in scores:
+
 			score = scores[emotion]
 
-
-			# upsert to mongo if UPDATE is True
-			if i < 100:
-				su = time.time()
-
-				## generate mongo query and update
-				query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
-				update = { '$set': { 'score': score } }
-				co_patscore.update( query, update, upsert=True )
-
-				T['update'].append( time.time() - su )
-
-			# directly insert
-			else:
-				si = time.time()
-
-				mdoc = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg, 'score': score }
-				co_patscore.insert( mdoc )
-
-				T['insert'].append( time.time() - si )
-
-		T['all-scores'].append( time.time() - s )
-
-			
-		# if DEBUG:
-		# 	print 'processed', pattern
-
-	for key in T:
-		print key, '\tTotal:',sum(T[key]), '\tLoop:',len(T[key]), '\tEach:', sum(T[key])/float(len(T[key]))
+			## generate mongo query and upsert
+			#### v [update] time: 0.000025, exec, len(patterns)*40;  0.807 when len(patterns) == 1000
+			#### x [insert] time: 0.000020, exec, len(patterns)*40;  1.002 when len(patterns) == 1000
+			#### x [save]   time: 0.000026, exec, len(patterns)*40;  1.043 when len(patterns) == 1000
+			query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
+			update = { '$set': { 'score': score } }
+			co_patscore.update( query, update, upsert=True )
 
 def _show_help(exit=1):
 	print 
@@ -155,7 +129,7 @@ def _show_help(exit=1):
 	print '  -s, --smoothing: smoothing method'
 	print '                   0: no smoothig'
 	print '                   1: naive smoothing (+1)'
-	print '  -f, --function: scoring function'
+	print '  -f, --ps_function: scoring function'
 	print '                   0: no distribution information, only consider occurrence portion'
 	print '                   1: consider distribution information by multiplying the standard deviation (delta of p_bar)'
 	if exit: sys.exit(exit)
@@ -164,16 +138,11 @@ if __name__ == '__main__':
 
 	import getopt
 	
-	# if len(sys.argv) == 1: _show_help(exit=1)
-	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hf:s:d',['help','function=', 'smoothing=', 'debug'])
+		opts, args = getopt.getopt(sys.argv[1:],'hf:s:d',['help','ps_function=', 'smoothing=', 'debug'])
 	except getopt.GetoptError:
 		_show_help(exit=2)
 
-
-	ps_function = config.ps_function_type
-	smoothing =  config.smoothing_type
 
 	debug = False
 	for opt, arg in opts:
@@ -181,18 +150,19 @@ if __name__ == '__main__':
 			_show_help()
 			sys.exit()
 		elif opt in ('-f','--function'):
-			ps_function = int(arg.strip())
+			config.ps_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'):
-			smoothing = int(arg.strip())
+			config.smoothing_type = int(arg.strip())
 		elif opt in ('-d','--debug'):
 			debug = True
 
-	print 'scoring function:', ps_function
-	print 'smoothing method:', smoothing
+	print config.ps_function_name, '=', config.ps_function_type
+	print config.smoothing_name, '=', config.smoothing_type
 	print 'debug mode:', debug
-	print '...correct?', raw_input()
+	print '='*40
+	print 'press any key to start...', raw_input()
 
-	update_all_pattern_scores(UPDATE=False, DEBUG=debug )
+	update_all_pattern_scores(DEBUG=debug)
 
 
 

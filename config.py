@@ -5,7 +5,7 @@ mongo_addr = 'doraemon.iis.sinica.edu.tw'
 ## mongo collection name
 co_emotions_name = 'emotions'
 co_lexicon_name = 'lexicon'
-co_patscore_name = 'patscore_time_test'
+co_patscore_name = 'patscore'
 
 ## names of functions
 ps_function_name = 'ps_function'
@@ -15,9 +15,10 @@ smoothing_name = 'smoothing'
 
 ## functions
 ps_function_type = 0
+smoothing_type = 0
+
 ds_function_type = 1
 sig_function_type = 0
-smoothing_type = 0
 # epsilon = 0.5
 
 ## utils
