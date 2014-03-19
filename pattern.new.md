@@ -76,67 +76,37 @@
 		```latex
 		score_{0} \left ( p,\overline{e} \right ) = \frac{\sum_{ e_j \in \overline{e_l} } score\left ( p, e_{j} \right )}{\left | \overline{e} \right |}
 		```
-	
-		![equation](http://latex.codecogs.com/gif.latex?score_%7B1%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20%3D%20score_%7B0%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20*%20%5CDelta_%7B%20%5Coverline%7Bnp%7D%20%7D)
-		```latex
-		score_{1} \left ( p,\overline{e} \right ) = score_{0} \left ( p,\overline{e} \right ) * \Delta_{ \overline{np} }
+		
 		```
-	
-		![equation](http://latex.codecogs.com/gif.latex?score_%7B2%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20%3D%20score_%7B0%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20*%20%5Cleft%28%201%20&plus;%20%5Calpha%20*%20%5CDelta_%7B%20%5Coverline%7Bnp%7D%20%7D%20%5Cright%20%29)
-		```latex
-		score_{2} \left ( p,\overline{e} \right ) = score_{0} \left ( p,\overline{e} \right ) * \left( 1 + \alpha * \Delta_{ \overline{np} } \right )
-		```	
+		補 新的 pattern scoring function
+		...
+		...
+		```
 	
 	* #### 資料結構
  
-		* current `db.patscore`
+		* `db.patscore`
 		
 			```javascript
 			// db.patscore: pattern scores（跑完 scoring function 後的結果）
 			{
-			        "emotion" : "crazy",
-			        "pattern" : "i am pissed",
-			        "prob" : 0.9669999980078527,
-			        "scoring" : 1,
-			        "smoothing" : 0
-			},
-			{
-			        "emotion" : "crazy",
-			        "pattern" : "i am pissed",
-			        "prob" : 0.6223404255319149,
-			        "scoring" : 0,
-			        "smoothing" : 0
-			}
-			```
-		* to-do `db.patscore`
-		
-			```javascript
-			// db.patscore: pattern scores  (output of ps_function)
-			{
-				"emotion": "crazy",
-				"pattern": "i am pissed",
-				"cfg": "fs_function=1,smoothing=0",
-				"score": 0.9669999980078527
-			},
-			{
-				"emotion": "crazy",
-				"pattern": "i am pissed",
-				"cfg": "fs_function=1,smoothing=0",
-				"score": 0.9669999980078527
+				// query
+				"cfg" : "ps_function=0,smoothing=0",
+				"emotion" : "crazy",
+				"pattern" : "i am pissed",
+				
+				// fetch
+				"score" : 0.6223404255319149
 			}
 			```
 
 
-		* 從程式裡用新方法跑出 prob 後 update mongo
+		* 從程式裡用新方法跑出 ~~prob~~ score 後 update (or insert)
 			```python
-			mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
-			patscore = mc['LJ40K']['patscore']
-			
-			probs = pattern_scoring_function(pattern, function, smoothing_method)
-			
-			## update prob of pattern "i am pissed" in emotion "pissed off" using scoring function 1, smoothing method: 0
-			patscore.update( { 'emotion': 'pissed off', 'pattern': 'i am pissed', 'scoring': 1, 'smoothing': 0 }, { '$set': { 'prob': prob } } )
-		```
+			query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
+			update = { '$set': { 'score': score } }
+			co_patscore.update( query, update, upsert=True )
+			```
 	
 * ###Document scoring (emotion detection)
 
