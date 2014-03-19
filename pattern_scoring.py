@@ -16,14 +16,14 @@ emotions = sorted([x['emotion'] for x in db[config.co_emotions_name].find({'labe
 ## input: 'i am pissed'
 ## output: { 'happy': 1, 'crazy': 3, 'pissed off': 25, ...}
 ## option:
-## 		smoothing_method: 0 --> no smoothing
-##		smoothing_method: 1 --> +1
-def get_pattern_dist(pattern, smoothing_method):
+## 		config.smoothing_type: 0 --> no smoothing
+##		config.smoothing_type: 1 --> +1
+def get_pattern_dist(pattern):
 	
-	if smoothing_method == 0: 
+	if config.smoothing_type == 0: 
 		pdist = dict(zip(emotions, [0]*len(emotions)))
 
-	elif smoothing_method == 1: 
+	elif config.smoothing_type == 1: 
 		pdist = dict(zip(emotions, [1]*len(emotions)))
 
 	for mdoc in co_lexicon.find( { 'pattern': pattern } ):
@@ -33,26 +33,28 @@ def get_pattern_dist(pattern, smoothing_method):
 
 #### ------------------- scoring functions ------------------- ####
 
-### scoring
+
 ## input:  { emotion: count, ... }
 ## output: score(pattern, emotion)
 ## option: 
-##	 function 0: only consider occurrence portion (no distribution information)
-##	 function 1: consider distribution information by multiplying delta of p_bar
-def scoring(pattern_dist, emotion, f):
+##	 config.ps_function_type 0: only consider occurrence portion (no distribution information)
+##	 config.ps_function_type 1: consider distribution information by multiplying delta of p_bar
+def scoring(pattern_dist, emotion):
+
 	p = pattern_dist[emotion]
 	p_bar = [pattern_dist[x] for x in pattern_dist if x != emotion]
+
 	## all zero
 	if sum(p_bar) > 0:
 		np_bar = [x/float(sum(p_bar)) for x in p_bar]
 	else:
 		np_bar = p_bar
 
-	if f == 0:
+	if config.ps_function_type == 0:
 		omega_p = (p, sum(p_bar)/float(len(p_bar)) )
 		prob_p_e = omega_p[0]/float(sum(omega_p))
 
-	elif f == 1:
+	elif config.ps_function_type == 1:
 		delta_p_bar = std(np_bar)
 		omega_p = (p, sum(p_bar)/float(len(p_bar))*delta_p_bar )
 		prob_p_e = omega_p[0]/float(sum(omega_p))
@@ -61,63 +63,87 @@ def scoring(pattern_dist, emotion, f):
 
 #### ------------------- scoring functions ------------------- ####
 
-### pattern_scoring_function
+from collections import defaultdict
+import time
+from pprint import pprint
+T = defaultdict(list)
+
 ## input:  pattern, emotion, function_type
 ## output: score(pattern, emotion)
-def pattern_scoring_function(pattern, function, smoothing_method):
+def pattern_scoring_function(pattern):
+
+	s = time.time()
 	## smoothing method is for pattern distribution
-	pattern_dist = get_pattern_dist(pattern, smoothing_method)
+	pattern_dist = get_pattern_dist(pattern)
+	T['get_pattern_dist'].append( time.time()-s )
+	
+
 
 	## score pattern in each emotion
+	s = time.time()
 	scores = {}
 	for emotion in pattern_dist:
-		score_p_e = scoring(pattern_dist, emotion, function)
+
+		ss = time.time()
+		score_p_e = scoring(pattern_dist, emotion)
+		T['each-scoring'].append( time.time()-ss )
+
 		scores[emotion] = score_p_e
+	T['all-scoring'].append( time.time()-s )
+
 	return scores
 
-def update_all_pattern_scores(fs_function, smoothing_method, debug=False):
+
+
+def update_all_pattern_scores(UPDATE=False, DEBUG=False):
+
+	cfg = config.toStr(fields="ps_function,smoothing")
 
 	# fetch all distinct patterns
+	print >> sys.stderr, 'fetching all distinct patternst...',
+	sys.stderr.flush()
+
 	patterns = set()
 	for mdoc in co_lexicon.find():
 		patterns.add( mdoc['pattern'] )
-
-	if debug:
-		print >> sys.stderr, 'get all distinct patterns'
+		if len(patterns) > 150:
+			break
+	print >> sys.stderr, 'done'
 
 	# calculate pattern scores
-	for pattern in patterns:
+	for i,pattern in enumerate(patterns):
+
+		if i == 100:
+			break
+
+		print i,'/',len(patterns),' --> ',pattern
+
 
 		# get a set of prob of pattern in each emotion
-		scores = pattern_scoring_function(pattern, fs_function, smoothing_method)
+		scores = pattern_scoring_function(pattern)
 
-		# update mongo
-		for emotion in scores:
-			score = scores[emotion]
+		# # update mongo
+		# for emotion in scores:
+		# 	score = scores[emotion]
 
-			# form query and update doc
-			##### old version #####
-			# query = { 'emotion': emotion, 'pattern': pattern, 'scoring': fs_function, 'smoothing': smoothing_method }
+		# 	# upsert to mongo if UPDATE is True
+		# 	if UPDATE:
+		# 		## generate mongo query and update
+		# 		query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
+		# 		update = { '$set': { 'score': score } }
+		# 		co_patscore.update( query, update, upsert=True )
 
-			##### new version #####
-
-			## generate cfg string
-			cfg = { 
-					config.ps_function_name: fs_function, 
-					config.smoothing_name: smoothing_method 
-			}
-			cfg = config.transform_cfg(cfg)
-
-			## generate mongo query
-			query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
-			update = { '$set': { 'score': score } }
-
-			# upsert to mongo
-			co_patscore.update( query, update, upsert=True )
+		# 	# directly insert
+		# 	else:
+		# 		mdoc = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg, 'score': score }
+		# 		co_patscore.insert( mdoc )
 
 			
-		if debug:
-			print 'processed', pattern
+		# if DEBUG:
+		# 	print 'processed', pattern
+
+	for key in T:
+		print key, '\tTotal:',sum(T[key]), '\tLoop:',len(T[key]), '\tEach:', sum(T[key])/float(len(T[key]))
 
 def _show_help(exit=1):
 	print 
@@ -163,7 +189,7 @@ if __name__ == '__main__':
 	print 'debug mode:', debug
 	print '...correct?', raw_input()
 
-	update_all_pattern_scores( ps_function, smoothing, debug=debug )
+	update_all_pattern_scores(UPDATE=False, DEBUG=debug )
 
 
 
