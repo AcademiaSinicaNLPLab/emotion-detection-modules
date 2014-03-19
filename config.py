@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
+## for time
+from collections import defaultdict
+import time
+from pprint import pprint
+
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
 
 ## mongo collection name
 co_emotions_name = 'emotions'
 co_lexicon_name = 'lexicon'
-co_patscore_name = 'patscore'
+co_patscore_name = 'patscore_time_test'
 
 ## names of functions
 ps_function_name = 'ps_function'

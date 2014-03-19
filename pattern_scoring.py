@@ -31,9 +31,7 @@ def get_pattern_dist(pattern):
 
 	return pdist
 
-#### ------------------- scoring functions ------------------- ####
-
-
+#### ------------------- begin scoring functions ------------------- ####
 ## input:  { emotion: count, ... }
 ## output: score(pattern, emotion)
 ## option: 
@@ -60,40 +58,27 @@ def scoring(pattern_dist, emotion):
 		prob_p_e = omega_p[0]/float(sum(omega_p))
 
 	return prob_p_e
-
-#### ------------------- scoring functions ------------------- ####
-
-from collections import defaultdict
-import time
-from pprint import pprint
-T = defaultdict(list)
+#### ------------------- end scoring functions ------------------- ####
 
 ## input:  pattern, emotion, function_type
 ## output: score(pattern, emotion)
 def pattern_scoring_function(pattern):
 
-	s = time.time()
-	## smoothing method is for pattern distribution
+	#### time: 0.00016, exec: (length of all patterns)
 	pattern_dist = get_pattern_dist(pattern)
-	T['get_pattern_dist'].append( time.time()-s )
-	
-
 
 	## score pattern in each emotion
-	s = time.time()
+	#### time: 0.00067, exec: (length of all patterns)
 	scores = {}
 	for emotion in pattern_dist:
 
-		ss = time.time()
+		#### scoring time 0.0000167, exec: (length of all patterns) * 40
 		score_p_e = scoring(pattern_dist, emotion)
-		T['each-scoring'].append( time.time()-ss )
 
 		scores[emotion] = score_p_e
-	T['all-scoring'].append( time.time()-s )
-
 	return scores
 
-
+T = defaultdict(list)
 
 def update_all_pattern_scores(UPDATE=False, DEBUG=False):
 
@@ -106,14 +91,14 @@ def update_all_pattern_scores(UPDATE=False, DEBUG=False):
 	patterns = set()
 	for mdoc in co_lexicon.find():
 		patterns.add( mdoc['pattern'] )
-		if len(patterns) > 150:
+		if len(patterns) > 200:
 			break
 	print >> sys.stderr, 'done'
 
 	# calculate pattern scores
 	for i,pattern in enumerate(patterns):
 
-		if i == 100:
+		if i == 200:
 			break
 
 		print i,'/',len(patterns),' --> ',pattern
@@ -122,21 +107,34 @@ def update_all_pattern_scores(UPDATE=False, DEBUG=False):
 		# get a set of prob of pattern in each emotion
 		scores = pattern_scoring_function(pattern)
 
-		# # update mongo
-		# for emotion in scores:
-		# 	score = scores[emotion]
+		
+		s = time.time()
+		# update mongo
+		for emotion in scores:
+			score = scores[emotion]
 
-		# 	# upsert to mongo if UPDATE is True
-		# 	if UPDATE:
-		# 		## generate mongo query and update
-		# 		query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
-		# 		update = { '$set': { 'score': score } }
-		# 		co_patscore.update( query, update, upsert=True )
 
-		# 	# directly insert
-		# 	else:
-		# 		mdoc = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg, 'score': score }
-		# 		co_patscore.insert( mdoc )
+			# upsert to mongo if UPDATE is True
+			if i < 100:
+				su = time.time()
+
+				## generate mongo query and update
+				query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
+				update = { '$set': { 'score': score } }
+				co_patscore.update( query, update, upsert=True )
+
+				T['update'].append( time.time() - su )
+
+			# directly insert
+			else:
+				si = time.time()
+
+				mdoc = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg, 'score': score }
+				co_patscore.insert( mdoc )
+
+				T['insert'].append( time.time() - si )
+
+		T['all-scores'].append( time.time() - s )
 
 			
 		# if DEBUG:
