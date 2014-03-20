@@ -89,15 +89,18 @@ def document_scoring(udocID):
 
 	for pat in pats:
 
+		if config.verbose:
+			print >> sys.stderr, '|',
+			sys.stderr.flush()
+
 		EventScores = event_scoring(pat)
 
 		for emotion in EventScores:
 			D[emotion].append( EventScores[emotion] )
 
+	print >> sys.stderr, ''
+	
 	return dict([(e, sum(D[e])/float(len(D[e])) ) for e in D])
-
-
-
 
 	# scores = {}
 	# for test_emotion in emotions:
@@ -125,8 +128,7 @@ def document_scoring(udocID):
 
 	# 	scores[test_emotion] = doc_score
 
-	# if config.verbose:
-	# 	print >> sys.stderr, ''
+
 
 	# return scores
 
@@ -153,7 +155,7 @@ def update_all_document_scores(UPDATE=False):
 			# score a document in 40 diff emotions
 			## scoring a document: Total: 26.2910494804, Exec: 50, Single: 0.525820989609
 			scores = document_scoring(doc['udocID'])
-			
+
 			mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'scores': scores }
 			co_docscore.insert( mdoc )
 
