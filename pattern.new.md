@@ -107,6 +107,40 @@
 			update = { '$set': { 'score': score } }
 			co_patscore.update( query, update, upsert=True )
 			```
+	* ### 實際結果
+
+		input pattern: i am pissed
+		
+		* ps_function = 0, `python pattern_scoring.py -p 0 -s 0 -v`
+		
+			Emotion       | Score
+			------------  | ------------
+			pissed off    | 0.9521
+			annoyed       | 0.7748
+			creative      | 0.6903
+			aggravated    | 0.6903
+			crazy         | 0.6223
+
+		* ps_function = 1, `python pattern_scoring.py -p 1 -s 0 -v`
+		
+			Emotion       | Score
+			------------  | ------------
+			pissed off    | 0.9986
+			annoyed       | 0.9834
+			creative      | 0.9751
+			aggravated    | 0.9751
+			crazy         | 0.967
+
+		* ps_function = 2, `python pattern_scoring.py -p 2 -s 0 -v`
+		
+			Emotion       | Score
+			------------  | ------------
+			pissed off    | **0.9226**
+			annoyed       | 0.3687
+			creative      | 0.2827
+			aggravated    | 0.2827
+			crazy         | 0.2295
+		
 	
 * ###Document scoring (emotion detection)
 
