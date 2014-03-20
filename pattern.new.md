@@ -111,9 +111,11 @@
 
 		input: i miss you
 		
+		```
 		"emotion" : "lonely", "count" : 23
 		"emotion" : "sad", "count" : 18
 		"emotion" : "depressed", "count" : 17
+		```
 		
 		* ps_function = 0, `python pattern_scoring.py -p 0 -s 0 -v`
 
