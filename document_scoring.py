@@ -82,23 +82,17 @@ def document_scoring(udocID):
 	pats = list( co_pats.find( {'udocID': udocID} ) )
 
 	if config.verbose:
-		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats)),
-		sys.stderr.flush()
+		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
+		#sys.stderr.flush()
 
 	D = defaultdict(list)
 	
 	for pat in pats:
 		
-		if config.verbose:
-			print >> sys.stderr, '|',
-			sys.stderr.flush()
-
 		EventScores = event_scoring(pat)
 
 		for emotion in EventScores:
 			D[emotion].append( EventScores[emotion] )
-
-	print >> sys.stderr, ''
 
 	return dict([(e, sum(D[e])/float(len(D[e])) ) for e in D])
 

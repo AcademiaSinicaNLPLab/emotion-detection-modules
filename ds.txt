@@ -1,0 +1,12 @@
+==================================================
+cfg: ds_function=0,ps_function=1,sig_function=3,smoothing=0
+Time total: 67.725632906 sec
+==================================================
+cfg: ds_function=0,ps_function=1,sig_function=2,smoothing=0
+Time total: 14.2313718796 sec
+==================================================
+cfg: ds_function=0,ps_function=1,sig_function=1,smoothing=0
+Time total: 13.5889759064 sec
+==================================================
+cfg: ds_function=0,ps_function=1,sig_function=0,smoothing=0
+Time total: 12.8763680458 sec
