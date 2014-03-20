@@ -1,16 +1,9 @@
+# -*- coding: utf-8 -*-
 import config, color
 import pymongo,sys
 from itertools import product
 
-
 db = pymongo.Connection(config.mongo_addr)['LJ40K']
-
-co_emotions = db[config.co_emotions_name]
-co_docs = db[config.co_docs_name]
-co_pats = db[config.co_pats_name]
-co_lexicon = db[config.co_lexicon_name]
-co_patscore = db[config.co_patscore_name]
-co_docscore = db[config.co_docscore_name]
 
 # create a local cache for event_scoring to reduce mongo access times
 cache, miss, hit = {}, 0, 0
@@ -131,11 +124,12 @@ def update_all_document_scores(UPDATE=False):
 				mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore, 'scores': scores }
 				co_docscore.insert( mdoc )
 
-	if config.verbose:
-		print '='*50
-		print 'Cache hit:',hit
-		print 'Cache miss:',miss
-		print 'Cache hit rate:',hit/float(hit+miss)
+	# if config.verbose:
+	print '='*50
+	print 'cfg:',cfg_docscore
+	print 'Cache hit:',hit
+	print 'Cache miss:',miss
+	print 'Cache hit rate:',hit/float(hit+miss)
 
 if __name__ == '__main__':
 	  
@@ -153,7 +147,15 @@ if __name__ == '__main__':
 		elif opt in ('-g','--sig_function'): config.sig_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
-	
+
+	## select mongo collections
+	co_emotions = db[config.co_emotions_name]
+	co_docs = db[config.co_docs_name]
+	co_pats = db[config.co_pats_name]
+	co_lexicon = db[config.co_lexicon_name]
+	co_patscore = db[config.co_patscore_names[config.ps_function_type]]
+	co_docscore = db[ config.co_docscore_names[config.ps_function_type][config.sig_function_type] ]
+
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
 	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type
 	print >> sys.stderr, config.sig_function_name, '=', config.sig_function_type
@@ -162,9 +164,18 @@ if __name__ == '__main__':
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
 
+
 	import time
-	s = time.time()
-	update_all_document_scores(UPDATE=False)
-	print 'Time total:',time.time() - s,'sec'
+	# global miss, hit
+
+	for i in range(4):
+
+		miss = 0
+		hit = 0
+		config.sig_function_type = i
+
+		s = time.time()
+		update_all_document_scores(UPDATE=False)
+		print 'Time total:',time.time() - s,'sec'
 
 				

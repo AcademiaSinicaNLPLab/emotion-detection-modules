@@ -9,8 +9,9 @@ co_emotions_name = 'emotions'
 co_docs_name = 'docs'
 co_pats_name = 'pats'
 co_lexicon_name = 'lexicon'
-co_patscore_name = 'patscore'
-co_docscore_name = 'docscore'
+
+co_patscore_names = ['patscore_0', 'patscore_1']
+co_docscore_names = [ ['docscore_0_0', 'docscore_0_1', 'docscore_0_2'], ['docscore_1_0', 'docscore_1_1', 'docscore_1_2'] ]
 
 ## names of functions
 ps_function_name = 'ps_function'
@@ -53,22 +54,22 @@ def help(program, exit=1):
 
 	params['-p'] = [
 		'-p, --ps_function: pattern scoring function',
-		'                 0: no distribution information, only consider occurrence portion',
-		'                 1: consider distribution information by multiplying the standard deviation (delta of p_bar)']
+		'                 0: (default) no distribution information, only consider occurrence portion',
+		'                 1: combine occurrence with distribution information using standard deviation scaling [2014.03.18]']
 
 	params['-d'] = [
 		'-d, --ds_function: document scoring function',
-		'                 0: arithmetic mean',
+		'                 0: (default) arithmetic mean',
 		'                 1: geometric mean']
 	params['-g'] = [
 		'-g, --sig_function: significance function',
-		'                 0: sf = 1, i.e., remain origin pattern score',
+		'                 0: (default) sf = 1, i.e., remain origin pattern score',
 		'                 1: sf = ( pattern length )',
 		'                 2: sf = ( 1/sentence length )',
 		'                 3: sf = ( pattern length/sentence length )']
 	params['-s'] = [
 		'-s, --smoothing: smoothing method',
-		'                 0: no smoothig',
+		'                 0: (default) no smoothig',
 		'                 1: naive smoothing (+1)']
 
 	params['-v'] = [

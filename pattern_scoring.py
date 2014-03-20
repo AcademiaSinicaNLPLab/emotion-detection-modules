@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import config
 import sys, pymongo
+
 from mathutil import standard_deviation as std
-from mathutil import entropy as ent
+from mathutil import avg, normalize, entropy
 
 db = pymongo.Connection(config.mongo_addr)['LJ40K']
 
-co_lexicon = db[config.co_lexicon_name]
-co_patscore = db[config.co_patscore_name]
+# co_patscore = db[ config.co_patscore_names[config.ps_function_type] ]
 
 # get all emotinos in LJ40K
 emotions = sorted([x['emotion'] for x in db[config.co_emotions_name].find({'label':'LJ40K'}, {'_id':0, 'emotion':1})])
@@ -37,16 +37,15 @@ def get_pattern_dist(pattern):
 ## option: 
 ##	 config.ps_function_type 0: only consider occurrence portion (no distribution information)
 ##	 config.ps_function_type 1: consider distribution information by multiplying delta of p_bar
+##	 config.ps_function_type 1: occurrence + distribution [2014.03.18. discuss with Dr. Ku]
 def scoring(pattern_dist, emotion):
 
 	p = pattern_dist[emotion]
 	p_bar = [pattern_dist[x] for x in pattern_dist if x != emotion]
 
-	## all zero
-	if sum(p_bar) > 0:
-		np_bar = [x/float(sum(p_bar)) for x in p_bar]
-	else:
-		np_bar = p_bar
+	# print emotion, p, p_bar
+
+	np_bar = normalize(p_bar)
 
 	if config.ps_function_type == 0:
 		omega_p = (p, sum(p_bar)/float(len(p_bar)) )
@@ -56,6 +55,11 @@ def scoring(pattern_dist, emotion):
 		delta_p_bar = std(np_bar)
 		omega_p = (p, sum(p_bar)/float(len(p_bar))*delta_p_bar )
 		prob_p_e = omega_p[0]/float(sum(omega_p))
+
+	elif config.ps_function_type == 2:
+		p_score = p
+		p_bar_score = std(np_bar)*( max(p_bar)-avg(p_bar) ) / 0.158 + avg(p_bar)
+		prob_p_e = p_score/float(p_score+p_bar_score)
 
 	return prob_p_e
 #### ------------------- end scoring functions ------------------- ####
@@ -75,6 +79,8 @@ def pattern_scoring_function(pattern):
 		#### scoring time 0.0000167, exec: (length of all patterns) * 40
 		score_p_e = scoring(pattern_dist, emotion)
 
+		# print emotion, '\t', score_p_e
+
 		scores[emotion] = score_p_e
 	return scores
 
@@ -85,12 +91,19 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 
 	# fetch all distinct patterns
 	print >> sys.stderr, 'fetching all distinct patternst...',
-	sys.stderr.flush()
+	# sys.stderr.flush()
 
 	patterns = set()
-	for mdoc in co_lexicon.find():
-		patterns.add( mdoc['pattern'] )
+	
+	# for mdoc in co_lexicon.find():
+		# patterns.add( mdoc['pattern'] )
+
+	# 	if len(patterns) == 1: break 
+
+	patterns.add('i need girlfriend')
 	print >> sys.stderr, 'done'
+
+	
 
 	# calculate pattern scores
 	for i,pattern in enumerate(patterns):
@@ -108,6 +121,16 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 
 		## save score to mongo
 		#### time: 0.00096, exec, len(patterns);  2.898 when len(patterns) == 3000
+
+		print >> sys.stderr, '>',pattern
+		print >> sys.stderr, 'emotion'.ljust(13),'|','score'
+		print >> sys.stderr, '------------'.ljust(13),'|','------------'
+		for x in sorted(scores.items(), key=lambda x:x[1], reverse=True)[:5]:
+			# print 'hi'.ljust(10)
+			# print x[0].ljust(20), round(x[1], 4)
+			print >> sys.stderr, x[0].ljust(13), '|', round(x[1], 4)
+		continue
+
 		for emotion in scores:
 
 			score = scores[emotion]
@@ -116,6 +139,8 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 			#### v [update] time: 0.000025, exec, len(patterns)*40;  0.807 when len(patterns) == 1000
 			#### x [insert] time: 0.000020, exec, len(patterns)*40;  1.002 when len(patterns) == 1000
 			#### x [save]   time: 0.000026, exec, len(patterns)*40;  1.043 when len(patterns) == 1000
+			# print i, ')',pattern,'\t', emotion, '(',score,')'
+			# continue
 
 			if UPDATE:
 				query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
@@ -127,6 +152,9 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 
 	if config.verbose:
 		print >> sys.stderr, 'processed done.'
+
+	print '='*50
+	print 'cfg:',cfg
 
 if __name__ == '__main__':
 
@@ -142,13 +170,17 @@ if __name__ == '__main__':
 		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
-	
+
+	## select mongo collections
+	co_lexicon = db[config.co_lexicon_name]
+	co_patscore = db[ config.co_patscore_names[config.ps_function_type] ]
 
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
 	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
 	print >> sys.stderr, 'verbose =', config.verbose
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
+
 
 	import time
 	s = time.time()
