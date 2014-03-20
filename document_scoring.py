@@ -153,13 +153,15 @@ if __name__ == '__main__':
 	co_docs = db[config.co_docs_name]
 	co_pats = db[config.co_pats_name]
 	co_lexicon = db[config.co_lexicon_name]
-	co_patscore = db[config.co_patscore_names[config.ps_function_type]]
+	co_patscore = db[ config.co_patscore_names[config.ps_function_type] ]
 	co_docscore = db[ config.co_docscore_names[config.ps_function_type][config.sig_function_type] ]
 
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
 	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type
 	print >> sys.stderr, config.sig_function_name, '=', config.sig_function_type
 	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
+	print >> sys.stderr, 'fetch  collection', '=', config.co_patscore_names[config.ps_function_type]
+	print >> sys.stderr, 'insert collection', '=', config.co_docscore_names[config.ps_function_type][config.sig_function_type]
 	print >> sys.stderr, 'verbose =', config.verbose
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
