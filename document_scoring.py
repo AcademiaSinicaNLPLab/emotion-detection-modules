@@ -54,8 +54,6 @@ def event_scoring(pat):
 
 	key = pat['pattern']
 
-	print key
-
 	if key not in cache:
 		res = co_patscore.find_one( query, projector )
 
@@ -67,8 +65,6 @@ def event_scoring(pat):
 			cache[key] = res['scores']
 	
 	pat_scores = cache[key]
-
-	print pat_scores
 	
 	return dict([(emotion, pat['weight'] * significance_factor(pat) * pat_scores[emotion]) for emotion in pat_scores])
 
@@ -80,7 +76,7 @@ def event_scoring(pat):
 # 	'happy': 0.2,
 # 	'sad': 0.6,
 # }
-def document_scoring(udocID, emotions, cfg_patscore):
+def document_scoring(udocID):
 	## find all pats in the document <udocID>
 	## Total: 0.0572915077209, Exec: 50, Single: 0.00114583015442
 	pats = list( co_pats.find( {'udocID': udocID} ) )
@@ -95,14 +91,10 @@ def document_scoring(udocID, emotions, cfg_patscore):
 
 		EventScores = event_scoring(pat)
 
-		# for emotion in EventScores:
-			# D[emotion].append( EventScores[emotion] )
+		for emotion in EventScores:
+			D[emotion].append( EventScores[emotion] )
 
-		print pat
-		print EventScores
-		raw_input()
-
-		# event_scores = filter( lambda x: x >=0, [  for pat in pats ] )
+	return dict([(e, sum(D[e])/float(len(D[e])) ) for e in D])
 
 
 
@@ -136,12 +128,12 @@ def document_scoring(udocID, emotions, cfg_patscore):
 	# if config.verbose:
 	# 	print >> sys.stderr, ''
 
-	return scores
+	# return scores
 
 def update_all_document_scores(UPDATE=False):
 
 	cfg_docscore = config.toStr(fields="ps_function,ds_function,sig_function,smoothing")
-	cfg_patscore = config.toStr(fields="ps_function,smoothing")
+	# cfg_patscore = config.toStr(fields="ps_function,smoothing")
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
@@ -160,28 +152,30 @@ def update_all_document_scores(UPDATE=False):
 
 			# score a document in 40 diff emotions
 			## scoring a document: Total: 26.2910494804, Exec: 50, Single: 0.525820989609
-			scores = document_scoring(doc['udocID'], emotions, cfg_patscore)
+			scores = document_scoring(doc['udocID'])
+			
+			mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'scores': scores }
+			co_docscore.insert( mdoc )
 
-
-			raw_input()
+			# raw_input()
 
 			# save to mongo
 			## Total: 0.0056939125061, Exec: 50, Single: 0.000113878250122
-			if UPDATE:
-				query = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore }
-				update = { '$set': { 'scores': scores } }
-				co_docscore.update(query, update, upsert=True)
+			# if UPDATE:
+			# 	query = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore }
+			# 	update = { '$set': { 'scores': scores } }
+			# 	co_docscore.update(query, update, upsert=True)
 			
-			else:
-				mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore, 'scores': scores }
-				co_docscore.insert( mdoc )
+			# else:
+			# 	mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'cfg': cfg_docscore, 'scores': scores }
+			# 	co_docscore.insert( mdoc )
 
 	# if config.verbose:
 	print '='*50
 	print 'cfg:',cfg_docscore
-	print 'Cache hit:',hit
-	print 'Cache miss:',miss
-	print 'Cache hit rate:',hit/float(hit+miss)
+	# print 'Cache hit:',hit
+	# print 'Cache miss:',miss
+	# print 'Cache hit rate:',hit/float(hit+miss)
 
 if __name__ == '__main__':
 	  
@@ -224,8 +218,8 @@ if __name__ == '__main__':
 
 	for i in [3,2,1,0]:
 
-		miss = 0
-		hit = 0
+		# miss = 0
+		# hit = 0
 		config.sig_function_type = i
 
 		s = time.time()
