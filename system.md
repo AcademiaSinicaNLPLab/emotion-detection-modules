@@ -26,5 +26,11 @@ Cache hit rate: 0.362176808732
 Time total: 11901.2810538 sec
 ```
 
+```python
+python document_scoring.py -p 0 -d 0 -s 0 -g 2 -v
 
-
+Cache hit: 6292880
+Cache miss: 11082280
+Cache hit rate: 0.362176808732
+Time total: 9397.42263484 sec
+```
