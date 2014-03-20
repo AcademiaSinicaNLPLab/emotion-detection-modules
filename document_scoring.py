@@ -222,7 +222,7 @@ if __name__ == '__main__':
 	import time
 	# global miss, hit
 
-	for i in range(4):
+	for i in [3,2,1,0]:
 
 		miss = 0
 		hit = 0
