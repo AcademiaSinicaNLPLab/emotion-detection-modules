@@ -2,6 +2,7 @@
 import config, color
 import pymongo,sys
 from itertools import product
+from collections import defaultdict
 
 db = pymongo.Connection(config.mongo_addr)['LJ40K']
 
@@ -16,7 +17,7 @@ def significance_factor(pat):
 	elif sf == 3: return pat['pattern_length'] * ( float(1)/pat['sent_length'] )
 	else: return False
 	
-def event_scoring(pat, emotion, cfg_patscore):
+def event_scoring_old(pat, emotion, cfg_patscore):
 
 	query = { 'pattern': pat['pattern'].lower(), 'emotion': emotion, 'cfg': cfg_patscore }
 	projector = { '_id': 0, 'score':1 }
@@ -42,6 +43,36 @@ def event_scoring(pat, emotion, cfg_patscore):
 	
 	return pat_weight * significance_factor(pat) * score_p_e
 
+# ============================================================================================================ #
+
+def event_scoring(pat):
+
+	query = { 'pattern': pat['pattern'].lower() }
+	projector = { '_id': 0, 'scores':1 }
+
+	global cache
+
+	key = pat['pattern']
+
+	print key
+
+	if key not in cache:
+		res = co_patscore.find_one( query, projector )
+
+
+
+		if not res:
+			cache[key] = {}
+		else:
+			cache[key] = res['scores']
+	
+	pat_scores = cache[key]
+
+	print pat_scores
+	
+	return dict([(emotion, pat['weight'] * significance_factor(pat) * pat_scores[emotion]) for emotion in pat_scores])
+
+
 ## udocID=1000, emotion='happy'
 ## input: udocID, emotions to be tested, cfg for fetching pat scores
 ## output: a dictionary of emotion, doc_score
@@ -58,34 +89,52 @@ def document_scoring(udocID, emotions, cfg_patscore):
 		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats)),
 		sys.stderr.flush()
 
-	scores = {}
-	for test_emotion in emotions:
+	D = defaultdict(list)
 
-		if config.verbose:
-			print >> sys.stderr, '.',
-			sys.stderr.flush()
+	for pat in pats:
 
-		## calculate event scores
-		## Total: 26.184949398, Exec: 2000, Single: 0.013092474699
-		event_scores = filter( lambda x: x >=0, [ event_scoring(pat, test_emotion, cfg_patscore) for pat in pats ] )
+		EventScores = event_scoring(pat)
 
-		## calculate documet scores
-		## Total: 0.0136754512787, Exec: 2000, Single: 6.83772563934e-06	
+		# for emotion in EventScores:
+			# D[emotion].append( EventScores[emotion] )
 
-		# arithmetic mean
-		if config.ds_function_type == 0:
-			doc_score = 0 if len(event_scores) == 0 else sum(event_scores) / float( len(event_scores) )
-		# geometric mean
-		elif config.ds_function_type == 1:
-			doc_score = 0 if len(event_scores) == 0 else reduce(lambda x,y:x*y, event_scores )**(1/float(len(event_scores)))
-		## undefined ds_function
-		else:
-			return False
+		print pat
+		print EventScores
+		raw_input()
 
-		scores[test_emotion] = doc_score
+		# event_scores = filter( lambda x: x >=0, [  for pat in pats ] )
 
-	if config.verbose:
-		print >> sys.stderr, ''
+
+
+
+	# scores = {}
+	# for test_emotion in emotions:
+
+	# 	if config.verbose:
+	# 		print >> sys.stderr, '.',
+	# 		sys.stderr.flush()
+
+	# 	## calculate event scores
+	# 	## Total: 26.184949398, Exec: 2000, Single: 0.013092474699
+	# 	event_scores = filter( lambda x: x >=0, [ event_scoring(pat, test_emotion, cfg_patscore) for pat in pats ] )
+
+	# 	## calculate documet scores
+	# 	## Total: 0.0136754512787, Exec: 2000, Single: 6.83772563934e-06	
+
+	# 	# arithmetic mean
+	# 	if config.ds_function_type == 0:
+	# 		doc_score = 0 if len(event_scores) == 0 else sum(event_scores) / float( len(event_scores) )
+	# 	# geometric mean
+	# 	elif config.ds_function_type == 1:
+	# 		doc_score = 0 if len(event_scores) == 0 else reduce(lambda x,y:x*y, event_scores )**(1/float(len(event_scores)))
+	# 	## undefined ds_function
+	# 	else:
+	# 		return False
+
+	# 	scores[test_emotion] = doc_score
+
+	# if config.verbose:
+	# 	print >> sys.stderr, ''
 
 	return scores
 
@@ -112,6 +161,9 @@ def update_all_document_scores(UPDATE=False):
 			# score a document in 40 diff emotions
 			## scoring a document: Total: 26.2910494804, Exec: 50, Single: 0.525820989609
 			scores = document_scoring(doc['udocID'], emotions, cfg_patscore)
+
+
+			raw_input()
 
 			# save to mongo
 			## Total: 0.0056939125061, Exec: 50, Single: 0.000113878250122

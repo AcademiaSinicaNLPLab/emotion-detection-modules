@@ -94,12 +94,12 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 
 	patterns = set()
 	
-	for mdoc in co_lexicon.find():
-		patterns.add( mdoc['pattern'] )
+	# for mdoc in co_lexicon.find():
+		# patterns.add( mdoc['pattern'] )
 
 	# 	if len(patterns) == 1: break 
 
-	# patterns.add('i need girlfriend')
+	patterns.add('i need girlfriend')
 	print >> sys.stderr, 'done'
 
 	
@@ -130,9 +130,16 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 		# 	print >> sys.stderr, x[0].ljust(13), '|', round(x[1], 4)
 		# continue
 
-		for emotion in scores:
+		mdoc = {
+			'pattern':pattern,
+			'scores':scores
+		}
 
-			score = scores[emotion]
+		co_patscore.insert( mdoc )
+
+		# for emotion in scores:
+
+		# 	score = scores[emotion]
 
 			## generate mongo query and upsert
 			#### v [update] time: 0.000025, exec, len(patterns)*40;  0.807 when len(patterns) == 1000
@@ -141,13 +148,13 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 			# print i, ')',pattern,'\t', emotion, '(',score,')'
 			# continue
 
-			if UPDATE:
-				query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
-				update = { '$set': { 'score': score } }
-				co_patscore.update( query, update, upsert=True )
-			else:
-				mdoc = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg, 'score': score }
-				co_patscore.insert( mdoc )
+			# if UPDATE:
+			# 	query = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg }
+			# 	update = { '$set': { 'score': score } }
+			# 	co_patscore.update( query, update, upsert=True )
+			# else:
+			# 	mdoc = { 'emotion': emotion, 'pattern': pattern, 'cfg': cfg, 'score': score }
+			# 	co_patscore.insert( mdoc )
 
 	if config.verbose:
 		print >> sys.stderr, 'processed done.'
