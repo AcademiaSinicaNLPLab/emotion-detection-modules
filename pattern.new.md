@@ -109,7 +109,44 @@
 			```
 	* ### 實際結果
 
-		input pattern: i am pissed
+		input: i miss you
+		
+		"emotion" : "lonely", "count" : 23
+		"emotion" : "sad", "count" : 18
+		"emotion" : "depressed", "count" : 17
+		
+		* ps_function = 0, `python pattern_scoring.py -p 0 -s 0 -v`
+
+			emotion       | score
+			------------  | ------------
+			lonely        | 0.8081
+			sad           | 0.763
+			depressed     | 0.7517
+			crushed       | 0.6331
+			crazy         | 0.6073
+			
+		* ps_function = 1, `python pattern_scoring.py -p 1 -s 0 -v`
+			
+			emotion       | score
+			------------  | ------------
+			lonely        | 0.9958
+			sad           | 0.994
+			depressed     | 0.9935
+			crushed       | 0.9882
+			crazy         | 0.9869	
+
+		* ps_function = 2, `python pattern_scoring.py -p 2 -s 0 -v`
+		
+			emotion       | score
+			------------  | ------------
+			lonely        | 0.77
+			sad           | 0.6992
+			depressed     | 0.6857
+			crushed       | 0.5546
+			crazy         | 0.5277
+		---
+
+		input: i am pissed
 		
 		* ps_function = 0, `python pattern_scoring.py -p 0 -s 0 -v`
 		
