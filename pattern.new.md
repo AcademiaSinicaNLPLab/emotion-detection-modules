@@ -13,6 +13,10 @@
 	1           | 1	     | 0.5144
 	1     | 2	     | 0.5151
 	1       | 3	     | 0.5145
+	
+	可惡一定哪邊有 bug!!
+
+---
 
 * #### Steps
  	1. [pattern extraction](#pattern-extraction)
