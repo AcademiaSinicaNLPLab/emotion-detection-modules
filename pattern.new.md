@@ -91,6 +91,7 @@
 			score_{1} \left ( p,\overline{e} \right ) = mean(v) + \frac{std(normalized\_v) * (Max(v)-mean(v))} {0.158}
 			```
 			where  
+			
 			![equation](http://latex.codecogs.com/gif.latex?v%5Ctext%7B%20%3D%20%7D%3Cscore%5Cleft%20%28%20p%2C%20e_j%20%5Cright%20%29%20%5Ctext%7Bfor%20%7D%20e_%7Bj%7D%20%5Cin%20%5Coverline%7Be_l%7D%20%3E)
 			```latex
 			v\text{ = }<score\left ( p, e_j \right ) \text{for } e_{j} \in \overline{e_l} >
