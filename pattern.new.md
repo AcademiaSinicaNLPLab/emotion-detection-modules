@@ -1,5 +1,15 @@
 ##Pattern - 新架構！
 
+
+* #### results
+
+	ps_function       | sf	     | accuracy
+	------------  | ------------ | ------------
+	1        | 0	     | 0.5138
+	1           | 1	     | 0.5144
+	1     | 2	     | 0.5151
+	1       | 3	     | 0.5145
+
 * #### Steps
  	1. [pattern extraction](#pattern-extraction)
 	1. [Lexicon construction](#lexicon-construction)
