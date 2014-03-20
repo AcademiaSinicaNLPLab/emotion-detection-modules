@@ -65,24 +65,40 @@
 		```latex
 		f_{PS_{k}} \left(p, e \right ) = \frac{score_{k} \left ( p, e \right )}{score_{k} \left ( p, e \right ) + score_{k} \left ( p, \overline{ e } \right )}
 		```
-		where
 	
-		![equation](http://latex.codecogs.com/gif.latex?score_%7Bi%7D%20%5Cleft%20%28%20p%2C%20e%20%5Cright%20%29%20%3D%20%5Csum_%7Bd%20%5Ctextrm%7B%20annotated%20as%20%7D%20e%20%7D%20occur%5Cleft%20%28%20p%2C%20d%20%5Cright%20%29)
-		```latex
-		score_{i} \left ( p, e \right ) = \sum_{d \textrm{ annotated as } e } occur\left ( p, d \right )
-		```
+			![equation](http://latex.codecogs.com/gif.latex?score_%7Bi%7D%20%5Cleft%20%28%20p%2C%20e%20%5Cright%20%29%20%3D%20%5Csum_%7Bd%20%5Ctextrm%7B%20annotated%20as%20%7D%20e%20%7D%20occur%5Cleft%20%28%20p%2C%20d%20%5Cright%20%29)
+			```latex
+			score_{i} \left ( p, e \right ) = \sum_{d \textrm{ annotated as } e } occur\left ( p, d \right )
+			```
+		* ps_function = 0
 	
-		![equation](http://latex.codecogs.com/gif.latex?score_%7B0%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20%3D%20%5Cfrac%7B%5Csum_%7B%20e_j%20%5Cin%20%5Coverline%7Be_l%7D%20%7D%20score%5Cleft%20%28%20p%2C%20e_%7Bj%7D%20%5Cright%20%29%7D%7B%5Cleft%20%7C%20%5Coverline%7Be%7D%20%5Cright%20%7C%7D)
-		```latex
-		score_{0} \left ( p,\overline{e} \right ) = \frac{\sum_{ e_j \in \overline{e_l} } score\left ( p, e_{j} \right )}{\left | \overline{e} \right |}
-		```
+			![equation](http://latex.codecogs.com/gif.latex?score_%7B0%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20%3D%20%5Cfrac%7B%5Csum_%7B%20e_j%20%5Cin%20%5Coverline%7Be_l%7D%20%7D%20score%5Cleft%20%28%20p%2C%20e_%7Bj%7D%20%5Cright%20%29%7D%7B%5Cleft%20%7C%20%5Coverline%7Be%7D%20%5Cright%20%7C%7D)
+			```latex
+			score_{0} \left ( p,\overline{e} \right ) = \frac{\sum_{ e_j \in \overline{e_l} } score\left ( p, e_{j} \right )}{\left | \overline{e} \right |}
+			```
 		
-		```
-		補 新的 pattern scoring function
-		...
-		...
-		```
-	
+		* ps_function = 1
+		
+			* mapping function:  std -> score  
+
+			![equation](http://latex.codecogs.com/gif.latex?%5Cfrac%7Bscore_%7B1%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20-%20mean%28v%29%7D%7BMax%28v%29-mean%28v%29%7D%20%3D%20%5Cfrac%7Bstd%28normalized%5C_v%29%20-%200%7D%20%7B0.158%20-%200%7D)
+			```latex
+			\frac{score_{1} \left ( p,\overline{e} \right ) - mean(v)}{Max(v)-mean(v)} = \frac{std(normalized\_v) - 0} {0.158 - 0}
+			```
+		
+			![equation](http://latex.codecogs.com/gif.latex?score_%7B1%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20%3D%20mean%28v%29%20&plus;%20%5Cfrac%7Bstd%28normalized%5C_v%29%20*%20%28Max%28v%29-mean%28v%29%29%7D%20%7B0.158%7D)
+			```latex
+			score_{1} \left ( p,\overline{e} \right ) = mean(v) + \frac{std(normalized\_v) * (Max(v)-mean(v))} {0.158}
+			```
+			where  
+			![equation](http://latex.codecogs.com/gif.latex?v%5Ctext%7B%20%3D%20%7D%3Cscore%5Cleft%20%28%20p%2C%20e_j%20%5Cright%20%29%20%5Ctext%7Bfor%20%7D%20e_%7Bj%7D%20%5Cin%20%5Coverline%7Be_l%7D%20%3E)
+			```latex
+			v\text{ = }<score\left ( p, e_j \right ) \text{for } e_{j} \in \overline{e_l} >
+			```
+			![equation](http://latex.codecogs.com/gif.latex?normalized%5C_v%5Ctext%7B%20%3D%20%7D%3C%5Cfrac%7Bscore%5Cleft%20%28%20p%2C%20e_j%20%5Cright%20%29%20%7D%7B%5Cleft%20%7C%5Coverline%7Be_l%7D%20%5Cright%7C%7D%20%5Ctext%7B%20for%20%7D%20e_%7Bj%7D%20%5Cin%20%5Coverline%7Be_l%7D%20%3E)
+			```latex
+			normalized\_v\text{ = }<\frac{score\left ( p, e_j \right ) }{\left |\overline{e_l} \right|} \text{ for } e_{j} \in \overline{e_l} >
+			```
 	* #### 資料結構
  
 		* `db.patscore`
