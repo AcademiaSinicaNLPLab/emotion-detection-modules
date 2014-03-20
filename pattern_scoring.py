@@ -94,12 +94,12 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 
 	patterns = set()
 	
-	# for mdoc in co_lexicon.find():
-		# patterns.add( mdoc['pattern'] )
+	for mdoc in co_lexicon.find():
+		patterns.add( mdoc['pattern'] )
 
 	# 	if len(patterns) == 1: break 
 
-	patterns.add('i need girlfriend')
+	#patterns.add('i need girlfriend')
 	print >> sys.stderr, 'done'
 
 	
