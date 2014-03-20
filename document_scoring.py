@@ -86,9 +86,9 @@ def document_scoring(udocID):
 		sys.stderr.flush()
 
 	D = defaultdict(list)
-
+	
 	for pat in pats:
-
+		
 		if config.verbose:
 			print >> sys.stderr, '|',
 			sys.stderr.flush()
@@ -99,7 +99,7 @@ def document_scoring(udocID):
 			D[emotion].append( EventScores[emotion] )
 
 	print >> sys.stderr, ''
-	
+
 	return dict([(e, sum(D[e])/float(len(D[e])) ) for e in D])
 
 	# scores = {}
