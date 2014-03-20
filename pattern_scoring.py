@@ -36,7 +36,6 @@ def get_pattern_dist(pattern):
 ## output: score(pattern, emotion)
 ## option: 
 ##	 config.ps_function_type 0: only consider occurrence portion (no distribution information)
-##	 config.ps_function_type 1: consider distribution information by multiplying delta of p_bar
 ##	 config.ps_function_type 1: occurrence + distribution [2014.03.18. discuss with Dr. Ku]
 def scoring(pattern_dist, emotion):
 
@@ -51,12 +50,12 @@ def scoring(pattern_dist, emotion):
 		omega_p = (p, sum(p_bar)/float(len(p_bar)) )
 		prob_p_e = omega_p[0]/float(sum(omega_p))
 
-	elif config.ps_function_type == 1:
-		delta_p_bar = std(np_bar)
-		omega_p = (p, sum(p_bar)/float(len(p_bar))*delta_p_bar )
-		prob_p_e = omega_p[0]/float(sum(omega_p))
+	# elif config.ps_function_type == 1:
+	# 	delta_p_bar = std(np_bar)
+	# 	omega_p = (p, sum(p_bar)/float(len(p_bar))*delta_p_bar )
+	# 	prob_p_e = omega_p[0]/float(sum(omega_p))
 
-	elif config.ps_function_type == 2:
+	elif config.ps_function_type == 1:
 		p_score = p
 		p_bar_score = std(np_bar)*( max(p_bar)-avg(p_bar) ) / 0.158 + avg(p_bar)
 		prob_p_e = p_score/float(p_score+p_bar_score)
@@ -95,12 +94,12 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 
 	patterns = set()
 	
-	# for mdoc in co_lexicon.find():
-		# patterns.add( mdoc['pattern'] )
+	for mdoc in co_lexicon.find():
+		patterns.add( mdoc['pattern'] )
 
 	# 	if len(patterns) == 1: break 
 
-	patterns.add('i need girlfriend')
+	# patterns.add('i need girlfriend')
 	print >> sys.stderr, 'done'
 
 	
@@ -122,14 +121,14 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 		## save score to mongo
 		#### time: 0.00096, exec, len(patterns);  2.898 when len(patterns) == 3000
 
-		print >> sys.stderr, '>',pattern
-		print >> sys.stderr, 'emotion'.ljust(13),'|','score'
-		print >> sys.stderr, '------------'.ljust(13),'|','------------'
-		for x in sorted(scores.items(), key=lambda x:x[1], reverse=True)[:5]:
-			# print 'hi'.ljust(10)
-			# print x[0].ljust(20), round(x[1], 4)
-			print >> sys.stderr, x[0].ljust(13), '|', round(x[1], 4)
-		continue
+		# print >> sys.stderr, '>',pattern
+		# print >> sys.stderr, 'emotion'.ljust(13),'|','score'
+		# print >> sys.stderr, '------------'.ljust(13),'|','------------'
+		# for x in sorted(scores.items(), key=lambda x:x[1], reverse=True)[:5]:
+		# 	# print 'hi'.ljust(10)
+		# 	# print x[0].ljust(20), round(x[1], 4)
+		# 	print >> sys.stderr, x[0].ljust(13), '|', round(x[1], 4)
+		# continue
 
 		for emotion in scores:
 
