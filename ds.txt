@@ -10,3 +10,15 @@ Time total: 13.5889759064 sec
 ==================================================
 cfg: ds_function=0,ps_function=1,sig_function=0,smoothing=0
 Time total: 12.8763680458 sec
+==================================================
+cfg: ds_function=0,ps_function=0,sig_function=3,smoothing=0
+Time total: 68.4393670559 sec
+==================================================
+cfg: ds_function=0,ps_function=0,sig_function=2,smoothing=0
+Time total: 14.4205651283 sec
+==================================================
+cfg: ds_function=0,ps_function=0,sig_function=1,smoothing=0
+Time total: 14.0587930679 sec
+==================================================
+cfg: ds_function=0,ps_function=0,sig_function=0,smoothing=0
+Time total: 12.1083161831 sec
