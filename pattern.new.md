@@ -1,5 +1,26 @@
 ##Pattern - 新架構！
 
+* #### Steps
+ 	1. [pattern extraction](#pattern-extraction)
+	1. [Lexicon construction](#lexicon-construction)
+	2. [Pattern scoring](#pattern-scoring)
+	3. [Document scoring (emotion detection)](#document-scoring-emotion-detection)
+	4. [Evaluation](#evaluation)
+
+---
+
+* #### To-do-list
+	
+	* [討論照片](img/discuss.0318.jpg)
+
+	1. ~~改 pattern scoring 公式~~（[程式](pattern_scoring.py)、[數學式](#pattern-scoring)） [方程式編輯器](http://latex.codecogs.com/)
+	
+	1. ~~改 [mongo structure](#%E8%B3%87%E6%96%99%E7%B5%90%E6%A7%8B)~~
+		1. ~~patscore 把分數放在一起~~
+		2. ~~cfg 合併成字串~~
+		3. ~~patscore.scoring 改成 patscore.ps_function~~
+	
+	1. 把流程包起來
 
 * #### results
 
@@ -27,28 +48,6 @@
 
 ---
 
-* #### Steps
- 	1. [pattern extraction](#pattern-extraction)
-	1. [Lexicon construction](#lexicon-construction)
-	2. [Pattern scoring](#pattern-scoring)
-	3. [Document scoring (emotion detection)](#document-scoring-emotion-detection)
-	4. [Evaluation](#evaluation)
-
-* #### To-do-list
-	
-	* [討論照片](img/discuss.0318.jpg)
-
-	1. ~~改 pattern scoring 公式~~（[程式](pattern_scoring.py)、[數學式](#pattern-scoring)） [方程式編輯器](http://latex.codecogs.com/)
-	
-	1. ~~改 [mongo structure](#%E8%B3%87%E6%96%99%E7%B5%90%E6%A7%8B)~~
-		1. ~~patscore 把分數放在一起~~
-		2. ~~cfg 合併成字串~~
-		3. ~~patscore.scoring 改成 patscore.ps_function~~
-	
-	1. 把流程包起來
-
----
-
 * ###Pattern extraction
 
 	[extract_pattern.py](extract_pattern.py)
@@ -57,6 +56,8 @@
 	* structure
 	 	- event: [subj, __verb__, obj, prep_obj]
 	 	- state: [subj, be, __adj__] 
+
+---
 
 * ###Lexicon construction
 
@@ -76,6 +77,8 @@
 	}
 	```
 	
+---
+
 * ###Pattern scoring
 
 	`training`
@@ -223,7 +226,8 @@
 			creative      | 0.2827
 			aggravated    | 0.2827
 			crazy         | 0.2295
-		
+
+---		
 	
 * ###Document scoring (emotion detection)
 
@@ -358,6 +362,8 @@
 		        }
 		}
 		```
+
+---
 
 * ###Evaluation
 
