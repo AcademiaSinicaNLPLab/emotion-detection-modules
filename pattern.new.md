@@ -1,11 +1,13 @@
-##Pattern - 新架構！
+Pattern - 新架構！
+---
 
-* #### Steps
- 	1. [pattern extraction](#pattern-extraction)
-	1. [Lexicon construction](#lexicon-construction)
-	2. [Pattern scoring](#pattern-scoring)
-	3. [Document scoring (emotion detection)](#document-scoring-emotion-detection)
-	4. [Evaluation](#evaluation)
+
+#### Steps
+1. [pattern extraction](#pattern-extraction)
+1. [Lexicon construction](#lexicon-construction)
+2. [Pattern scoring](#pattern-scoring)
+3. [Document scoring (emotion detection)](#document-scoring-emotion-detection)
+4. [Evaluation](#evaluation)
 
 ---
 
