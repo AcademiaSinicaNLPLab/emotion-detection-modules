@@ -16,6 +16,15 @@
 	
 	可惡一定哪邊有 bug!!
 
+* #### error analysis
+
+	1. pattern extraction：把做對跟做錯的文章拿出來，看抽出來的 pattern 有沒有意義？
+	1. pattern extraction：如果不考慮某種形式的 pattern，效果會不會比較好？
+	1. pattern extraction：加上人稱、時態？
+	1. pattenr scoring：多拿幾個 pattern 出來，找出現次數多，分布不平均的
+	1. document scoring：比較新舊方法，(舊方法對,新方法錯) & (舊方法錯,新方法對)，每個情緒拿幾篇出來看差異
+	1. document scoring：同一篇文章，原本做對，後來做錯，比較新舊方法的分數
+
 ---
 
 * #### Steps
