@@ -48,6 +48,10 @@ Pattern - 新架構！
 	1. document scoring：比較新舊方法，(舊方法對,新方法錯) & (舊方法錯,新方法對)，每個情緒拿幾篇出來看差異
 	1. document scoring：同一篇文章，原本做對，後來做錯，比較新舊方法的分數
 
+* #### error
+
+	1. document scoring: docscore = sum(eventscore) / ~~num(event)~~ sum(weight)
+
 ---
 
 * ###Pattern extraction
