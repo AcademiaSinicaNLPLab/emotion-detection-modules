@@ -34,17 +34,53 @@ Pattern scoring
 How
 ===
 
-1. origin thoughts
+* origin thoughts
 
 	annoyed | !annoyed |
 	------------ | ------------- |
 	[6] | [ 4, ~~6~~, 1, 2, ..., 1, 25, 2, 3, 2 ]  |
 	
-	```
+	```python
 	6 : (4+1+2+...+1+25+2+3+2)/39
-	
 	-> 6 : 1.74
-	
 	-> score("i am pissed", annoyed) = 6/(6+1.74) = 0.77
-	
 	```
+	
+
+* However, this method doesn't work:
+
+	consider the following two cases, two totally different distribution but yield the same score
+
+	1. Case 1:
+	
+		happy | !happy |
+		------------ | ------------- |
+		[9] | [ 1, 1, 1, ..., 1, 1 ]  |	
+		
+		```python
+		9 : (1+1+...+1)/39
+		-> 9: 1
+		-> score(pattern, happy) = 0.9
+		```			
+	
+	1. Case 2:
+		
+		happy | !happy |
+		------------ | ------------- |
+		[9] | [ 39, 0, 0, ..., 0, 0 ]  |	
+		
+		```python
+		9 : (39+0+...+0)/39
+		-> 9: 1
+		-> score(pattern, happy) = 0.9 # WHAT!! This is definitely not we want!!
+		```		
+
+> How to consider the __scale__ (frequency) and the __distribution__ at the same time?
+	
+	
+![image](img/all-1.png)
+
+![image](img/increase.png)
+
+
+
