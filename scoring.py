@@ -48,6 +48,7 @@ if __name__ == '__main__':
 
 
 	PVs = []
+	FS1 = []
 	print '   '*40, '\t', 'avg', '\t', 'std', '\t', 'z', '\t','p-value'
 	print '==='*55
 	for i in range(40):
@@ -57,26 +58,41 @@ if __name__ == '__main__':
 		avg = mathutil.avg(v)
 		std = mathutil.standard_deviation(v)
 
-		if std == 0:
-			std = 1
+		nv = mathutil.normalize(v)
+		nstd = mathutil.standard_deviation(nv)
+
+		if std == 0: std = 1
+		if nstd == 0: nstd = 1
+			
+	
+		### calculate fs1
+		s_bar = avg + nstd*(max(v)-avg)/0.158
+		fs1 = v[0]/float(v[0]+s_bar)
+		FS1.append(fs1)
+		# print v, fs1
+		
+		### calculate p-value
+
 
 		z = (v[0]-avg)/(std/( alpha **0.5))
-
 		z = round(z, 2)
-
 		if z not in P:
 			p_value = 0.9999 if z > 0 else -0.9999
 		else:
 			p_value = P[z]
-
-
-		# print [int(x*1000) for x in v], '\t', avg, '\t', round(std,3), '\t', z, '\t',p_value
-		# print v[:1], '|', '[',str(int(v[1]))+', 0, 0, 0, ..., 0, 0]'
 		print v, '\t', avg, '\t', round(std,3), '\t', z, '\t',p_value
 		PVs.append(p_value)
+	# print 
+	print PVs
+	print FS1
+	plt.plot(PVs)
+	plt.plot(FS1)
 
-
-# plt.plot(PVs)
-# plt.show()
+	# lims = plt.ylim()
+	plt.ylim([0.0, 1.1])
+	plt.xlim([0, 39])
+	# print lims
+	# xlim([lims[1], lims[0]]) 
+	plt.show()
 	# std(v)/39.0
 
