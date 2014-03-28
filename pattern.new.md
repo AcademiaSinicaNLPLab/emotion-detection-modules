@@ -89,7 +89,7 @@ Pattern - 新架構！
 
 	`training`
 	
-	[白板](img/new.0313.2.jpg), [[新公式]](img/discuss.0318.jpg), [pattern_scoring.py](pattern_scoring.py), 
+	[數學](pattern_scoring.md), [白板](img/new.0313.2.jpg), [新公式](img/discuss.0318.jpg), [程式](pattern_scoring.py), 
 	
 	套用不同的 pattern scoring function (`ps_function`)，得出一個 pattern 出現在某 emotion 中的 ~~機率~~ 分數
 
