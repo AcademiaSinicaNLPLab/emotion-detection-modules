@@ -60,19 +60,41 @@ def gen_vector(i, vtype):
 
 	return v
 
-def cal_fs1(v, avg, nstd):
+def cal_fs1(v):
+	avg = mathutil.avg(v)
+	nv = mathutil.normalize(v)
+	nstd = mathutil.standard_deviation(nv)	
+
+	if nstd == 0: 
+		nstd = 1	
+
 	s_bar = avg + nstd*(max(v)-avg)/0.158
 	fs1 = v[0]/float(v[0]+s_bar)
+
+
+	print v, '\t',avg, '\t', max(v), '\t', round(nstd, 3), '\t', s_bar, '\t', round(fs1, 4)
+
 	return fs1
 
-def cal_pval(v, avg, std, P):
+def cal_pval(v):
+
+	avg = mathutil.avg(v)
+	std = mathutil.standard_deviation(v)
+
+	nv = mathutil.normalize(v)
+
+	if std == 0: 
+		std = 1	
+
 	z = (v[0]-avg)/(std/( alpha**0.5 ))
 	z = round(z, 2)
 	if z not in P:
 		p_value = 0.9999 if z > 0 else -0.9999
 	else:
 		p_value = P[z]
-	print v, '\t', avg, '\t', round(std,3), '\t', z, '\t',p_value
+
+	print v, '\t',avg, '\t', round(std, 3), '\t', z, '\t', round(p_value, 4)
+	# print v, '\t', avg, '\t', round(std,3), '\t', z, '\t',p_value
 	return p_value	
 
 
@@ -80,16 +102,7 @@ def cal_gaussian(V):
 	anchor = V[0]
 	VR = sorted(V, reverse=True)
 
-
-	# print VR
-	# for i,x in enumerate(VR):
-	# 	print i+1, x
-		# print [i+1]*x+[(i+1)*-1]*x
-
-
 	dist = reduce(lambda a,b:a+b, [[i+1]*x+[(i+1)*-1]*x for (i, x) in enumerate(VR)])
-
-	# print dist
 
 	std = mathutil.standard_deviation(dist)
 	var = mathutil.variance(dist)
@@ -116,64 +129,48 @@ def cal_gaussian(V):
 	return p_value
 
 if __name__ == '__main__':
+	
+	D = defaultdict(list)
 
-
-	PVs, FS1, GDs = [], [], []
-
-	GDs = defaultdict(list)
-
-	# print '   '*40, '\t', 'mean', '\t', 'std', '\t', 'z', '\t','p-value'
+	Method = 3
 
 	color = ['b','g', 'r', 'y']
-	# label = ['1 | [0,0,...,0] ~ [1,1,...,1]', '10 | [0,0,...,0] ~ [1,1,...,1]', '1 | [0,0,...,0] ~ [39,0,...,0]']
-	label = ['1','2','3','4']
+	labels = ['Case 1','Case 2','Case 3','Case 4']
 
 	for t in [1,2,3,4]:
-		print '\t'.join(['   '*40, 'xloc', 'max', 'std', 'z', 'p-value'])
-		# print '   '*40, '\t', 'mean', '\t', 'std', '\t', 'z', '\t','p-value'
+
+		print
+
+		if Method == 1: # M1: origin
+			print '\t'.join(['   '*40, 'avg', 'max', 'nstd', 's_bar', 'fs1'])
+		elif Method == 2: # M2: cal_pval
+			print '\t'.join(['   '*40, 'avg', 'std', 'z', 'p_value'])
+		elif Method == 3:	# M3: cal_gaussian
+			print '\t'.join(['   '*40, 'xloc', 'max', 'std', 'z', 'p-value'])
+
 		print '==='*55
+
 		for i in range(40):
 
 			v = gen_vector(i, vtype=t)
+			
+			if Method == 1:
+				score = cal_fs1(v)
+			elif Method == 2:
+				score = cal_pval(v)
+			elif Method == 3:
+				score = cal_gaussian(v)	
 
-			avg = mathutil.avg(v)
-			std = mathutil.standard_deviation(v)
+			D[t].append(score)
 
-			nv = mathutil.normalize(v)
-			nstd = mathutil.standard_deviation(nv)
-
-			if std == 0: std = 1
-			if nstd == 0: nstd = 1
-				
-			g = cal_gaussian(v)
-			GDs[t].append(g)
-
-		# print v
-
-		### calculate fs1
-		# fs1 = scoring_fs1(v, avg, nstd)
-		# FS1.append(fs1)
-		
-		### calculate p-value
-		# p_value = cal_pval(v, avg, std, P)
-		# PVs.append(p_value)
-		
-		
-
-
-
-	# plt.plot(PVs)
 	legend = []
-	for i,t in enumerate(GDs):
-		# print i, t
-		# print color[i]
-		# print label[i]
-		plt.plot(range(40), GDs[t], color=color[i])
-		legend.append('Case '+label[i])
-	# plt.plot(FS1)
+	for i,t in enumerate(D):
+		plt.plot(range(40), D[t], color=color[i])
+
+	plt.title('Method '+str(Method))
 	plt.xlabel("# of zero in a vector")
 	plt.ylabel("p-value")
-	plt.legend( legend, loc='upper right')
+	plt.legend( labels, loc='upper right')
 	# plt.legend(loc='upper right')
 	plt.ylim([0, 1.1])
 	plt.xlim([0, 39])
