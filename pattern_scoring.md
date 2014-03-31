@@ -146,3 +146,7 @@ Curret results
 	...|... | ...  |
 	39|[ 1 ] | [ 39, 0, 0, ..., 0, 0 ]  |
 
+
+#### scoring results
+
+![image](img/case1-4.png)
