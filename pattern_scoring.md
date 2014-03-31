@@ -89,19 +89,19 @@ Curret results
 
 * Methods:
 	
-	* Method 1: the one we currently used
+	* [Method 1](#method-1): the one we currently used
 	
 		![equation](http://latex.codecogs.com/gif.latex?score_%7B1%7D%20%5Cleft%20%28%20p%2C%5Coverline%7Be%7D%20%5Cright%20%29%20%3D%20mean%28v%29%20&plus;%20%5Cfrac%7Bstd%28normalized%5C_v%29%20*%20%28Max%28v%29-mean%28v%29%29%7D%20%7B0.158%7D)
 		
 		![equation](http://latex.codecogs.com/gif.latex?f_%7BPS_%7Bk%7D%7D%20%5Cleft%28p%2C%20e%20%5Cright%20%29%20%3D%20%5Cfrac%7Bscore_%7Bk%7D%20%5Cleft%20%28%20p%2C%20e%20%5Cright%20%29%7D%7Bscore_%7Bk%7D%20%5Cleft%20%28%20p%2C%20e%20%5Cright%20%29%20&plus;%20score_%7Bk%7D%20%5Cleft%20%28%20p%2C%20%5Coverline%7B%20e%20%7D%20%5Cright%20%29%7D)
 	
-	* Method 2: P-value (proposed by Dr. Penguin)
+	* [Method 2](#method-2): P-value (proposed by Dr. Penguin)
 
 		calculate the Z-score like <a href="https://gist.github.com/maxis1718/9829984" target="_blank">this</a>
 		
 		then look up the <a href="http://images.tutorvista.com/cms/images/67/Positive-Z-score-chart.jpg" target="_blank">table</a> to obtain P-value
 
-	* Method 3: Model the data as a Gaussian distribution
+	* [Method 3](#method-3): Model the data as a Gaussian distribution
 
 ---	
 
