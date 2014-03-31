@@ -1,6 +1,8 @@
 Pattern scoring
 ===
 
+* [Issues on Github](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/issues)
+
 * Given a pattern, we calculate its confidence score in each emotion.
 
 	![equation](http://latex.codecogs.com/gif.latex?score%28pattern%2C%20emotion%29)
