@@ -99,7 +99,8 @@ Methods
 * [Method 2](#method-2): P-value (proposed by Dr. Penguin)
 
 	calculate the Z-score `z = ( x[1]-avg) / (std/39^0.5)` 
-	then look up the <a href="http://images.tutorvista.com/cms/images/67/Positive-Z-score-chart.jpg" target="_blank">table</a> to obtain P-value
+	
+	and then look up the <a href="http://images.tutorvista.com/cms/images/67/Positive-Z-score-chart.jpg" target="_blank">table</a> to obtain P-value
 
 * [Method 3](#method-3): P-value-v2
 
@@ -132,7 +133,7 @@ Cases
 	[ 2 ] | [ 1, 1, 0, ..., 0, 0 ]  |
 	[ 3 ] | [ 1, 1, 1, ..., 0, 0 ]  |
 	... | ...  |
-	[ 40 ] | [ 1, 1, ..., 1 ]  |
+	[ 40 ] | [ 1, 1, 1, ..., 1, 1 ]  |
 
 #### * Case 3
 
