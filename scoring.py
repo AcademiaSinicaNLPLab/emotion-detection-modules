@@ -4,14 +4,33 @@ import sys, mathutil, math, json, pickle
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
-# p_value = json.load(open('p-value.json'))
+# M1: ps1
+# M2: p-value
+# M3: gaussian
+Method = 2
 
+## free
 alpha = math.exp(1)
-# alpha = 39
 
+## plot or not
+toPlot = True
+
+color = ['b','r', 'g', 'k']
+markers = ['+', '1', '2', '3', '4']
+# labels = ['Case 1','Case 2','Case 3','Case 4']
+## custom labels
+# custom = ['10, 1...1', '1000, 1...1']
+custom = None
+
+x_label = "i-th vector"
+y_label = ["possibility", "p-value", "p-value"]
+
+
+D = defaultdict(list)
 P = pickle.load(open('data/P-value.dict.pkl'))
 
 def fill(v, num=0, total=40):
+	# print total, len(v), total-len(v)
 	return v+[num]*(total-len(v))
 
 
@@ -26,37 +45,33 @@ def gen_vector(i, vtype):
 		v = [1]+[1]*i+[0]*(39-i)
 
 	## normalized, balance sum
-	## 1 |   0,   0,     0, ...,0
-	## 1 |   1,   0,     0, ...,0
-	## 1 |   0.5, 0.5,   0, ...,0
-	## 1 |   0.3, 0.3, 0.3, ...,0
+	## 1  |   1, 0, 0, 0, ...,0
+	## 2  |   1, 1, 0, 0, ...,0
+	## 3  |   1, 1, 1, 0, ...,0
+	## 4  |   1, 1, 1, 1, ...,0
 	## ...
-	## 1 |   0.025, 0.025,...,0.025
+	## 40 |   1, 1, 1, 1, ...,1
 	if vtype == 2:
-
-		v = [i+1] + [1]*(i+1)
-		v = fill(v, num=0, total=40)
-		# ni = 0 if i ==0 else 1.0/i
-		# v = [1]+[ni]*i+[0]*(39-i)
+		v = [i+1]+[1]*i+[0]*(39-i)
 	
 
-	## 10|   0, 0,...,0
-	## 10|   1, 0,...,0
-	## 10|   1, 1,...,0
+	## 100 |   1, 0, 0, ...,0
+	## 100 |   1, 1, 0, ...,0
+	## 100 |   1, 1, 1, ...,0
 	## ...
-	## 10|   1, 1,...,1
+	## 100 |   1, 1, 1, ...,1
 	if vtype == 3:
-		v = [10]+[1]*i+[0]*(39-i)
+		v = [100]+[1]*i+[0]*(39-i)
 
 
-	## 1 |   0,  0,...,0
-	## 1 |   1,  0,...,0
-	## 1 |   2,  0,...,0	
-	## 1 |   3,  0,...,0	
+	## 5 |   0,  0,...,0
+	## 5 |   1,  0,...,0
+	## 5 |   2,  0,...,0	
+	## 5 |   3,  0,...,0	
 	## ...
-	## 1 |   39, 0,...,0
+	## 5 |   39, 0,...,0
 	if vtype == 4:
-		v = [1]+[i]+[0]*38
+		v = [5]+[i]+[0]*38
 
 	return v
 
@@ -97,7 +112,6 @@ def cal_pval(v):
 	# print v, '\t', avg, '\t', round(std,3), '\t', z, '\t',p_value
 	return p_value	
 
-
 def cal_gaussian(V):
 	anchor = V[0]
 	VR = sorted(V, reverse=True)
@@ -107,7 +121,8 @@ def cal_gaussian(V):
 	std = mathutil.standard_deviation(dist)
 	var = mathutil.variance(dist)
 
-	xloc = mathutil.avg([i+1 for (i, v) in enumerate(VR) if v == anchor])
+	# xloc = mathutil.avg([i+1 for (i, v) in enumerate(VR) if v == anchor])
+	xloc = min([i+1 for (i, v) in enumerate(VR) if v == anchor])
 
 	## -1 or 1
 	inverse = -1 if anchor < max(V) else 1
@@ -130,14 +145,7 @@ def cal_gaussian(V):
 
 if __name__ == '__main__':
 	
-	D = defaultdict(list)
-
-	Method = 3
-
-	color = ['b','g', 'r', 'y']
-	labels = ['Case 1','Case 2','Case 3','Case 4']
-
-	for t in [1,2,3,4]:
+	for t in [1,2, 3,4]:
 
 		print
 
@@ -163,17 +171,27 @@ if __name__ == '__main__':
 
 			D[t].append(score)
 
-	legend = []
-	for i,t in enumerate(D):
-		plt.plot(range(40), D[t], color=color[i])
+	if toPlot:
+		legend = []
+		labels = []
+		for i,t in enumerate(D):
+			lines = plt.plot(range(40), D[t])
+			# lines = plt.scatter(range(40), D[t])
+			if not custom:
+				labels.append( 'Case ' + str(t) )
+			else:
+				labels.append( custom[i] )
+			plt.setp(lines, color=color[i], linewidth=1.5)
 
-	plt.title('Method '+str(Method))
-	plt.xlabel("# of zero in a vector")
-	plt.ylabel("p-value")
-	plt.legend( labels, loc='upper right')
-	# plt.legend(loc='upper right')
-	plt.ylim([0, 1.1])
-	plt.xlim([0, 39])
+		
 
-	plt.show()
+
+		plt.title('Method '+str(Method))
+		plt.xlabel(x_label)
+		plt.ylabel(y_label[Method-1])
+		plt.legend( labels, loc=1)
+		plt.ylim([0, 1.1])
+		plt.xlim([0, 39])
+
+		plt.show()
 
