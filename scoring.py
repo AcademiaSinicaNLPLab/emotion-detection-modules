@@ -7,13 +7,15 @@ from collections import defaultdict
 # M1: ps1
 # M2: p-value
 # M3: gaussian
-Method = 2
+# M4: probability
+Method = 4
+
+## plot or not
+toPlot = True
 
 ## free
 alpha = math.exp(1)
 
-## plot or not
-toPlot = True
 
 color = ['b','r', 'g', 'k']
 markers = ['+', '1', '2', '3', '4']
@@ -23,7 +25,7 @@ markers = ['+', '1', '2', '3', '4']
 custom = None
 
 x_label = "i-th vector"
-y_label = ["possibility", "p-value", "p-value"]
+y_label = ["possibility", "p-value", "p-value", "probability"]
 
 
 D = defaultdict(list)
@@ -129,7 +131,8 @@ def cal_gaussian(V):
 
 	## cal z
 	alpha1 = 1.0/var
-	z = (xloc-0)/(std/(alpha1**0.5)) * inverse
+	z = (xloc-0)/(std/(alpha**0.5)) * inverse
+	# z = (xloc-0)/( std2/(alpha**0.5)) * inverse
 
 	## cal p-value
 	z = round(z, 2)
@@ -143,6 +146,21 @@ def cal_gaussian(V):
 	print V, '\t',xloc, '\t', max(V), '\t', round(std, 3), '\t', z, '\t', round(p_value, 4)
 	return p_value
 
+## v2: proposed by Dr. Ku on Arp. 9
+def cal_prob_v2(v):
+	right = v[1:]
+	rightSum = float(sum(right))
+	portion = [0 if rightSum == 0 else x/rightSum for x in right]
+
+	rightWeighted = [value*weight for (value, weight) in zip(right, portion)]
+	left = v[0]
+
+	r_avg = sum(rightWeighted)
+	prob = left/float(left+r_avg)
+	print v, '\t',left, '\t', round(r_avg, 3), '\t', round(prob, 4)
+	
+	return prob
+
 if __name__ == '__main__':
 	
 	for t in [1,2, 3,4]:
@@ -155,6 +173,8 @@ if __name__ == '__main__':
 			print '\t'.join(['   '*40, 'avg', 'std', 'z', 'p_value'])
 		elif Method == 3:	# M3: cal_gaussian
 			print '\t'.join(['   '*40, 'xloc', 'max', 'std', 'z', 'p-value'])
+		elif Method == 4:	# M3: cal_gaussian
+			print '\t'.join(['   '*40, 'left', 'r-avg', 'prob'])
 
 		print '==='*55
 
@@ -168,6 +188,8 @@ if __name__ == '__main__':
 				score = cal_pval(v)
 			elif Method == 3:
 				score = cal_gaussian(v)	
+			elif Method == 4:
+				score = cal_prob_v2(v)	
 
 			D[t].append(score)
 
@@ -184,12 +206,10 @@ if __name__ == '__main__':
 			plt.setp(lines, color=color[i], linewidth=1.5)
 
 		
-
-
 		plt.title('Method '+str(Method))
 		plt.xlabel(x_label)
 		plt.ylabel(y_label[Method-1])
-		plt.legend( labels, loc=1)
+		plt.legend( labels, loc=3)
 		plt.ylim([0, 1.1])
 		plt.xlim([0, 39])
 
