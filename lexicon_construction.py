@@ -1,26 +1,36 @@
-import pickle	
-import pymongo	
+# -*- coding: utf-8 -*-
+import config
+import pymongo
 from collections import Counter
 
-emoList = pickle.load(open('emoList.pkl', 'r'))
+db = pymongo.Connection(config.mongo_addr)['LJ40K']
 
-mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
-db = mc['LJ40K']	
-co_docs = db['docs']	
-co_pats = db['pats']		
+co_docs = db['docs']
+co_pats = db['pats']
 co_lexicon = db['lexicon']
-patCount = dict()
 
-# count patterns
-for _emo in emoList:
-	patCount[_emo] = Counter()
-	for _doc in co_docs.find( { 'emotion': _emo, 'ldocID': {'$lt': 800}} ):
-		_udocID = _doc['udocID']
-		mdocs = list( co_pats.find( {'udocID': _udocID} ) )
-		for mdoc in mdocs:
-			patCount[_emo][mdoc['pattern'].lower()] += 1
+emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}, {'_id':0, 'emotion':1})])
 
-# build lexicon
-for _emo in emoList:
-	for _pat in patCount[_emo].keys():
-		co_lexicon.insert( { 'pattern': _pat, 'emotion': _emo, 'count': patCount[_emo][_pat] } )
+# calculate occurrences of patterns
+def count_patterns(emotions):
+	patCount = {}
+	for e in emotions:
+		patCount[e] = Counter()
+		for _doc in co_docs.find( { 'emotion': e, 'ldocID': {'$lt': 800}} ):
+			_udocID = _doc['udocID']
+			mdocs = list( co_pats.find( {'udocID': _udocID} ) )
+			for mdoc in mdocs:
+				patCount[e][mdoc['pattern'].lower()] += 1
+	return patCount
+
+# build lexicon storing pattern occurrence
+def build_lexicon(patCount, emotions):
+	for e in emotions:
+		for p in patCount[e].keys():
+			co_lexicon.insert( { 'pattern': p, 'emotion': e, 'count': patCount[e][p] } )
+
+if __name__ == '__main__':
+
+	count_patterns(emotions)
+
+	build_lexicon(patCount, emotions)
