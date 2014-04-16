@@ -37,10 +37,15 @@ def get_pattern_dist(pattern):
 ## option: 
 ##	 config.ps_function_type 0: only consider occurrence portion (no distribution information)
 ##	 config.ps_function_type 1: occurrence + distribution [2014.03.18. discuss with Dr. Ku]
-def scoring(pattern_dist, emotion):
+def scoring(pattern_dist, emotion, smoothing=0):
+
 
 	p = pattern_dist[emotion]
 	p_bar = [pattern_dist[x] for x in pattern_dist if x != emotion]
+
+	if smoothing == 1:
+		p += 0.25
+		p_bar = [x+0.25 for x in p_bar]
 
 	# print emotion, p, p_bar
 
@@ -186,7 +191,7 @@ if __name__ == '__main__':
 	## select mongo collections
 	co_lexicon = db[config.co_lexicon_name]
 
-	config.co_patscore_name = '_'.join([config.co_patscore_prefix, str(config.ps_function_type)])
+	config.co_patscore_name = '_'.join([config.co_patscore_prefix, str(config.ps_function_type), str(config.smoothing_type)])
 	co_patscore = db[ config.co_patscore_name ]
 
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type

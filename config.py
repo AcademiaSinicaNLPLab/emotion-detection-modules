@@ -76,7 +76,7 @@ def help(program, exit=1):
 	params['-s'] = [
 		'-s, --smoothing: smoothing method',
 		'                 0: (default) no smoothig',
-		'                 1: naive smoothing (+1)']
+		'                 1: awesome smoothing (+0.25)']
 
 	params['-v'] = [
 		'-v, --verbose: show debug message']
