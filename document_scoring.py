@@ -206,18 +206,17 @@ if __name__ == '__main__':
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
 
-
 	import time
 
 	## each sf function
-	for i in [3,2,1,0]:
-		config.sig_function_type = i
+	# for i in [3,2,1,0]:
+		# config.sig_function_type = i
 
-		config.co_docscore_name = '_'.join([config.co_docscore_prefix, str(config.ps_function_type), str(config.sig_function_type)])
-		co_docscore = db[ config.co_docscore_name ]		
+	config.co_docscore_name = '_'.join([config.co_docscore_prefix, str(config.ps_function_type), str(config.sig_function_type)])
+	co_docscore = db[ config.co_docscore_name ]		
 
-		s = time.time()
-		update_all_document_scores(UPDATE=False)
-		print 'Time total:',time.time() - s,'sec'
+	s = time.time()
+	update_all_document_scores(UPDATE=False)
+	print 'Time total:',time.time() - s,'sec'
 
 				
