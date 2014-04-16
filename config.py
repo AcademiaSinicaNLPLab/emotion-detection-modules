@@ -10,7 +10,7 @@ co_docs_name = 'docs'
 co_pats_name = 'pats'
 co_lexicon_name = 'lexicon'
 
-co_patscore_names = ['patscore_0', 'patscore_1']
+co_patscore_names = ['patscore_0', 'patscore_1', 'patscore_2']
 #co_docscore_names = [ ['docscore_0_0', 'docscore_0_1', 'docscore_0_2'], ['docscore_1_0', 'docscore_1_1', 'docscore_1_2'] ]
 co_docscore_names = [ ['docscore_0_0', 'docscore_0_1', 'docscore_0_2', 'docscore_0_3'], ['docscore_1_0', 'docscore_1_1', 'docscore_1_2', 'docscore_1_3'] ]
 
@@ -56,7 +56,8 @@ def help(program, exit=1):
 	params['-p'] = [
 		'-p, --ps_function: pattern scoring function',
 		'                 0: (default) no distribution information, only consider occurrence portion',
-		'                 1: combine occurrence with distribution information using standard deviation scaling [2014.03.18]']
+		'                 1: combine occurrence with distribution information using standard deviation scaling [2014.03.18]',
+		'                 2: average occurrence with weight [2014.04.09]']
 
 	params['-d'] = [
 		'-d, --ds_function: document scoring function',

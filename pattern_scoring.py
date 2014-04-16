@@ -60,6 +60,12 @@ def scoring(pattern_dist, emotion):
 		p_bar_score = std(np_bar)*( max(p_bar)-avg(p_bar) ) / 0.158 + avg(p_bar)
 		prob_p_e = p_score/float(p_score+p_bar_score)
 
+	elif config.ps_function_type == 2:
+		p_score = p
+		
+		p_bar_score = 0 if sum(p_bar)==0 else sum( [ i*i/float(sum(p_bar)) for i in p_bar ] )
+		prob_p_e = p_score/float(p_score + p_bar_score)
+
 	return prob_p_e
 #### ------------------- end scoring functions ------------------- ####
 
