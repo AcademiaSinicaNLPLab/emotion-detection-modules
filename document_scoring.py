@@ -196,6 +196,9 @@ if __name__ == '__main__':
 	config.co_patscore_name = '_'.join([config.co_patscore_prefix, str(config.ps_function_type)])
 	co_patscore = db[ config.co_patscore_name ]
 
+	config.co_docscore_name = '_'.join([config.co_docscore_prefix, str(config.ps_function_type), str(config.sig_function_type)])
+	co_docscore = db[ config.co_docscore_name ]	
+
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
 	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type
 	print >> sys.stderr, config.sig_function_name, '=', config.sig_function_type
@@ -207,14 +210,6 @@ if __name__ == '__main__':
 	print >> sys.stderr, 'press any key to start...', raw_input()
 
 	import time
-
-	## each sf function
-	# for i in [3,2,1,0]:
-		# config.sig_function_type = i
-
-	config.co_docscore_name = '_'.join([config.co_docscore_prefix, str(config.ps_function_type), str(config.sig_function_type)])
-	co_docscore = db[ config.co_docscore_name ]		
-
 	s = time.time()
 	update_all_document_scores(UPDATE=False)
 	print 'Time total:',time.time() - s,'sec'
