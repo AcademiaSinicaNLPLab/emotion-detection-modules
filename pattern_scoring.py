@@ -37,10 +37,15 @@ def get_pattern_dist(pattern):
 ## option: 
 ##	 config.ps_function_type 0: only consider occurrence portion (no distribution information)
 ##	 config.ps_function_type 1: occurrence + distribution [2014.03.18. discuss with Dr. Ku]
-def scoring(pattern_dist, emotion):
+def scoring(pattern_dist, emotion, smoothing=0):
+
 
 	p = pattern_dist[emotion]
 	p_bar = [pattern_dist[x] for x in pattern_dist if x != emotion]
+
+	if smoothing == 1:
+		p += 0.25
+		p_bar = [x+0.25 for x in p_bar]
 
 	# print emotion, p, p_bar
 
@@ -59,6 +64,12 @@ def scoring(pattern_dist, emotion):
 		p_score = p
 		p_bar_score = std(np_bar)*( max(p_bar)-avg(p_bar) ) / 0.158 + avg(p_bar)
 		prob_p_e = p_score/float(p_score+p_bar_score)
+
+	elif config.ps_function_type == 2:
+		p_score = p
+		
+		p_bar_score = 0 if sum(p_bar)==0 else sum( [ i*i/float(sum(p_bar)) for i in p_bar ] )
+		prob_p_e = p_score/float(p_score + p_bar_score)
 
 	return prob_p_e
 #### ------------------- end scoring functions ------------------- ####
@@ -179,11 +190,13 @@ if __name__ == '__main__':
 
 	## select mongo collections
 	co_lexicon = db[config.co_lexicon_name]
-	co_patscore = db[ config.co_patscore_names[config.ps_function_type] ]
+
+	config.co_patscore_name = '_'.join([config.co_patscore_prefix, str(config.ps_function_type), str(config.smoothing_type)])
+	co_patscore = db[ config.co_patscore_name ]
 
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
 	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
-	print >> sys.stderr, 'insert collection', '=', config.co_patscore_names[config.ps_function_type]
+	print >> sys.stderr, 'insert collection', '=', config.co_patscore_name
 	print >> sys.stderr, 'verbose =', config.verbose
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()

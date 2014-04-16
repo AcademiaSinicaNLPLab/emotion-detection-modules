@@ -111,6 +111,24 @@ Methods
 	and also look up the p-value
 
 
+* [Method 4](#method-4): Probability
+
+	calculate weight on each emotion (not happy)
+	
+	* e.g., [5, 39, 1, 0, ...., 0]
+	
+		* left: 5
+	
+		* right sum: 39 + 1 + 0 + ... + 0 = 40
+	
+		* weights: 39/40, 1/40, 0/40, ..., 0/40
+		
+		* apply weights: 39*39/40 + 1*1/40 + 0 ... + 0 = 38.05
+		
+		* calculate probability prob(5, [39, 1, 0,...,0]) = 5/(5+38.05) = 0.116
+	
+	
+
 Cases
 ===	
 
@@ -181,3 +199,7 @@ Results
 #### Method 3
 
 ![image](img/m3.png)
+
+#### Method 4
+
+![image](img/m4.png)

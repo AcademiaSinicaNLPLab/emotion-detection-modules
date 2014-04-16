@@ -6,3 +6,4 @@ venv
 ._.DS_Store
 eval/test
 log
+build

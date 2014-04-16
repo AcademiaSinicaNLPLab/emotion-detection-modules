@@ -8,7 +8,8 @@ from collections import defaultdict
 # M2: p-value
 # M3: gaussian
 # M4: probability
-Method = 4
+# M5: probability + smoothing
+Method = 5
 
 ## plot or not
 toPlot = True
@@ -25,7 +26,7 @@ markers = ['+', '1', '2', '3', '4']
 custom = None
 
 x_label = "i-th vector"
-y_label = ["possibility", "p-value", "p-value", "probability"]
+y_label = ["possibility", "p-value", "p-value", "probability", "probability"]
 
 
 D = defaultdict(list)
@@ -147,7 +148,13 @@ def cal_gaussian(V):
 	return p_value
 
 ## v2: proposed by Dr. Ku on Arp. 9
-def cal_prob_v2(v):
+def cal_prob_v2(v, smoothing=False):
+
+	if smoothing == 1:
+		v = [x+1/float(len(v)) for x in v]
+	elif smoothing == 2:
+		v = [x+1/float(len(v)/20) for x in v]
+
 	right = v[1:]
 	rightSum = float(sum(right))
 	portion = [0 if rightSum == 0 else x/rightSum for x in right]
@@ -175,6 +182,8 @@ if __name__ == '__main__':
 			print '\t'.join(['   '*40, 'xloc', 'max', 'std', 'z', 'p-value'])
 		elif Method == 4:	# M3: cal_gaussian
 			print '\t'.join(['   '*40, 'left', 'r-avg', 'prob'])
+		elif Method == 5:	# M3: cal_gaussian
+			print '\t'.join(['   '*40, 'left', 'r-avg', 'prob'])
 
 		print '==='*55
 
@@ -189,7 +198,9 @@ if __name__ == '__main__':
 			elif Method == 3:
 				score = cal_gaussian(v)	
 			elif Method == 4:
-				score = cal_prob_v2(v)	
+				score = cal_prob_v2(v)
+			elif Method == 5:
+				score = cal_prob_v2(v, smoothing=2)
 
 			D[t].append(score)
 
@@ -208,10 +219,10 @@ if __name__ == '__main__':
 		
 		plt.title('Method '+str(Method))
 		plt.xlabel(x_label)
-		plt.ylabel(y_label[Method-1])
+		plt.ylabel(y_label[ Method-1 ])
 		plt.legend( labels, loc=3)
 		plt.ylim([0, 1.1])
-		plt.xlim([0, 39])
+		plt.xlim([-0.5, 39])
 
 		plt.show()
 

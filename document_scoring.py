@@ -168,9 +168,6 @@ def update_all_document_scores(UPDATE=False):
 	# if config.verbose:
 	print '='*50
 	print 'cfg:',cfg_docscore
-	# print 'Cache hit:',hit
-	# print 'Cache miss:',miss
-	# print 'Cache hit rate:',hit/float(hit+miss)
 
 if __name__ == '__main__':
 	  
@@ -194,28 +191,27 @@ if __name__ == '__main__':
 	co_docs = db[config.co_docs_name]
 	co_pats = db[config.co_pats_name]
 	co_lexicon = db[config.co_lexicon_name]
-	co_patscore = db[ config.co_patscore_names[config.ps_function_type] ]
-	#co_docscore = db[ config.co_docscore_names[config.ps_function_type][config.sig_function_type] ]
+
+	## use patscore_x collection, x = type of ps
+	config.co_patscore_name = '_'.join([config.co_patscore_prefix, str(config.ps_function_type)])
+	co_patscore = db[ config.co_patscore_name ]
+
+	config.co_docscore_name = '_'.join([config.co_docscore_prefix, str(config.ps_function_type), str(config.sig_function_type)])
+	co_docscore = db[ config.co_docscore_name ]	
 
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
 	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type
 	print >> sys.stderr, config.sig_function_name, '=', config.sig_function_type
 	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
-	print >> sys.stderr, 'fetch  collection', '=', config.co_patscore_names[config.ps_function_type]
-	#print >> sys.stderr, 'insert collection', '=', config.co_docscore_names[config.ps_function_type][config.sig_function_type]
+	print >> sys.stderr, 'fetch  collection', '=', config.co_patscore_name
+	print >> sys.stderr, 'insert collection', '=', config.co_docscore_name
 	print >> sys.stderr, 'verbose =', config.verbose
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
 
-
 	import time
-	# global miss, hit
-
-	for i in [3,2,1,0]:
-		config.sig_function_type = i
-		co_docscore = db[ config.co_docscore_names[config.ps_function_type][config.sig_function_type] ]
-		s = time.time()
-		update_all_document_scores(UPDATE=False)
-		print 'Time total:',time.time() - s,'sec'
+	s = time.time()
+	update_all_document_scores(UPDATE=False)
+	print 'Time total:',time.time() - s,'sec'
 
 				
