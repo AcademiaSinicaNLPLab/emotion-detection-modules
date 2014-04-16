@@ -10,9 +10,13 @@ co_docs_name = 'docs'
 co_pats_name = 'pats'
 co_lexicon_name = 'lexicon'
 
-co_patscore_names = ['patscore_0', 'patscore_1', 'patscore_2']
-#co_docscore_names = [ ['docscore_0_0', 'docscore_0_1', 'docscore_0_2'], ['docscore_1_0', 'docscore_1_1', 'docscore_1_2'] ]
-co_docscore_names = [ ['docscore_0_0', 'docscore_0_1', 'docscore_0_2', 'docscore_0_3'], ['docscore_1_0', 'docscore_1_1', 'docscore_1_2', 'docscore_1_3'] ]
+## default
+co_patscore_prefix = 'patscore'
+co_docscore_prefix = 'docscore'
+
+## to be setup
+co_patscore_name = ''
+co_docscore_name = ''
 
 ## names of functions
 ps_function_name = 'ps_function'

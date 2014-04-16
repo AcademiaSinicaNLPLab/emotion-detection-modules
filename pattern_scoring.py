@@ -185,11 +185,13 @@ if __name__ == '__main__':
 
 	## select mongo collections
 	co_lexicon = db[config.co_lexicon_name]
-	co_patscore = db[ config.co_patscore_names[config.ps_function_type] ]
+
+	config.co_patscore_name = '_'.join([config.co_patscore_prefix, str(config.ps_function_type)])
+	co_patscore = db[ config.co_patscore_name ]
 
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
 	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
-	print >> sys.stderr, 'insert collection', '=', config.co_patscore_names[config.ps_function_type]
+	print >> sys.stderr, 'insert collection', '=', config.co_patscore_name
 	print >> sys.stderr, 'verbose =', config.verbose
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
