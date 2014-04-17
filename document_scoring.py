@@ -64,10 +64,8 @@ def document_scoring(udocID):
 	# calculate the event score in each pattern
 	for pat in pats:
 
-		###
-		if pat not in notignore_list:
+		if pat['pattern'] not in notignore_list:
 			continue
-		###
 
 		EventScores = event_scoring(pat)
 		for emotion in EventScores:
