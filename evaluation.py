@@ -1,70 +1,16 @@
+# -*- coding: utf-8 -*-
+import config
 import pymongo, sys
 from collections import Counter
 from itertools import product
-db = pymongo.Connection('doraemon.iis.sinica.edu.tw')['LJ40K']
 
+db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 # get all emotions
 emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])
 
-# co_docscore = db['docscore']
-# co_docs = db['docs']
-# co_test_instances = db['test_instances']
-
-# cfg = {
-# 	'ds_function': 1,
-# 	'ps_function': 1,
-# 	'smoothing':  0,
-# 	'sig_function': 0,
-# 	'epsilon':  0.5
-# }
-
-## input: config
-## output: inject test instances into mongo collection
-
-# def gen_test(cfg):
-# 	for gold_emotion in emotions:
-# 		for doc in co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ):
-# 			_udocID = doc['udocID']
-
-# 			## generate result vector
-# 			res_vector = {}
-# 			for test_emotion in emotions:
-
-# 				query = {
-# 						'udocID': _udocID,
-# 						'gold_emotion': gold_emotion,
-# 						'test_emotion': test_emotion,
-# 				}
-# 				## add config info
-# 				query.update(cfg)
-
-# 				res = co_docscore.find_one(query)
-# 				if not res:
-# 					print >> sys.stderr, 'check parameters'
-# 					exit()
-# 				else:
-# 					res_vector[test_emotion] = res['predict']
-
-# 			## store gold and predict into mongo
-
-# 			test_instance = {
-# 				'udocID': _udocID,
-# 				'gold_emotion': gold_emotion
-# 			}
-# 			test_instance.update(cfg)
-
-# 			co_test_instances.update( test_instance, { '$set': {'predict': res_vector } }, upsert=True )
-
-# 			# test_instance['predict'] = res_vector
-
-# 			co_test_instances.insert( test_instance )
-
-# def fetch_insts(cfg):
-# 	return list(db['test_instances'].find( cfg, {'_id':0, 'gold_emotion':1, 'predict': 1, 'udocID':1} ))
-
-def fetch(ps_function, sig_function):
-	co_docscore = db['docscore_'+str(ps_function)+'_'+str(sig_function)]
+def fetch():
+	co_docscore = db[ config.co_docscore_name ]
 	return list(co_docscore.find({}, {'_id':0}))
 
 def accuracy(res, ratio=1):
@@ -88,12 +34,6 @@ def recall(res, ratio=1):
 	FN = res['FN']
 	return round((TP)/float(TP+FN), 4)
 
-# def fscore(P, R, f=1, ratio=1):
-# 	P = precision(res, ratio=ratio)
-# 	R = recall(res, ratio=ratio)
-# 	return 2*P*R/float(P+R)
-
-
 # target: happy
 # really is Positive
 # 	classify as happy	
@@ -102,18 +42,18 @@ def recall(res, ratio=1):
 # 	classify as happy	
 # 	classify as ~happy	
 
-def evals(ps_function, sig_function, topk=1):
+def evals(topk=1):
 
 	Positive, Negative = True, False
 
-	insts = fetch(ps_function, sig_function)
+	# get all instances
+	insts = fetch()
 
+	## ======================== start collecting Results ========================
 	Results = {}
-
 	for target_gold in emotions:
 
-		really_is_positive = 0
-		really_is_negative = 0
+		really_is_positive, really_is_negative = 0, 0
 
 		res = Counter()
 		for inst in insts:
@@ -122,11 +62,7 @@ def evals(ps_function, sig_function, topk=1):
 			answers = [x[0] for x in sorted(inst['scores'].items(), key=lambda x:x[1], reverse=True)][:topk]
 
 			really_is = Positive if target_gold == inst['gold_emotion'] else Negative
-
 			classified_as = Positive if target_gold in answers else Negative
-
-			# classified_as = Positive if inst['scores'][target_gold] == 1 else Negative
-
 
 			## stat really_is_Positive: really_is_Negative = 200: 7900
 			really_is_positive += 1 if really_is == Positive else 0
@@ -142,15 +78,13 @@ def evals(ps_function, sig_function, topk=1):
 			res['FP'] += 1 if FP else 0
 			res['FN'] += 1 if FN else 0
 
-
 		r = really_is_negative/float(really_is_positive)
-
 
 		Results[target_gold] = {
 			'res': res,
 			'ratio': r
 		}
-
+	## ======================== end of collecting Results ========================
 
 	for target_gold in emotions:
 
@@ -158,14 +92,13 @@ def evals(ps_function, sig_function, topk=1):
 		r = Results[target_gold]['ratio']
 
 		query = { 
-			'cfg' : 'ps_function='+str(ps_function)+',sig_function='+str(sig_function)
+			'cfg': config.toStr(fields="ps_function,ds_function,sig_function,smoothing"), # use all options
+			'emotion': target_gold
 		}
-		query['emotion'] = target_gold
 
 		A = accuracy(res, ratio=r)
 		P = precision(res, ratio=r)
 		R = recall(res, ratio=r)
-
 
 		upadte = { 
 			'ratio': r, 
@@ -175,9 +108,6 @@ def evals(ps_function, sig_function, topk=1):
 			'recall': R,
 			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0
 		}
-
-		# db['results'].update
-		
 
 		db['results'].update( query, { '$set': upadte }, upsert=True )
 
@@ -205,18 +135,45 @@ def average(cfg):
 	return avg_LJ40K, avg_Mishne05, avg_shared
 
 if __name__ == '__main__':
-
-	# gen_test(cfg)
-
-	# res = evals(cfg)
+	  
+	import getopt
 	
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:v',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'verbose'])
+	except getopt.GetoptError:
+		config.help('evaluation', exit=2)
 
-	ps_functions = [2]
-	sig_functions = [3]
+	for opt, arg in opts:
+		if opt in ('-h', '--help'): config.help('evaluation')
+		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
+		elif opt in ('-d','--ds_function'): config.ds_function_type = int(arg.strip())
+		elif opt in ('-g','--sig_function'): config.sig_function_type = int(arg.strip())
+		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
+		elif opt in ('-v','--verbose'): config.verbose = True
 
-	for ps_function, sig_function in list(product(ps_functions, sig_functions)):
-		print 'update',ps_function, sig_function
-		evals(ps_function, sig_function, topk=1)
+	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
+	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type
+	print >> sys.stderr, config.sig_function_name, '=', config.sig_function_type
+	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
+	print >> sys.stderr, 'fetch  collection', '=', config.co_patscore_name
+	print >> sys.stderr, 'insert collection', '=', config.co_docscore_name
+	print >> sys.stderr, 'verbose =', config.verbose
+	print >> sys.stderr, '='*40
+	print >> sys.stderr, 'press any key to start...', raw_input()
+
+	evals(topk=1)
+
+# if __name__ == '__main__':
+
+# 	ps_functions = [2]
+# 	sig_functions = [3]
+# 	smoothing = 1
+
+
+
+# 	for ps_function, sig_function in list(product(ps_functions, sig_functions)):
+# 		print 'update',ps_function, sig_function
+# 		evals(ps_function, sig_function, smoothing, topk=1)
 
 	# average(cfg)
 

@@ -4,10 +4,10 @@ import pymongo,sys
 from itertools import product
 from collections import defaultdict
 
-db = pymongo.Connection(config.mongo_addr)['LJ40K']
+db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 # create a local cache for event_scoring to reduce mongo access times
-cache, miss, hit = {}, 0, 0
+cache = {}
 
 def significance_factor(pat):
 	sf = config.sig_function_type
@@ -16,34 +16,6 @@ def significance_factor(pat):
 	elif sf == 2: return float(1)/pat['sent_length']
 	elif sf == 3: return pat['pattern_length'] * ( float(1)/pat['sent_length'] )
 	else: return False
-	
-def event_scoring_old(pat, emotion, cfg_patscore):
-
-	query = { 'pattern': pat['pattern'].lower(), 'emotion': emotion, 'cfg': cfg_patscore }
-	projector = { '_id': 0, 'score':1 }
-
-	global cache, miss, hit
-	# form key to access cache
-	key = tuple([query[x] for x in sorted(query.keys())])
-
-	if key not in cache:
-		miss += 1
-		# fetch pattern score
-		## co_patscore.find_one: Exec time: 0.000205091990844
-		patscore_res = co_patscore.find_one( query, projector )
-		if not patscore_res:
-			cache[key] = -1
-		else:
-			cache[key] = patscore_res['score']
-	else:
-		hit += 1
-	## cache[key]: Exec time: 1.81351154014e-06
-	score_p_e = cache[key]
-	pat_weight = 1.0 if 'weight' not in pat else pat['weight']
-	
-	return pat_weight * significance_factor(pat) * score_p_e
-
-# ============================================================================================================ #
 
 def event_scoring(pat):
 
@@ -56,8 +28,6 @@ def event_scoring(pat):
 
 	if key not in cache:
 		res = co_patscore.find_one( query, projector )
-
-
 
 		if not res:
 			cache[key] = {}
@@ -99,7 +69,6 @@ def document_scoring(udocID):
 def update_all_document_scores(UPDATE=False):
 
 	cfg_docscore = config.toStr(fields="ps_function,ds_function,sig_function,smoothing")
-	# cfg_patscore = config.toStr(fields="ps_function,smoothing")
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
@@ -108,7 +77,6 @@ def update_all_document_scores(UPDATE=False):
 	for gold_emotion in emotions:
 
 		## get all document with emotions <gold_emotion> and ldocID is great than 800
-		# Total: 0.000894069671631, Exec: 1, Single: 0.000894069671631
 		docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ) )
 
 		if config.verbose:
@@ -117,7 +85,6 @@ def update_all_document_scores(UPDATE=False):
 		for doc in docs:
 
 			# score a document in 40 diff emotions
-			## scoring a document: Total: 26.2910494804, Exec: 50, Single: 0.525820989609
 			scores = document_scoring(doc['udocID'])
 			mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'scores': scores }
 			co_docscore.insert( mdoc )
@@ -152,11 +119,11 @@ if __name__ == '__main__':
 	# get opts of ps_function, smoothing
 	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
 	co_patscore = db[ config.co_patscore_name ]
-	
+
 	# get opts of ps_function, ds_function, sig_function, smoothing
 	# co_docscore_prefix and opts  --> e.g., docscore_d0_g3_p2_s1
 	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields="p,d,g,s"))
-	co_docscore = db[ config.co_docscore_name ]	
+	co_docscore = db[ config.co_docscore_name ]
 
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
 	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type

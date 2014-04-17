@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import sys
 
+## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
-verbose = False
+db_name = 'LJ40K'
 
 ## mongo collection name
 co_emotions_name = 'emotions'
@@ -24,13 +25,14 @@ ds_function_name = 'ds_function'
 sig_function_name = 'sig_function'
 smoothing_name = 'smoothing'
 
-## functions
+## default values
 ps_function_type = 0
 ds_function_type = 0
-
 sig_function_type = 0
 smoothing_type = 0
 # epsilon = 0.5
+
+verbose = False
 
 ## utils
 def toStr(fields="ps_function,ds_function,sig_function,smoothing", key_value='=', parameters=','):
@@ -110,6 +112,8 @@ def help(program, exit=1):
 		opts = ['-p','-d','-s','-g','-v']
 	elif program == 'pattern_scoring':
 		opts = ['-p','-s','-v']
+	elif program == 'evaluation':
+		opts = ['-p','-d','-s','-g','-v']
 
 	usage = 'usage: python '+program+'.py [options]\n' + '='*50 + '\n[options]'
 	params_str = '\n'.join(['\n'.join(params[opt]) + '\n' for opt in opts])
