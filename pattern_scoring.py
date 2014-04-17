@@ -191,7 +191,8 @@ if __name__ == '__main__':
 	## select mongo collections
 	co_lexicon = db[config.co_lexicon_name]
 
-	config.co_patscore_name = '_'.join([config.co_patscore_prefix, str(config.ps_function_type), str(config.smoothing_type)])
+	# get opts of ps_function, smoothing
+	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
 	co_patscore = db[ config.co_patscore_name ]
 
 	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type

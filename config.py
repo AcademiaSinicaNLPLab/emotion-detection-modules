@@ -26,10 +26,10 @@ smoothing_name = 'smoothing'
 
 ## functions
 ps_function_type = 0
-smoothing_type = 0
-
 ds_function_type = 0
+
 sig_function_type = 0
+smoothing_type = 0
 # epsilon = 0.5
 
 ## utils
@@ -52,10 +52,32 @@ def toStr(fields="ps_function,ds_function,sig_function,smoothing", key_value='='
 
 	return parameters.join([ str(x)+key_value+str(cfg[x]) for x in sorted( cfg.keys() ) ])
 
+def getOpts(fields="p,d,g,s", key_value=''):
+	fields_to_transform = [x.strip() for x in fields.split(',')]
+
+	cfg = {}
+
+	if 'p' in fields_to_transform:
+		cfg['p'] = ps_function_type
+
+	if 'd' in fields_to_transform:
+		cfg['d'] = ds_function_type
+
+	if 'g' in fields_to_transform:
+		cfg['g'] = sig_function_type
+
+	if 's' in fields_to_transform:
+		cfg['s'] = smoothing_type
+
+	return [str(x)+key_value+str(cfg[x]) for x in sorted(cfg.keys())]
+
+	# return parameters.join([ str(x)+key_value+str(cfg[x]) for x in sorted( cfg.keys() ) ])
+
 
 def help(program, exit=1):
 
 	params = {}
+	record = ['p','d','g','s'] # record the option of ps_function, ds_function, sig_function and smoothing
 
 	params['-p'] = [
 		'-p, --ps_function: pattern scoring function',
@@ -67,12 +89,14 @@ def help(program, exit=1):
 		'-d, --ds_function: document scoring function',
 		'                 0: (default) arithmetic mean',
 		'                 1: geometric mean']
+
 	params['-g'] = [
 		'-g, --sig_function: significance function',
 		'                 0: (default) sf = 1, i.e., remain origin pattern score',
 		'                 1: sf = ( pattern length )',
 		'                 2: sf = ( 1/sentence length )',
 		'                 3: sf = ( pattern length/sentence length )']
+
 	params['-s'] = [
 		'-s, --smoothing: smoothing method',
 		'                 0: (default) no smoothig',
