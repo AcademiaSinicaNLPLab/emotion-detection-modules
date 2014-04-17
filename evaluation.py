@@ -10,8 +10,17 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])
 
 def fetch():
+	if config.verbose:
+		print >> sys.stderr, 'fetching doc scores...',
+		sys.stderr.flush()
+
 	co_docscore = db[ config.co_docscore_name ]
-	return list(co_docscore.find({}, {'_id':0}))
+	docs = list(co_docscore.find({}, {'_id':0}))
+
+	if config.verbose:
+		print >> sys.stderr, 'ok'
+
+	return docs
 
 def accuracy(res, ratio=1):
 	TP = res['TP']
@@ -86,38 +95,39 @@ def evals(topk=1):
 		}
 	## ======================== end of collecting Results ========================
 
+	mdoc = {
+		'cfg': config.toStr(fields="ps_function,ds_function,sig_function,smoothing"), # use all options
+		'emotions': {}
+	}
+
 	for target_gold in emotions:
 
-		res = Results[target_gold]['res']
+		true_false_positive_negative = Results[target_gold]['res']
 		r = Results[target_gold]['ratio']
-
-		query = { 
-			'cfg': config.toStr(fields="ps_function,ds_function,sig_function,smoothing"), # use all options
-			'emotion': target_gold
-		}
 
 		A = accuracy(res, ratio=r)
 		P = precision(res, ratio=r)
 		R = recall(res, ratio=r)
 
-		upadte = { 
-			'ratio': r, 
-			'res': res,
+		mdoc['emotions'][target_gold] = {
+			'ratio': r, # /39
+			'instances': true_false_positive_negative, # dict
 			'accuracy': A,
 			'precision': P,
 			'recall': R,
-			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0
+			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0			
 		}
+	
+	db['results'].insert( mdoc )
 
-		db['results'].update( query, { '$set': upadte }, upsert=True )
 
-
-def average(cfg):
+def average():
 	
 
 	LJ40K = [x['emotion'] for x in db.emotions.find( { 'label': 'LJ40K' }, {'_id':0, 'emotion':1}  )]
 	Mishne05 = [x['emotion'] for x in db.emotions.find( { 'label': 'Mishne05' }, {'_id':0, 'emotion':1}  )]
 
+	cfg = config.toStr()
 	results = list(db['results'].find( cfg ))
 
 	mdocs = [x for x in results if x['emotion'] in LJ40K]
@@ -151,32 +161,6 @@ if __name__ == '__main__':
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 
-	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
-	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type
-	print >> sys.stderr, config.sig_function_name, '=', config.sig_function_type
-	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
-	print >> sys.stderr, 'fetch  collection', '=', config.co_patscore_name
-	print >> sys.stderr, 'insert collection', '=', config.co_docscore_name
-	print >> sys.stderr, 'verbose =', config.verbose
-	print >> sys.stderr, '='*40
-	print >> sys.stderr, 'press any key to start...', raw_input()
-
 	evals(topk=1)
 
-# if __name__ == '__main__':
-
-# 	ps_functions = [2]
-# 	sig_functions = [3]
-# 	smoothing = 1
-
-
-
-# 	for ps_function, sig_function in list(product(ps_functions, sig_functions)):
-# 		print 'update',ps_function, sig_function
-# 		evals(ps_function, sig_function, smoothing, topk=1)
-
-	# average(cfg)
-
-
-	
-
+	average()
