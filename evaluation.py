@@ -1,71 +1,31 @@
+# -*- coding: utf-8 -*-
+import config
 import pymongo, sys
 from collections import Counter
 from itertools import product
-db = pymongo.Connection('doraemon.iis.sinica.edu.tw')['LJ40K']
 
+db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 # get all emotions
 emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])
 
-# co_docscore = db['docscore']
-# co_docs = db['docs']
-# co_test_instances = db['test_instances']
+def fetch():
 
-# cfg = {
-# 	'ds_function': 1,
-# 	'ps_function': 1,
-# 	'smoothing':  0,
-# 	'sig_function': 0,
-# 	'epsilon':  0.5
-# }
+	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields="p,d,g,s"))
 
-## input: config
-## output: inject test instances into mongo collection
+	if config.verbose:
+		print >> sys.stderr, 'fetching doc scores from [', config.co_docscore_name, '] ...',
+		sys.stderr.flush()
 
-# def gen_test(cfg):
-# 	for gold_emotion in emotions:
-# 		for doc in co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ):
-# 			_udocID = doc['udocID']
+	co_docscore = db[ config.co_docscore_name ]
+	co_docscore = db[ 'docscore_2_3_1' ]
 
-# 			## generate result vector
-# 			res_vector = {}
-# 			for test_emotion in emotions:
+	docs = list(co_docscore.find({}, {'_id':0}))
 
-# 				query = {
-# 						'udocID': _udocID,
-# 						'gold_emotion': gold_emotion,
-# 						'test_emotion': test_emotion,
-# 				}
-# 				## add config info
-# 				query.update(cfg)
+	if config.verbose:
+		print >> sys.stderr, 'ok'
 
-# 				res = co_docscore.find_one(query)
-# 				if not res:
-# 					print >> sys.stderr, 'check parameters'
-# 					exit()
-# 				else:
-# 					res_vector[test_emotion] = res['predict']
-
-# 			## store gold and predict into mongo
-
-# 			test_instance = {
-# 				'udocID': _udocID,
-# 				'gold_emotion': gold_emotion
-# 			}
-# 			test_instance.update(cfg)
-
-# 			co_test_instances.update( test_instance, { '$set': {'predict': res_vector } }, upsert=True )
-
-# 			# test_instance['predict'] = res_vector
-
-# 			co_test_instances.insert( test_instance )
-
-# def fetch_insts(cfg):
-# 	return list(db['test_instances'].find( cfg, {'_id':0, 'gold_emotion':1, 'predict': 1, 'udocID':1} ))
-
-def fetch(ps_function, sig_function):
-	co_docscore = db['docscore_'+str(ps_function)+'_'+str(sig_function)]
-	return list(co_docscore.find({}, {'_id':0}))
+	return docs
 
 def accuracy(res, ratio=1):
 	TP = res['TP']
@@ -88,12 +48,6 @@ def recall(res, ratio=1):
 	FN = res['FN']
 	return round((TP)/float(TP+FN), 4)
 
-# def fscore(P, R, f=1, ratio=1):
-# 	P = precision(res, ratio=ratio)
-# 	R = recall(res, ratio=ratio)
-# 	return 2*P*R/float(P+R)
-
-
 # target: happy
 # really is Positive
 # 	classify as happy	
@@ -102,18 +56,25 @@ def recall(res, ratio=1):
 # 	classify as happy	
 # 	classify as ~happy	
 
-def evals(ps_function, sig_function, topk=1):
+def evals(topk=1):
 
 	Positive, Negative = True, False
+	cfg = config.toStr(fields="ps_function,ds_function,sig_function,smoothing")
 
-	insts = fetch(ps_function, sig_function)
+	# check if the collection already exists
+	exist = len(list(db[config.co_results_name].find({'cfg': cfg }))) > 0
 
+	# if exist: 
+		# return True
+
+	# get all instances
+	insts = fetch()
+
+	## ======================== start collecting Results ========================
 	Results = {}
-
 	for target_gold in emotions:
 
-		really_is_positive = 0
-		really_is_negative = 0
+		really_is_positive, really_is_negative = 0, 0
 
 		res = Counter()
 		for inst in insts:
@@ -122,11 +83,7 @@ def evals(ps_function, sig_function, topk=1):
 			answers = [x[0] for x in sorted(inst['scores'].items(), key=lambda x:x[1], reverse=True)][:topk]
 
 			really_is = Positive if target_gold == inst['gold_emotion'] else Negative
-
 			classified_as = Positive if target_gold in answers else Negative
-
-			# classified_as = Positive if inst['scores'][target_gold] == 1 else Negative
-
 
 			## stat really_is_Positive: really_is_Negative = 200: 7900
 			really_is_positive += 1 if really_is == Positive else 0
@@ -142,84 +99,112 @@ def evals(ps_function, sig_function, topk=1):
 			res['FP'] += 1 if FP else 0
 			res['FN'] += 1 if FN else 0
 
-
 		r = really_is_negative/float(really_is_positive)
-
 
 		Results[target_gold] = {
 			'res': res,
 			'ratio': r
 		}
+	## ======================== end of collecting Results ========================
 
+	mdoc = {
+		'cfg': cfg, # use all options
+		'emotions': {}
+	}
 
 	for target_gold in emotions:
 
-		res = Results[target_gold]['res']
+		true_false_positive_negative = Results[target_gold]['res']
 		r = Results[target_gold]['ratio']
 
-		query = { 
-			'cfg' : 'ps_function='+str(ps_function)+',sig_function='+str(sig_function)
-		}
-		query['emotion'] = target_gold
+		res = Results[target_gold]['res']
 
 		A = accuracy(res, ratio=r)
 		P = precision(res, ratio=r)
 		R = recall(res, ratio=r)
 
+		print A
 
-		upadte = { 
-			'ratio': r, 
-			'res': res,
+		mdoc['emotions'][target_gold] = {
+			'ratio': r, # /39
+			'instances': true_false_positive_negative, # dict
 			'accuracy': A,
 			'precision': P,
 			'recall': R,
-			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0
+			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0			
 		}
 
-		# db['results'].update
-		
 
-		db['results'].update( query, { '$set': upadte }, upsert=True )
+	# db[config.co_results_name].insert( mdoc )
+
+	return True
 
 
-def average(cfg):
+def average():
 	
+	LJ40K = [x['emotion'] for x in db['emotions'].find( { 'label': 'LJ40K' } )]
+	Mishne05 = [x['emotion'] for x in db['emotions'].find( { 'label': 'Mishne05' } )]
 
-	LJ40K = [x['emotion'] for x in db.emotions.find( { 'label': 'LJ40K' }, {'_id':0, 'emotion':1}  )]
-	Mishne05 = [x['emotion'] for x in db.emotions.find( { 'label': 'Mishne05' }, {'_id':0, 'emotion':1}  )]
+	Union = set(LJ40K + Mishne05)
 
-	results = list(db['results'].find( cfg ))
+	results = db[config.co_results_name].find_one( {'cfg': config.toStr() } )
 
-	mdocs = [x for x in results if x['emotion'] in LJ40K]
-	avg_LJ40K = sum([x['accuracy'] for x in mdocs])/float(len(mdocs))
 
-	mdocs = [x for x in results if x['emotion'] in Mishne05]
-	avg_Mishne05 = sum([x['accuracy'] for x in mdocs])/float(len(mdocs))
+	res = results['emotions']
+	print res
 
-	U = set(LJ40K + Mishne05)
-	shared_emotions = [x for x in U if x in Mishne05 and x in LJ40K]
+	print 'L\tM\tAccuracy\tEmotion'
+	for e in Union:
+		L = 'v' if e in LJ40K else 'x'
+		M = 'v' if e in Mishne05 else 'x'
+		A = '-' if e not in res else res[e]['accuracy']
+		print L+'\t'+M+'\t'+str(A)+'\t'+e
 
-	mdocs = [x for x in results if x['emotion'] in shared_emotions]
-	avg_shared = sum([x['accuracy'] for x in mdocs])/float(len(mdocs))
+	len_LJ40K = float(len([e for e in res if e in LJ40K]))
+	len_Mishne05 = float(len([e for e in res if e in Mishne05]))
+
+	sum_LJ40K = sum([res[e]['accuracy'] for e in res if e in LJ40K])
+	sum_Mishne05 = sum([res[e]['accuracy'] for e in res if e in Mishne05])
+
+	avg_LJ40K = sum_LJ40K/len_LJ40K
+
+	avg_Mishne05 = sum_Mishne05/len_Mishne05
+
+
+	# print avg_LJ40K, sum_LJ40K, len_LJ40K
+	# print avg_Mishne05, sum_Mishne05, len_Mishne05
+
+	
+	shared_emotions = [x for x in Union if x in Mishne05 and x in LJ40K]
+
+	avg_shared = sum([res[e]['accuracy'] for e in res if e in shared_emotions])/float(len([e for e in res if e in shared_emotions]))
 
 	return avg_LJ40K, avg_Mishne05, avg_shared
 
 if __name__ == '__main__':
-
-	# gen_test(cfg)
-
-	# res = evals(cfg)
+	  
+	import getopt
 	
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:v',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'verbose'])
+	except getopt.GetoptError:
+		config.help('evaluation', exit=2)
 
-	ps_functions = [2]
-	sig_functions = [3]
+	for opt, arg in opts:
+		if opt in ('-h', '--help'): config.help('evaluation')
+		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
+		elif opt in ('-d','--ds_function'): config.ds_function_type = int(arg.strip())
+		elif opt in ('-g','--sig_function'): config.sig_function_type = int(arg.strip())
+		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
+		elif opt in ('-v','--verbose'): config.verbose = True
 
-	for ps_function, sig_function in list(product(ps_functions, sig_functions)):
-		print 'update',ps_function, sig_function
-		evals(ps_function, sig_function, topk=1)
+	# if config.verbose:
+	# 	print >> sys.stderr, 'evaluating...',
+	# 	sys.stderr.flush()
 
-	# average(cfg)
+	evals(topk=1)
 
+	# if config.verbose:
+		# print >> sys.stderr, 'ok'
 
-	
-
+	# print average()
