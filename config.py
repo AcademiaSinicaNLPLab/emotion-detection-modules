@@ -10,6 +10,7 @@ co_emotions_name = 'emotions'
 co_docs_name = 'docs'
 co_pats_name = 'pats'
 co_lexicon_name = 'lexicon'
+co_results_name = 'NewRes'
 
 ## default
 co_patscore_prefix = 'patscore'
@@ -33,6 +34,9 @@ smoothing_type = 0
 # epsilon = 0.5
 
 verbose = False
+
+
+droplte = 1
 
 ## utils
 def toStr(fields="ps_function,ds_function,sig_function,smoothing", key_value='=', parameters=','):

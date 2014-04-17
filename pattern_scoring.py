@@ -71,6 +71,9 @@ def pattern_scoring_function(pattern):
 
 	pattern_dist = get_pattern_dist(pattern)
 
+	if sum(pattern_dist.values()) <= config.droplte:
+		return False
+
 	## score pattern in each emotion
 	scores = {}
 	for emotion in pattern_dist:
@@ -96,13 +99,16 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 	print >> sys.stderr, 'done'
 
 	# calculate pattern scores
-	for i,pattern in enumerate(patterns):
+	for i, pattern in enumerate(patterns):
 
 		if config.verbose and i % 100 == 0:
 			print >> sys.stderr, i,'/',len(patterns)
 
 		# get a set of prob of pattern in each emotion
 		scores = pattern_scoring_function(pattern)
+
+		if not scores:
+			continue
 
 		mdoc = {
 			'pattern':pattern,
