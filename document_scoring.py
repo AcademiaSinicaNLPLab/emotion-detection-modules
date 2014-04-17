@@ -6,6 +6,12 @@ from collections import defaultdict
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
+###
+import json
+notignore_list = set(json.load(open('notignore_list.json')))
+###
+
+
 # create a local cache for event_scoring to reduce mongo access times
 cache = {}
 
@@ -57,6 +63,12 @@ def document_scoring(udocID):
 	
 	# calculate the event score in each pattern
 	for pat in pats:
+
+		###
+		if pat not in notignore_list:
+			continue
+		###
+
 		EventScores = event_scoring(pat)
 		for emotion in EventScores:
 			D[emotion].append( EventScores[emotion] )
@@ -117,7 +129,8 @@ if __name__ == '__main__':
 	co_lexicon = db[config.co_lexicon_name]
 
 	# get opts of ps_function, smoothing
-	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
+	# config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
+	config.co_patscore_name = 'patscore_2_1'
 	co_patscore = db[ config.co_patscore_name ]
 
 	# get opts of ps_function, ds_function, sig_function, smoothing
