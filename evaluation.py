@@ -211,8 +211,8 @@ if __name__ == '__main__':
 	# res = evals(cfg)
 	
 
-	ps_functions = [1]
-	sig_functions = [0,1,2,3]
+	ps_functions = [2]
+	sig_functions = [3]
 
 	for ps_function, sig_function in list(product(ps_functions, sig_functions)):
 		print 'update',ps_function, sig_function
