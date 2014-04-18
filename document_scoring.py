@@ -2,15 +2,45 @@
 import config, color
 import pymongo,sys
 from itertools import product
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-###
-import json
-notignore_list = set(json.load(open('notignore_list.json')))
-###
+## generate/fetch the patterns search list
+def get_search_list():
+	if config.min_count < 1: # 0, -1
+		return False
+	# check if the list existed
+	# {
+	# 	'limit': 1, # occur more than 1. i.e., drop all pattern with only 1 occurrence
+	# 	'pats': [p1, ... pn]
+	# }
+	res = co_patsearch.find_one({'limit':config.min_count})
+	if res:
+		# use current list
+		search_list = res['pats']
+	else:
+		# generate the list
+		if config.verbose:
+			print >> sys.stderr, 'cannot find limit search pattern list, re-generating...',
+			sys.stderr.flush()
 
+		C = Counter()
+		for x in db['lexicon'].find(): C[x['pattern']] += x['count']
+		mdoc = { 'limit': limit, 'pats': [] }
+		for pat,count in sorted(C.items(), key=lambda x:x[1], reverse=True):
+			if count <= limit: break
+			mdoc['pats'].append(pat)
+
+		# store in mongo
+		db['pats_trim'].insert(mdoc)
+
+		if config.verbose:
+			print >> sys.stderr, 'done'
+
+		search_list = mdoc['pats']
+
+	return search_list
 
 # create a local cache for event_scoring to reduce mongo access times
 cache = {}
@@ -64,7 +94,7 @@ def document_scoring(udocID):
 	# calculate the event score in each pattern
 	for pat in pats:
 
-		if pat['pattern'] not in notignore_list:
+		if pat['pattern'] not in search_list:
 			continue
 
 		EventScores = event_scoring(pat)
@@ -78,11 +108,13 @@ def document_scoring(udocID):
 
 def update_all_document_scores(UPDATE=False):
 
-	cfg_docscore = config.toStr(fields="ps_function,ds_function,sig_function,smoothing")
+	# cfg_docscore = config.getOpts(fields=config.opt_fields[config.ds_name], full=True)
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
 	_processed = 0
+
+	search_list = get_search_list()
 
 	for gold_emotion in emotions:
 
@@ -96,28 +128,33 @@ def update_all_document_scores(UPDATE=False):
 
 			# score a document in 40 diff emotions
 			scores = document_scoring(doc['udocID'])
-			mdoc = { 'udocID': doc['udocID'], 'gold_emotion': gold_emotion, 'scores': scores }
+			mdoc = { 
+				'udocID': doc['udocID'], 
+				'gold_emotion': gold_emotion, 
+				'scores': scores
+			}
 			co_docscore.insert( mdoc )
 
 	# if config.verbose:
-	print '='*50
-	print 'cfg:',cfg_docscore
+	# print '='*50
+	# print 'cfg:',cfg_docscore
 
 if __name__ == '__main__':
 	  
 	import getopt
-	
+
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:v',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:v',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose'])
 	except getopt.GetoptError:
-		config.help('document_scoring', exit=2)
+		config.help(config.ds_name, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help('document_scoring')
+		if opt in ('-h', '--help'): config.help(config.ds_name)
 		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
 		elif opt in ('-d','--ds_function'): config.ds_function_type = int(arg.strip())
 		elif opt in ('-g','--sig_function'): config.sig_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
+		elif opt in ('-l','--limit'): config.min_count = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 
 	## select mongo collections
@@ -125,27 +162,47 @@ if __name__ == '__main__':
 	co_docs = db[config.co_docs_name]
 	co_pats = db[config.co_pats_name]
 	co_lexicon = db[config.co_lexicon_name]
+	co_patsearch = db[config.co_patsearch_name]
 
 	# get opts of ps_function, smoothing
-	# config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
-	config.co_patscore_name = 'patscore_2_1'
+	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields=config.opt_fields[config.ps_name], full=False))
+	if config.co_patscore_name not in db.collection_names():
+		print >> sys.stderr, '(error) collection', color.render(config.co_patscore_name, 'yellow'),'is not existed'
+		print >> sys.stderr, '\tcheck the fetch target and run again!!'
+		exit(-1)
+
 	co_patscore = db[ config.co_patscore_name ]
 
 	# get opts of ps_function, ds_function, sig_function, smoothing
 	# co_docscore_prefix and opts  --> e.g., docscore_d0_g3_p2_s1
-	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields="p,d,g,s"))
+	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ds_name], full=False))
+	if config.co_docscore_name not in db.collection_names():
+		print >> sys.stderr, '(warning) collection', color.render(config.co_docscore_name, 'green'),'is already existed'
+		print >> sys.stderr, '\t  use -u or --update to overwirte'
+		exit(-1)
+	
 	co_docscore = db[ config.co_docscore_name ]
 
-	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
-	print >> sys.stderr, config.ds_function_name, '=', config.ds_function_type
-	print >> sys.stderr, config.sig_function_name, '=', config.sig_function_type
-	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
-	print >> sys.stderr, 'fetch  collection', '=', config.co_patscore_name
-	print >> sys.stderr, 'insert collection', '=', config.co_docscore_name
-	print >> sys.stderr, 'verbose =', config.verbose
+
+	## confirm message
+	_confirm_msg = [
+		(config.ps_function_name, config.ps_function_type),
+		(config.ds_function_name, config.ds_function_type),
+		(config.sig_function_name, config.sig_function_type),
+		(config.smoothing_name, config.smoothing_type),
+		(config.limit_name, config.min_count),
+		('fetch  collection', config.co_patscore_name),
+		('insert  collection', config.co_docscore_name),
+		('verbose', config.verbose),
+	]
+
+	for k, v in _confirm_msg:
+		print >> sys.stderr, k, ':', v
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
+	
 
+	## run
 	import time
 	s = time.time()
 	update_all_document_scores(UPDATE=False)

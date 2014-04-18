@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import config
+import color
 import pymongo, sys
 from collections import Counter
 from itertools import product
@@ -11,14 +12,14 @@ emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) 
 
 def fetch():
 
-	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields="p,d,g,s"))
+	
 
 	if config.verbose:
 		print >> sys.stderr, 'fetching doc scores from [', config.co_docscore_name, '] ...',
 		sys.stderr.flush()
 
 	co_docscore = db[ config.co_docscore_name ]
-	co_docscore = db[ 'docscore_2_3_1' ]
+	# co_docscore = db[ 'docscore_2_3_1' ]
 
 	docs = list(co_docscore.find({}, {'_id':0}))
 
@@ -59,16 +60,24 @@ def recall(res, ratio=1):
 def evals(topk=1):
 
 	Positive, Negative = True, False
-	cfg = config.toStr(fields="ps_function,ds_function,sig_function,smoothing")
+
+	cfg = config.getOpts(fields=config.opt_fields[config.ev_name], full=True)
 
 	# check if the collection already exists
 	exist = len(list(db[config.co_results_name].find({'cfg': cfg }))) > 0
 
-	# if exist: 
-		# return True
+	if exist and not config.update: # if exists and not to update
+		return False 				# then stop evaluation process
+
 
 	# get all instances
+	if config.verbose:
+		print >> sys.stderr, 'fetching from', config.co_docscore_name, '...',
+		sys.stderr.flush()
+
 	insts = fetch()
+
+	print >> sys.stderr, 'ok (get',len(insts),'instances )'
 
 	## ======================== start collecting Results ========================
 	Results = {}
@@ -109,7 +118,7 @@ def evals(topk=1):
 
 	mdoc = {
 		'cfg': cfg, # use all options
-		'emotions': {}
+		'emotions': {} # emotion: { happy: {...}, sad: {...}, }
 	}
 
 	for target_gold in emotions:
@@ -134,8 +143,10 @@ def evals(topk=1):
 			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0			
 		}
 
-
-	# db[config.co_results_name].insert( mdoc )
+	if config.update:
+		db[config.co_results_name].update({"cfg": cfg}, {"$set": {"emotions": mdoc['emotions']}})
+	else:
+		db[config.co_results_name].insert( mdoc )
 
 	return True
 
@@ -169,11 +180,6 @@ def average():
 	avg_LJ40K = sum_LJ40K/len_LJ40K
 
 	avg_Mishne05 = sum_Mishne05/len_Mishne05
-
-
-	# print avg_LJ40K, sum_LJ40K, len_LJ40K
-	# print avg_Mishne05, sum_Mishne05, len_Mishne05
-
 	
 	shared_emotions = [x for x in Union if x in Mishne05 and x in LJ40K]
 
@@ -186,7 +192,7 @@ if __name__ == '__main__':
 	import getopt
 	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:v',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:vu',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose', 'update'])
 	except getopt.GetoptError:
 		config.help('evaluation', exit=2)
 
@@ -196,15 +202,41 @@ if __name__ == '__main__':
 		elif opt in ('-d','--ds_function'): config.ds_function_type = int(arg.strip())
 		elif opt in ('-g','--sig_function'): config.sig_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
+		elif opt in ('-l','--limit'): config.min_count = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
+		elif opt in ('-u','--update'): config.update = True
 
-	# if config.verbose:
-	# 	print >> sys.stderr, 'evaluating...',
-	# 	sys.stderr.flush()
+	## fetch from collection
+	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ev_name], full=False))
 
-	evals(topk=1)
+	# if cannot find the fetch target collection
+	if config.co_docscore_name not in db.collection_names():
+		print >> sys.stderr, '(error) collection', color.render(config.co_docscore_name, 'yellow'),'is not existed'
+		print >> sys.stderr, '\tcheck the fetch target and run again!!'
+		exit(-1)
 
-	# if config.verbose:
-		# print >> sys.stderr, 'ok'
+	co_docscore = db[ config.co_docscore_name ]
+
+	## confirm message
+	_confirm_msg = [
+		(config.ps_function_name, config.ps_function_type),
+		(config.ds_function_name, config.ds_function_type),
+		(config.sig_function_name, config.sig_function_type),
+		(config.limit_name, config.min_count),
+		('fetch  collection', config.co_docscore_name),
+		('insert  collection', config.co_results_name),
+		('verbose', config.verbose),
+		('update', config.update),
+	]
+
+	for k, v in _confirm_msg:
+		print >> sys.stderr, k, ':', v
+	print >> sys.stderr, '='*40
+	print >> sys.stderr, 'press any key to start...', raw_input()
+
+	evalres = evals(topk=1)
+
+	if not evalres:
+		print 'nothing change'
 
 	# print average()

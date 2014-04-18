@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys
 
+#### define program names
+ds_name = 'document_scoring'
+ps_name = 'pattern_scoring'
+ev_name = 'evaluation'
+
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
 db_name = 'LJ40K'
@@ -11,6 +16,7 @@ co_docs_name = 'docs'
 co_pats_name = 'pats'
 co_lexicon_name = 'lexicon'
 co_results_name = 'NewRes'
+co_patsearch_name = 'pats_trim'
 
 ## default
 co_patscore_prefix = 'patscore'
@@ -33,14 +39,15 @@ ds_function_type = 0
 sig_function_type = 0
 smoothing_type = 0
 ## minimum occurrence of a pattern
-min_count = 1
+min_count = 0
 
+update = False
 verbose = False
 
-_opt_fields = {
-	'pattern_scoring': ['-p','-s','-v'],
-	'document_scoring': ['-p','-d','-s','-g','-l','-v'],
-	'evaluation': ['-p','-d','-s','-g','-l','-v']
+opt_fields = {
+	ps_name: ['-p','-s','-v'],
+	ds_name: ['-p','-d','-s','-g','-l','-v'],
+	ev_name: ['-p','-d','-s','-g','-l','-v']
 }
 _abbr = {
 	'p': 'ps_function',
@@ -117,10 +124,13 @@ def help(program, exit=1):
 		'              	  0: (default) collect all patterns',
 		'                 n: at least occurs < n > times for each pattern']
 
+	params['-u'] = [
+		'-u, --update: update the current mongo database']
+
 	params['-v'] = [
 		'-v, --verbose: show debug message']
-	
-	opts = _opt_fields[program]
+
+	opts = opt_fields[program]
 
 	usage = 'usage: python '+program+'.py [options]\n' + '='*50 + '\n[options]'
 	params_str = '\n'.join(['\n'.join(params[opt]) + '\n' for opt in opts])

@@ -85,8 +85,6 @@ def pattern_scoring_function(pattern):
 
 def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 
-	cfg = config.toStr(fields="ps_function,smoothing")
-
 	# fetch all distinct patterns
 	print >> sys.stderr, 'fetching all distinct patternst...',
 	sys.stderr.flush()
@@ -120,9 +118,6 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 	if config.verbose:
 		print >> sys.stderr, 'processed done.'
 
-	print '='*50
-	print 'cfg:',cfg
-
 if __name__ == '__main__':
 
 	import getopt
@@ -130,10 +125,10 @@ if __name__ == '__main__':
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'hp:s:v',['help','ps_function=', 'smoothing=', 'verbose'])
 	except getopt.GetoptError:
-		config.help('pattern_scoring', exit=2)
+		config.help(config.ps_name, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help('pattern_scoring')
+		if opt in ('-h', '--help'): config.help(config.ps_name)
 		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
@@ -142,13 +137,14 @@ if __name__ == '__main__':
 	co_lexicon = db[config.co_lexicon_name]
 
 	# get opts of ps_function, smoothing
-	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
+	# config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
+	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields=config.opt_fields[config.ps_name], full=False))
 	co_patscore = db[ config.co_patscore_name ]
 
-	print >> sys.stderr, config.ps_function_name, '=', config.ps_function_type
-	print >> sys.stderr, config.smoothing_name, '=', config.smoothing_type
-	print >> sys.stderr, 'insert collection', '=', config.co_patscore_name
-	print >> sys.stderr, 'verbose =', config.verbose
+	print >> sys.stderr, config.ps_function_name, ':', config.ps_function_type
+	print >> sys.stderr, config.smoothing_name, ':', config.smoothing_type
+	print >> sys.stderr, 'insert collection', ':', config.co_patscore_name
+	print >> sys.stderr, 'verbose', ':', config.verbose
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
 
