@@ -192,7 +192,7 @@ if __name__ == '__main__':
 	import getopt
 	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:vu',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose', 'update'])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:vo',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose', 'overwirte'])
 	except getopt.GetoptError:
 		config.help('evaluation', exit=2)
 
@@ -204,7 +204,7 @@ if __name__ == '__main__':
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-l','--limit'): config.min_count = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
-		elif opt in ('-u','--update'): config.update = True
+		elif opt in ('-o','--overwirte'): config.overwirte = True
 
 	## fetch from collection
 	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ev_name], full=False))
@@ -226,7 +226,7 @@ if __name__ == '__main__':
 		('fetch  collection', config.co_docscore_name),
 		('insert  collection', config.co_results_name),
 		('verbose', config.verbose),
-		('update', config.update),
+		('overwirte', config.overwirte)
 	]
 
 	for k, v in _confirm_msg:

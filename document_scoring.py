@@ -100,8 +100,7 @@ def document_scoring(udocID):
 		EventScores = event_scoring(pat)
 		for emotion in EventScores:
 			D[emotion].append( EventScores[emotion] )
-
-	# 
+	
 	scores = dict([(e, sum(D[e])/float(len(D[e])) ) for e in D])
 
 	return scores
@@ -144,7 +143,7 @@ if __name__ == '__main__':
 	import getopt
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:v',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:vo',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose', 'overwirte'])
 	except getopt.GetoptError:
 		config.help(config.ds_name, exit=2)
 
@@ -156,6 +155,7 @@ if __name__ == '__main__':
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-l','--limit'): config.min_count = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
+		elif opt in ('-o','--overwirte'): config.update = True
 
 	## select mongo collections
 	co_emotions = db[config.co_emotions_name]
@@ -167,7 +167,7 @@ if __name__ == '__main__':
 	# get opts of ps_function, smoothing
 	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields=config.opt_fields[config.ps_name], full=False))
 	if config.co_patscore_name not in db.collection_names():
-		print >> sys.stderr, '(error) collection', color.render(config.co_patscore_name, 'yellow'),'is not existed'
+		print >> sys.stderr, '(error) source collection', color.render(config.co_patscore_name, 'yellow'),'is not existed'
 		print >> sys.stderr, '\tcheck the fetch target and run again!!'
 		exit(-1)
 
@@ -176,11 +176,11 @@ if __name__ == '__main__':
 	# get opts of ps_function, ds_function, sig_function, smoothing
 	# co_docscore_prefix and opts  --> e.g., docscore_d0_g3_p2_s1
 	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ds_name], full=False))
-	if config.co_docscore_name not in db.collection_names():
-		print >> sys.stderr, '(warning) collection', color.render(config.co_docscore_name, 'green'),'is already existed'
-		print >> sys.stderr, '\t  use -u or --update to overwirte'
+	if config.co_docscore_name in db.collection_names():
+		print >> sys.stderr, '(warning) destination collection', color.render(config.co_docscore_name, 'red'),'is already existed'
+		print >> sys.stderr, '\t  use -o or --overwirte to force update'
 		exit(-1)
-	
+
 	co_docscore = db[ config.co_docscore_name ]
 
 
@@ -194,6 +194,7 @@ if __name__ == '__main__':
 		('fetch  collection', config.co_patscore_name),
 		('insert  collection', config.co_docscore_name),
 		('verbose', config.verbose),
+		('overwirte', config.overwirte)
 	]
 
 	for k, v in _confirm_msg:

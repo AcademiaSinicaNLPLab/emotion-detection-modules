@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import config
-import sys, pymongo
+import sys, pymongo, color
 
 from mathutil import standard_deviation as std
 from mathutil import avg, normalize, entropy
@@ -96,6 +96,10 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 
 	print >> sys.stderr, 'done'
 
+	if config.overwirte:
+		print >> sys.stderr, 'drop collection', config.co_patscore_name
+		co_patscore.drop()
+
 	# calculate pattern scores
 	for i, pattern in enumerate(patterns):
 
@@ -123,7 +127,7 @@ if __name__ == '__main__':
 	import getopt
 	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hp:s:v',['help','ps_function=', 'smoothing=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:s:vo',['help','ps_function=', 'smoothing=', 'verbose', 'overwirte'])
 	except getopt.GetoptError:
 		config.help(config.ps_name, exit=2)
 
@@ -132,6 +136,7 @@ if __name__ == '__main__':
 		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
+		elif opt in ('-o','--overwirte'): config.overwirte = True
 
 	## select mongo collections
 	co_lexicon = db[config.co_lexicon_name]
@@ -139,12 +144,28 @@ if __name__ == '__main__':
 	# get opts of ps_function, smoothing
 	# config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
 	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields=config.opt_fields[config.ps_name], full=False))
+	if config.co_patscore_name in db.collection_names() and not config.overwirte:
+		print >> sys.stderr, '(warning) destination collection', color.render(config.co_patscore_name, 'red'),'is already existed'
+		print >> sys.stderr, '\t  use -o or --overwirte to force update'
+		exit(-1)
+
 	co_patscore = db[ config.co_patscore_name ]
 
-	print >> sys.stderr, config.ps_function_name, ':', config.ps_function_type
-	print >> sys.stderr, config.smoothing_name, ':', config.smoothing_type
-	print >> sys.stderr, 'insert collection', ':', config.co_patscore_name
-	print >> sys.stderr, 'verbose', ':', config.verbose
+	## confirm message
+	_confirm_msg = [
+		(config.ps_function_name, config.ps_function_type),
+		(config.smoothing_name, config.smoothing_type),
+		('insert  collection', config.co_patscore_name),
+		('verbose', config.verbose),
+		('overwirte', config.overwirte, {True: '!Note: This will drop the collection [ '+config.co_patscore_name+' ]'} )
+	]
+
+	for msg in _confirm_msg:
+		if len(msg) == 3:
+			print >> sys.stderr, msg[0], ':', msg[1], msg[2][msg[1]]
+		else:
+			print >> sys.stderr, msg[0], ':', msg[1]
+
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
 

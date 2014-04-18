@@ -41,7 +41,7 @@ smoothing_type = 0
 ## minimum occurrence of a pattern
 min_count = 0
 
-update = False
+overwirte = False
 verbose = False
 
 opt_fields = {
