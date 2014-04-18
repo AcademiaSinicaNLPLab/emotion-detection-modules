@@ -25,65 +25,69 @@ ps_function_name = 'ps_function'
 ds_function_name = 'ds_function'
 sig_function_name = 'sig_function'
 smoothing_name = 'smoothing'
+limit_name = 'limit'
 
 ## default values
 ps_function_type = 0
 ds_function_type = 0
 sig_function_type = 0
 smoothing_type = 0
-# epsilon = 0.5
+## minimum occurrence of a pattern
+min_count = 1
 
 verbose = False
 
+_opt_fields = {
+	'pattern_scoring': ['-p','-s','-v'],
+	'document_scoring': ['-p','-d','-s','-g','-l','-v'],
+	'evaluation': ['-p','-d','-s','-g','-l','-v']
+}
+_abbr = {
+	'p': 'ps_function',
+	'd': 'ds_function',
+	'g': 'sig_function',
+	's': 'smoothing',
+	'l': 'limit'
+}
 
-droplte = 1
+## fields="p,d,g,s,l" or fields="-p,-d,-g,-s,-l" or fields=['-p','-s','-v']
+def getOpts(fields="-p,-d,-g,-s,-l", key_value='', full=False):
 
-## utils
-def toStr(fields="ps_function,ds_function,sig_function,smoothing", key_value='=', parameters=','):
-	fields_to_transform = [x.strip() for x in fields.split(',')]
+	if type(fields) == str:
+		fields_to_transform = [x.strip().replace('-','') for x in fields.split(',')]
+	else:
+		fields_to_transform = [x.strip().replace('-','') for x in fields]
 
-	cfg = {}
-
-	if 'ps_function' in fields_to_transform:
-		cfg[ps_function_name] = ps_function_type
-
-	if 'ds_function' in fields_to_transform:
-		cfg[ds_function_name] = ds_function_type
-
-	if 'sig_function' in fields_to_transform:
-		cfg[sig_function_name] = sig_function_type
-
-	if 'smoothing' in fields_to_transform:
-		cfg[smoothing_name] = smoothing_type
-
-	return parameters.join([ str(x)+key_value+str(cfg[x]) for x in sorted( cfg.keys() ) ])
-
-def getOpts(fields="p,d,g,s", key_value=''):
-	fields_to_transform = [x.strip() for x in fields.split(',')]
-
-	cfg = {}
+	cfgShort, cfgFull = {}, {}
 
 	if 'p' in fields_to_transform:
-		cfg['p'] = ps_function_type
+		cfgFull[ _abbr['p'] ] = ps_function_type
+		cfgShort['p'] = ps_function_type
 
 	if 'd' in fields_to_transform:
-		cfg['d'] = ds_function_type
+		cfgFull[ _abbr['d'] ] = ds_function_type
+		cfgShort['d'] = ds_function_type
 
 	if 'g' in fields_to_transform:
-		cfg['g'] = sig_function_type
+		cfgFull[ _abbr['g'] ] = sig_function_type
+		cfgShort['g'] = sig_function_type
 
 	if 's' in fields_to_transform:
-		cfg['s'] = smoothing_type
+		cfgFull[ _abbr['s'] ] = smoothing_type
+		cfgShort['s'] = smoothing_type
+
+	if 'l' in fields_to_transform:
+		cfgFull[ _abbr['l'] ] = min_count
+		cfgShort['l'] = min_count
+
+	cfg = cfgShort if not full else cfgFull
 
 	return [str(x)+key_value+str(cfg[x]) for x in sorted(cfg.keys())]
-
-	# return parameters.join([ str(x)+key_value+str(cfg[x]) for x in sorted( cfg.keys() ) ])
-
 
 def help(program, exit=1):
 
 	params = {}
-	record = ['p','d','g','s'] # record the option of ps_function, ds_function, sig_function and smoothing
+	record = ['p','d','g','s','l'] # record the option of ps_function, ds_function, sig_function, smoothing and limit
 
 	params['-p'] = [
 		'-p, --ps_function: pattern scoring function',
@@ -108,16 +112,15 @@ def help(program, exit=1):
 		'                 0: (default) no smoothig',
 		'                 1: awesome smoothing (+0.25)']
 
+	params['-l'] = [
+		'-l, --limit: minimum occurrence of a pattern',
+		'              	  0: (default) collect all patterns',
+		'                 n: at least occurs < n > times for each pattern']
+
 	params['-v'] = [
 		'-v, --verbose: show debug message']
-
-
-	if program == 'document_scoring':
-		opts = ['-p','-d','-s','-g','-v']
-	elif program == 'pattern_scoring':
-		opts = ['-p','-s','-v']
-	elif program == 'evaluation':
-		opts = ['-p','-d','-s','-g','-v']
+	
+	opts = _opt_fields[program]
 
 	usage = 'usage: python '+program+'.py [options]\n' + '='*50 + '\n[options]'
 	params_str = '\n'.join(['\n'.join(params[opt]) + '\n' for opt in opts])
