@@ -71,9 +71,6 @@ def pattern_scoring_function(pattern):
 
 	pattern_dist = get_pattern_dist(pattern)
 
-	if sum(pattern_dist.values()) <= config.droplte:
-		return False
-
 	## score pattern in each emotion
 	scores = {}
 	for emotion in pattern_dist:
@@ -83,10 +80,10 @@ def pattern_scoring_function(pattern):
 	return scores
 
 
-def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
+def update_all_pattern_scores():
 
 	# fetch all distinct patterns
-	print >> sys.stderr, 'fetching all distinct patternst...',
+	print >> sys.stderr, 'fetching all distinct patterns ...',
 	sys.stderr.flush()
 
 	patterns = set()
@@ -94,17 +91,19 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 	for mdoc in co_lexicon.find():
 		patterns.add( mdoc['pattern'] )
 
-	print >> sys.stderr, 'done'
+	print >> sys.stderr, 'done ( got',len(patterns),'distinct patterns )'
 
+	## drop old collection if overwrite is enabled
 	if config.overwirte:
 		print >> sys.stderr, 'drop collection', config.co_patscore_name
 		co_patscore.drop()
+
 
 	# calculate pattern scores
 	for i, pattern in enumerate(patterns):
 
 		if config.verbose and i % 100 == 0:
-			print >> sys.stderr, i,'/',len(patterns)
+			print >> sys.stderr, i,'/',len(patterns), '-->',round(i/float(len(patterns))*100, 2), '%'
 
 		# get a set of prob of pattern in each emotion
 		scores = pattern_scoring_function(pattern)
@@ -116,11 +115,15 @@ def update_all_pattern_scores(UPDATE=False, VERBOSE=False):
 			'pattern':pattern,
 			'scores':scores
 		}
-
 		co_patscore.insert( mdoc )
 
-	if config.verbose:
-		print >> sys.stderr, 'processed done.'
+	### create index
+	print >> sys.stderr, 'creating index ...',
+	sys.stderr.flush()
+
+	co_patscore.create_index('pattern')
+
+	print >> sys.stderr, 'done.'
 
 if __name__ == '__main__':
 
@@ -157,6 +160,7 @@ if __name__ == '__main__':
 	_confirm_msg = [
 		(config.ps_function_name, config.ps_function_type),
 		(config.smoothing_name, config.smoothing_type),
+		('fetch collection', config.co_lexicon_name),
 		('insert collection', config.co_patscore_name),
 		('verbose', config.verbose),
 		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_patscore_name+' ]', 'red'), False: '' } )
@@ -174,7 +178,7 @@ if __name__ == '__main__':
 
 	import time
 	s = time.time()
-	update_all_pattern_scores(UPDATE=False)
+	update_all_pattern_scores()
 	print 'Time total:',time.time() - s,'sec'
 	
 
