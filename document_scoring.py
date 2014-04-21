@@ -5,8 +5,40 @@ from itertools import product
 from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
-search_list = []
 
+def check_indexes(target, indexes, auto=True):
+	# |-- idx_name --| |---------   idx_value  --------------|
+	# [(u'_id_',       {u'key': [(u'_id', 1)], u'v': 1}),
+	#  (u'pattern_1',  {u'key': [(u'pattern', 1.0)], u'v': 1})]
+	existed = set()
+	for (idx_name, idx_value) in target.index_information().items():
+		for idx_str, idx_n in idx_value['key']:
+			idx_n = int(idx_n)
+			if idx_str in indexes: existed.add( idx_str )
+
+	## index's not fully-functional
+	if len(existed) < len(set(indexes)):
+		to_be_created = [x for x in indexes if x not in existed]
+		# index_to_be_created = color.render( ', '.join([x for x in to_be_created]), 'green')
+		to_be_created_str = color.render(', '.join(to_be_created), 'g')
+
+		if auto:
+			print >> sys.stderr, '(warning) missing necessary index(es)', to_be_created_str
+
+			for idx_str in to_be_created:
+				print >> sys.stderr, 'automatically creating index', idx_str, '...',
+				sys.stderr.flush()
+				## create index in target collection
+				target.create_index(idx_str)
+				print >> sys.stderr, 'done'
+
+		else:
+			print >> sys.stderr, '(error) please manully create index(es)',to_be_created_str,'first before calculating the score'
+			return False
+	# else:
+	# 	print >> sys.stderr, 'index(es) are fully functional'
+
+	return True
 
 ## generate/fetch the patterns search list
 def get_search_list():
@@ -86,7 +118,7 @@ def event_scoring(pat):
 # 	'happy': 0.2,
 # 	'sad': 0.6,
 # }
-def document_scoring(udocID, search_list):
+def document_scoring(udocID, limited_search_list=False):
 	# find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
 
@@ -99,7 +131,7 @@ def document_scoring(udocID, search_list):
 	for pat in pats:
 
 		## ignore low-frequency patterns
-		if pat['pattern'] not in search_list:
+		if limited_search_list and pat['pattern'] not in limited_search_list:
 			continue
 
 		EventScores = event_scoring(pat)
@@ -129,7 +161,7 @@ def update_all_document_scores(UPDATE=False):
 		for doc in docs:
 
 			# score a document in 40 diff emotions
-			scores = document_scoring(doc['udocID'], search_list)
+			scores = document_scoring(doc['udocID'], limited_search_list=search_list)
 			mdoc = { 
 				'udocID': doc['udocID'], 
 				'gold_emotion': gold_emotion, 
@@ -170,7 +202,14 @@ if __name__ == '__main__':
 		print >> sys.stderr, '\tcheck the fetch target and run again!!'
 		exit(-1)
 
+
 	co_patscore = db[ config.co_patscore_name ]
+	# print config.co_patscore_name
+	## check if the index(es) are well-functional
+	good_index = check_indexes(target=co_patscore, indexes=['pattern'], auto=False)
+	if not good_index:
+		exit(-1)
+
 
 	# get opts of ps_function, ds_function, sig_function, smoothing
 	# co_docscore_prefix and opts  --> e.g., docscore_d0_g3_p2_s1
