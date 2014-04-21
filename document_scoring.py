@@ -118,13 +118,13 @@ def update_all_document_scores(UPDATE=False):
 
 	search_list = get_search_list()
 
-	for gold_emotion in emotions:
+	for (ie, gold_emotion) in enumerate(emotions):
 
 		## get all document with emotions <gold_emotion> and ldocID is great than 800
 		docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$gte': 800}} ) )
 
 		if config.verbose:
-			print >> sys.stderr, '%s ( %d docs )' % ( color.render(gold_emotion, 'g'), len(docs) )
+			print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
 		for doc in docs:
 
