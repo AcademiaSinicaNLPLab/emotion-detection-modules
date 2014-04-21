@@ -45,9 +45,9 @@ overwirte = False
 verbose = False
 
 opt_fields = {
-	ps_name: ['-p','-s','-v'],
-	ds_name: ['-p','-d','-s','-g','-l','-v'],
-	ev_name: ['-p','-d','-s','-g','-l','-v']
+	ps_name: ['-p','-s','-v', '-o'],
+	ds_name: ['-p','-d','-s','-g','-l','-v', '-o'],
+	ev_name: ['-p','-d','-s','-g','-l','-v', '-o']
 }
 _abbr = {
 	'p': 'ps_function',
@@ -124,8 +124,8 @@ def help(program, exit=1):
 		'              	  0: (default) collect all patterns',
 		'                 n: at least occurs < n > times for each pattern']
 
-	params['-u'] = [
-		'-u, --update: update the current mongo database']
+	params['-o'] = [
+		'-o, --overwirte: overwirte the destination mongo database']
 
 	params['-v'] = [
 		'-v, --verbose: show debug message']

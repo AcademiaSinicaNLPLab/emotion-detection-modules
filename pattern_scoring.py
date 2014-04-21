@@ -144,6 +144,8 @@ if __name__ == '__main__':
 	# get opts of ps_function, smoothing
 	# config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
 	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields=config.opt_fields[config.ps_name], full=False))
+
+	## (warning) destination's already existed
 	if config.co_patscore_name in db.collection_names() and not config.overwirte:
 		print >> sys.stderr, '(warning) destination collection', color.render(config.co_patscore_name, 'red'),'is already existed'
 		print >> sys.stderr, '\t  use -o or --overwirte to force update'
@@ -155,9 +157,9 @@ if __name__ == '__main__':
 	_confirm_msg = [
 		(config.ps_function_name, config.ps_function_type),
 		(config.smoothing_name, config.smoothing_type),
-		('insert  collection', config.co_patscore_name),
+		('insert collection', config.co_patscore_name),
 		('verbose', config.verbose),
-		('overwirte', config.overwirte, {True: '!Note: This will drop the collection [ '+config.co_patscore_name+' ]'} )
+		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_patscore_name+' ]', 'red'), False: '' } )
 	]
 
 	for msg in _confirm_msg:

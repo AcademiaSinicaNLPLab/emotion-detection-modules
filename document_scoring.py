@@ -15,15 +15,18 @@ def get_search_list():
 	# 	'limit': 1, # occur more than 1. i.e., drop all pattern with only 1 occurrence
 	# 	'pats': [p1, ... pn]
 	# }
+	print >> sys.stderr, 'loading search pattern list...',
+	sys.stderr.flush()
+
 	res = co_patsearch.find_one({'limit':config.min_count})
 	if res:
 		# use current list
 		search_list = res['pats']
 	else:
 		# generate the list
-		if config.verbose:
-			print >> sys.stderr, 'cannot find limit search pattern list, re-generating...',
-			sys.stderr.flush()
+		print >> sys.stderr, 'failed'
+		print >> sys.stderr, 'cannot find limit search pattern list, re-generating...',
+		sys.stderr.flush()
 
 		C = Counter()
 		for x in db['lexicon'].find(): C[x['pattern']] += x['count']
@@ -35,10 +38,9 @@ def get_search_list():
 		# store in mongo
 		db['pats_trim'].insert(mdoc)
 
-		if config.verbose:
-			print >> sys.stderr, 'done'
-
 		search_list = mdoc['pats']
+
+	print >> sys.stderr, 'done'
 
 	return search_list
 
@@ -100,14 +102,12 @@ def document_scoring(udocID):
 		EventScores = event_scoring(pat)
 		for emotion in EventScores:
 			D[emotion].append( EventScores[emotion] )
-	
+
 	scores = dict([(e, sum(D[e])/float(len(D[e])) ) for e in D])
 
 	return scores
 
 def update_all_document_scores(UPDATE=False):
-
-	# cfg_docscore = config.getOpts(fields=config.opt_fields[config.ds_name], full=True)
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
@@ -133,10 +133,6 @@ def update_all_document_scores(UPDATE=False):
 				'scores': scores
 			}
 			co_docscore.insert( mdoc )
-
-	# if config.verbose:
-	# print '='*50
-	# print 'cfg:',cfg_docscore
 
 if __name__ == '__main__':
 	  
@@ -175,8 +171,10 @@ if __name__ == '__main__':
 
 	# get opts of ps_function, ds_function, sig_function, smoothing
 	# co_docscore_prefix and opts  --> e.g., docscore_d0_g3_p2_s1
+	
+	## (warning) destination's already existed
 	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ds_name], full=False))
-	if config.co_docscore_name in db.collection_names():
+	if config.co_docscore_name in db.collection_names() and not config.overwirte:
 		print >> sys.stderr, '(warning) destination collection', color.render(config.co_docscore_name, 'red'),'is already existed'
 		print >> sys.stderr, '\t  use -o or --overwirte to force update'
 		exit(-1)
@@ -191,14 +189,18 @@ if __name__ == '__main__':
 		(config.sig_function_name, config.sig_function_type),
 		(config.smoothing_name, config.smoothing_type),
 		(config.limit_name, config.min_count),
-		('fetch  collection', config.co_patscore_name),
-		('insert  collection', config.co_docscore_name),
+		('fetch collection', config.co_patscore_name),
+		('insert collection', config.co_docscore_name),
 		('verbose', config.verbose),
-		('overwirte', config.overwirte)
+		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_docscore_name+' ]', 'red'), False: '' } )
 	]
 
-	for k, v in _confirm_msg:
-		print >> sys.stderr, k, ':', v
+	for msg in _confirm_msg:
+		if len(msg) == 3:
+			print >> sys.stderr, msg[0], ':', msg[1], msg[2][msg[1]]
+		else:
+			print >> sys.stderr, msg[0], ':', msg[1]
+
 	print >> sys.stderr, '='*40
 	print >> sys.stderr, 'press any key to start...', raw_input()
 	

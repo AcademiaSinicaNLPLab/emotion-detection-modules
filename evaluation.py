@@ -71,9 +71,9 @@ def evals(topk=1):
 
 
 	# get all instances
-	if config.verbose:
-		print >> sys.stderr, 'fetching from', config.co_docscore_name, '...',
-		sys.stderr.flush()
+	# if config.verbose:
+	print >> sys.stderr, 'fetching from', config.co_docscore_name, '...',
+	sys.stderr.flush()
 
 	insts = fetch()
 
@@ -120,19 +120,16 @@ def evals(topk=1):
 		'cfg': cfg, # use all options
 		'emotions': {} # emotion: { happy: {...}, sad: {...}, }
 	}
-
+	# forming mongo document
 	for target_gold in emotions:
 
 		true_false_positive_negative = Results[target_gold]['res']
 		r = Results[target_gold]['ratio']
-
 		res = Results[target_gold]['res']
 
 		A = accuracy(res, ratio=r)
 		P = precision(res, ratio=r)
 		R = recall(res, ratio=r)
-
-		print A
 
 		mdoc['emotions'][target_gold] = {
 			'ratio': r, # /39
@@ -143,9 +140,10 @@ def evals(topk=1):
 			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0			
 		}
 
-	if config.update:
-		db[config.co_results_name].update({"cfg": cfg}, {"$set": {"emotions": mdoc['emotions']}})
-	else:
+	if config.overwirte:
+		print >> sys.stderr, 'drop collection', config.co_patscore_name
+		co_patscore.drop()
+
 		db[config.co_results_name].insert( mdoc )
 
 	return True
@@ -213,6 +211,16 @@ if __name__ == '__main__':
 	if config.co_docscore_name not in db.collection_names():
 		print >> sys.stderr, '(error) collection', color.render(config.co_docscore_name, 'yellow'),'is not existed'
 		print >> sys.stderr, '\tcheck the fetch target and run again!!'
+		exit(-1)
+
+	# check if the collection already exists
+	cfg = config.getOpts(fields=config.opt_fields[config.ev_name], full=True)
+	dest_co_exist = len(list(db[config.co_results_name].find({'cfg': cfg }))) > 0
+
+	## (warning) destination's already existed
+	if dest_co_exist and not config.overwirte:
+		print >> sys.stderr, '(warning) destination collection', color.render(config.co_results_name, 'red'),'is already existed'
+		print >> sys.stderr, '\t  use -o or --overwirte to force update'
 		exit(-1)
 
 	co_docscore = db[ config.co_docscore_name ]
