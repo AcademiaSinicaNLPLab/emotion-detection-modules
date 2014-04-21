@@ -186,7 +186,7 @@ if __name__ == '__main__':
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-l','--limit'): config.min_count = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
-		elif opt in ('-o','--overwirte'): config.update = True
+		elif opt in ('-o','--overwirte'): config.overwirte = True
 
 	## select mongo collections
 	co_emotions = db[config.co_emotions_name]
