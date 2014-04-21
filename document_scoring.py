@@ -5,6 +5,8 @@ from itertools import product
 from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
+search_list = []
+
 
 ## generate/fetch the patterns search list
 def get_search_list():
@@ -84,7 +86,7 @@ def event_scoring(pat):
 # 	'happy': 0.2,
 # 	'sad': 0.6,
 # }
-def document_scoring(udocID):
+def document_scoring(udocID, search_list):
 	# find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
 
@@ -96,6 +98,7 @@ def document_scoring(udocID):
 	# calculate the event score in each pattern
 	for pat in pats:
 
+		## ignore low-frequency patterns
 		if pat['pattern'] not in search_list:
 			continue
 
@@ -126,7 +129,7 @@ def update_all_document_scores(UPDATE=False):
 		for doc in docs:
 
 			# score a document in 40 diff emotions
-			scores = document_scoring(doc['udocID'])
+			scores = document_scoring(doc['udocID'], search_list)
 			mdoc = { 
 				'udocID': doc['udocID'], 
 				'gold_emotion': gold_emotion, 
@@ -171,7 +174,7 @@ if __name__ == '__main__':
 
 	# get opts of ps_function, ds_function, sig_function, smoothing
 	# co_docscore_prefix and opts  --> e.g., docscore_d0_g3_p2_s1
-	
+
 	## (warning) destination's already existed
 	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ds_name], full=False))
 	if config.co_docscore_name in db.collection_names() and not config.overwirte:
