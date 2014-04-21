@@ -204,12 +204,6 @@ if __name__ == '__main__':
 
 
 	co_patscore = db[ config.co_patscore_name ]
-	# print config.co_patscore_name
-	## check if the index(es) are well-functional
-	good_index = check_indexes(target=co_patscore, indexes=['pattern'], auto=False)
-	if not good_index:
-		exit(-1)
-
 
 	# get opts of ps_function, ds_function, sig_function, smoothing
 	# co_docscore_prefix and opts  --> e.g., docscore_d0_g3_p2_s1
@@ -244,6 +238,12 @@ if __name__ == '__main__':
 			print >> sys.stderr, msg[0], ':', msg[1]
 
 	print >> sys.stderr, '='*40
+	
+	## check if the index(es) are well-functional
+	good_index = check_indexes(target=co_patscore, indexes=['pattern'], auto=False)
+	if not good_index:
+		exit(-1)
+		
 	print >> sys.stderr, 'press any key to start...', raw_input()
 	
 
