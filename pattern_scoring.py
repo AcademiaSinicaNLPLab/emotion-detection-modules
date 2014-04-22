@@ -141,40 +141,37 @@ if __name__ == '__main__':
 		elif opt in ('-v','--verbose'): config.verbose = True
 		elif opt in ('-o','--overwirte'): config.overwirte = True
 
-	## select mongo collections
-	co_lexicon = db[config.co_lexicon_name]
+	# check if fetch source existed
+	co_lexicon_existed = config.co_lexicon_name in db.collection_names()
+	if not co_lexicon_existed:
+		print >> sys.stderr, '(error) source collection', color.render(config.co_lexicon_name, 'yellow'),'is not existed'
+		print >> sys.stderr, '\tcheck the fetch target and run again!!'
+		exit(-1)
 
-	# get opts of ps_function, smoothing
-	# config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields="p,s"))
+	# check if the destination collection existed
 	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields=config.opt_fields[config.ps_name], full=False))
-
-	## (warning) destination's already existed
-	if config.co_patscore_name in db.collection_names() and not config.overwirte:
+	co_patscore_existed = config.co_patscore_name in db.collection_names()
+	if co_patscore_existed and not config.overwirte:
+		## (warning) destination's already existed
 		print >> sys.stderr, '(warning) destination collection', color.render(config.co_patscore_name, 'red'),'is already existed'
 		print >> sys.stderr, '\t  use -o or --overwirte to force update'
 		exit(-1)
 
+	## use mongo collection
+	co_lexicon = db[config.co_lexicon_name]
 	co_patscore = db[ config.co_patscore_name ]
 
 	## confirm message
-	_confirm_msg = [
+	confirm_msg = [
 		(config.ps_function_name, config.ps_function_type),
 		(config.smoothing_name, config.smoothing_type),
-		('fetch collection', config.co_lexicon_name),
-		('insert collection', config.co_patscore_name),
+		('fetch collection', config.co_lexicon_name, '(existed)' if co_lexicon_existed else '(none)'),
+		('insert collection', config.co_patscore_name, '(existed)' if co_patscore_existed else '(none)'),
 		('verbose', config.verbose),
-		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_patscore_name+' ]', 'red'), False: '' } )
+		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_patscore_name+' ]' if co_patscore_existed else '', 'red'), False: '' } )
 	]
 
-	for msg in _confirm_msg:
-		if len(msg) == 3:
-			print >> sys.stderr, msg[0], ':', msg[1], msg[2][msg[1]]
-		else:
-			print >> sys.stderr, msg[0], ':', msg[1]
-
-	print >> sys.stderr, '='*40
-	print >> sys.stderr, 'press any key to start...', raw_input()
-
+	config.print_confirm(confirm_msg, bar=40, halt=True)
 
 	import time
 	s = time.time()

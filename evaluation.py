@@ -10,24 +10,6 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 # get all emotions
 emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])
 
-def fetch():
-
-	
-
-	if config.verbose:
-		print >> sys.stderr, 'fetching doc scores from [', config.co_docscore_name, '] ...',
-		sys.stderr.flush()
-
-	co_docscore = db[ config.co_docscore_name ]
-	# co_docscore = db[ 'docscore_2_3_1' ]
-
-	docs = list(co_docscore.find({}, {'_id':0}))
-
-	if config.verbose:
-		print >> sys.stderr, 'ok'
-
-	return docs
-
 def accuracy(res, ratio=1):
 	TP = res['TP']
 	TN = res['TN']/float(ratio)
@@ -57,31 +39,24 @@ def recall(res, ratio=1):
 # 	classify as happy	
 # 	classify as ~happy	
 
-def evals(topk=1):
+def evals():
 
 	Positive, Negative = True, False
 
-	cfg = config.getOpts(fields=config.opt_fields[config.ev_name], full=True)
-
-	# check if the collection already exists
-	exist = len(list(db[config.co_results_name].find({'cfg': cfg }))) > 0
-
-	if exist and not config.update: # if exists and not to update
-		return False 				# then stop evaluation process
-
-
-	# get all instances
-	# if config.verbose:
+	# fetch all instances
+	## ======================== start fetch instances ===========================
 	print >> sys.stderr, 'fetching from', config.co_docscore_name, '...',
 	sys.stderr.flush()
-
-	insts = fetch()
-
-	print >> sys.stderr, 'ok (get',len(insts),'instances )'
+	insts = list(co_docscore.find({}, {'_id':0}))
+	print >> sys.stderr, 'done (get',len(insts),'instances )'
+	## ======================== end fetch instances =============================
 
 	## ======================== start collecting Results ========================
 	Results = {}
 	for target_gold in emotions:
+		if config.verbose:
+			print >> sys.stderr, 'evaluating',target_gold ,'...',
+			sys.stderr.flush()
 
 		really_is_positive, really_is_negative = 0, 0
 
@@ -89,7 +64,7 @@ def evals(topk=1):
 		for inst in insts:
 
 			### answers = [top-k emotions]
-			answers = [x[0] for x in sorted(inst['scores'].items(), key=lambda x:x[1], reverse=True)][:topk]
+			answers = [x[0] for x in sorted(inst['scores'].items(), key=lambda x:x[1], reverse=True)][:config.topk]
 
 			really_is = Positive if target_gold == inst['gold_emotion'] else Negative
 			classified_as = Positive if target_gold in answers else Negative
@@ -114,7 +89,9 @@ def evals(topk=1):
 			'res': res,
 			'ratio': r
 		}
-	## ======================== end of collecting Results ========================
+		if config.verbose:
+			print >> sys.stderr, 'ok'
+	## ======================== end of collecting Results =======================
 
 	mdoc = {
 		'cfg': cfg, # use all options
@@ -140,34 +117,28 @@ def evals(topk=1):
 			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0			
 		}
 
-	if config.overwirte:
-		print >> sys.stderr, 'drop collection', config.co_patscore_name
-		co_patscore.drop()
-
-		db[config.co_results_name].insert( mdoc )
-
-	return True
+	# if config.overwirte:
+	print >> sys.stderr, 'upsert mongo document', cfg
+	co_results.update({'cfg': cfg}, {'$set': {'emotions':mdoc['emotions']}}, upsert=True )
 
 
 def average():
-	
 	LJ40K = [x['emotion'] for x in db['emotions'].find( { 'label': 'LJ40K' } )]
 	Mishne05 = [x['emotion'] for x in db['emotions'].find( { 'label': 'Mishne05' } )]
-
 	Union = set(LJ40K + Mishne05)
 
-	results = db[config.co_results_name].find_one( {'cfg': config.toStr() } )
-
+	results = co_results.find_one( {'cfg': cfg } )
 
 	res = results['emotions']
-	print res
 
-	print 'L\tM\tAccuracy\tEmotion'
+	print >> sys.stdout, 'L\tM\tAccu.\tEmotion'
+	print >> sys.stdout, '='*40
+
 	for e in Union:
 		L = 'v' if e in LJ40K else 'x'
 		M = 'v' if e in Mishne05 else 'x'
 		A = '-' if e not in res else res[e]['accuracy']
-		print L+'\t'+M+'\t'+str(A)+'\t'+e
+		print >> sys.stdout, L+'\t'+M+'\t'+str(A)+'\t'+e
 
 	len_LJ40K = float(len([e for e in res if e in LJ40K]))
 	len_Mishne05 = float(len([e for e in res if e in Mishne05]))
@@ -176,12 +147,16 @@ def average():
 	sum_Mishne05 = sum([res[e]['accuracy'] for e in res if e in Mishne05])
 
 	avg_LJ40K = sum_LJ40K/len_LJ40K
-
 	avg_Mishne05 = sum_Mishne05/len_Mishne05
 	
 	shared_emotions = [x for x in Union if x in Mishne05 and x in LJ40K]
-
 	avg_shared = sum([res[e]['accuracy'] for e in res if e in shared_emotions])/float(len([e for e in res if e in shared_emotions]))
+
+	print >> sys.stdout, '='*40
+	print >> sys.stdout, 'Avg. LJ40K:', round(avg_LJ40K,4)
+	print >> sys.stdout, 'Avg. Mishne05:', round(avg_Mishne05,4)
+	print >> sys.stdout, 'Avg. Overall:', round(avg_shared,4)
+	# print >> sys.stderr, avg_LJ40K, avg_Mishne05, avg_shared
 
 	return avg_LJ40K, avg_Mishne05, avg_shared
 
@@ -208,43 +183,43 @@ if __name__ == '__main__':
 	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ev_name], full=False))
 
 	# if cannot find the fetch target collection
-	if config.co_docscore_name not in db.collection_names():
+	co_docscore_existed = config.co_docscore_name in db.collection_names()
+	if not co_docscore_existed:
 		print >> sys.stderr, '(error) collection', color.render(config.co_docscore_name, 'yellow'),'is not existed'
 		print >> sys.stderr, '\tcheck the fetch target and run again!!'
 		exit(-1)
 
 	# check if the collection already exists
-	cfg = config.getOpts(fields=config.opt_fields[config.ev_name], full=True)
-	dest_co_exist = len(list(db[config.co_results_name].find({'cfg': cfg }))) > 0
-
-	## (warning) destination's already existed
-	if dest_co_exist and not config.overwirte:
-		print >> sys.stderr, '(warning) destination collection', color.render(config.co_results_name, 'red'),'is already existed'
-		print >> sys.stderr, '\t  use -o or --overwirte to force update'
-		exit(-1)
+	cfg = ','.join(config.getOpts(fields=config.opt_fields[config.ev_name], key_value='=', full=True))
+	mdoc_results_existed = True if db[config.co_results_name].find_one( {'cfg': cfg} ) else False
+	skip_eval = False if not mdoc_results_existed or config.overwirte else True
 
 	co_docscore = db[ config.co_docscore_name ]
+	co_results = db[ config.co_results_name ]
 
 	## confirm message
-	_confirm_msg = [
+	confirm_msg = [
 		(config.ps_function_name, config.ps_function_type),
 		(config.ds_function_name, config.ds_function_type),
 		(config.sig_function_name, config.sig_function_type),
 		(config.limit_name, config.min_count),
-		('fetch  collection', config.co_docscore_name),
-		('insert  collection', config.co_results_name),
+		('fetch collection', config.co_docscore_name, '(existed)' if co_docscore_existed else '(none)'),
+		('insert collection', config.co_results_name, '(existed)' if mdoc_results_existed else '(none)'),
 		('verbose', config.verbose),
-		('overwirte', config.overwirte)
+		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_docscore_name+' ]' if co_docscore_existed else '', 'red'), False: '' })
 	]
 
-	for k, v in _confirm_msg:
-		print >> sys.stderr, k, ':', v
-	print >> sys.stderr, '='*40
-	print >> sys.stderr, 'press any key to start...', raw_input()
 
-	evalres = evals(topk=1)
+	config.print_confirm(confirm_msg, bar=40, halt=True if not skip_eval else False)
 
-	if not evalres:
-		print 'nothing change'
 
-	# print average()
+	if skip_eval:
+		## (warning) destination's already existed
+		print >> sys.stderr, '(warning) destination mongo doc', color.render(config.co_results_name+' > '+cfg, 'red'),'is already existed'
+		print >> sys.stderr, '\t  use -o or --overwirte to force update'
+
+	if not skip_eval:
+		evals()
+
+	if skip_eval:
+		average()

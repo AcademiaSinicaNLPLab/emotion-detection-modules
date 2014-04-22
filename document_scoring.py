@@ -6,6 +6,9 @@ from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
+# a local cache for event_scoring to reduce mongo access times
+cache = {}
+
 def check_indexes(target, indexes, auto=True):
 	# |-- idx_name --| |---------   idx_value  --------------|
 	# [(u'_id_',       {u'key': [(u'_id', 1)], u'v': 1}),
@@ -35,8 +38,6 @@ def check_indexes(target, indexes, auto=True):
 		else:
 			print >> sys.stderr, '(error) please manully create index(es)',to_be_created_str,'first before calculating the score'
 			return False
-	# else:
-	# 	print >> sys.stderr, 'index(es) are fully functional'
 
 	return True
 
@@ -78,8 +79,6 @@ def get_search_list():
 
 	return search_list
 
-# create a local cache for event_scoring to reduce mongo access times
-cache = {}
 
 def significance_factor(pat):
 	sf = config.sig_function_type
@@ -195,58 +194,49 @@ if __name__ == '__main__':
 	co_lexicon = db[config.co_lexicon_name]
 	co_patsearch = db[config.co_patsearch_name]
 
-	# get opts of ps_function, smoothing
+	# check if fetch source existed
 	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields=config.opt_fields[config.ps_name], full=False))
-	if config.co_patscore_name not in db.collection_names():
+	co_patscore_existed = config.co_patscore_name in db.collection_names()
+	if not co_patscore_existed:
 		print >> sys.stderr, '(error) source collection', color.render(config.co_patscore_name, 'yellow'),'is not existed'
 		print >> sys.stderr, '\tcheck the fetch target and run again!!'
 		exit(-1)
 
-
-	co_patscore = db[ config.co_patscore_name ]
-
-	# get opts of ps_function, ds_function, sig_function, smoothing
-	# co_docscore_prefix and opts  --> e.g., docscore_d0_g3_p2_s1
-
-	## (warning) destination's already existed
+	
+	# check if the destination collection existed
 	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ds_name], full=False))
-	if config.co_docscore_name in db.collection_names() and not config.overwirte:
+	co_docscore_existed = config.co_docscore_name in db.collection_names()
+	if co_docscore_existed and not config.overwirte:
+		## (warning) destination's already existed
 		print >> sys.stderr, '(warning) destination collection', color.render(config.co_docscore_name, 'red'),'is already existed'
 		print >> sys.stderr, '\t  use -o or --overwirte to force update'
 		exit(-1)
 
+
+	## use mongo collection
+	co_patscore = db[ config.co_patscore_name ]
 	co_docscore = db[ config.co_docscore_name ]
 
+	# check if the index(es) are fully-functional
+	good_index = check_indexes(target=co_patscore, indexes=['pattern'], auto=False)
+	if not good_index:
+		exit(-1)
 
 	## confirm message
-	_confirm_msg = [
+	confirm_msg = [
 		(config.ps_function_name, config.ps_function_type),
 		(config.ds_function_name, config.ds_function_type),
 		(config.sig_function_name, config.sig_function_type),
 		(config.smoothing_name, config.smoothing_type),
 		(config.limit_name, config.min_count),
-		('fetch collection', config.co_patscore_name),
-		('insert collection', config.co_docscore_name),
+		('fetch collection', config.co_patscore_name, '(existed)' if co_patscore_existed else '(none)'),
+		('insert collection', config.co_docscore_name, '(existed)' if co_docscore_existed else '(none)'),
 		('verbose', config.verbose),
-		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_docscore_name+' ]', 'red'), False: '' } )
+		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_docscore_name+' ]' if co_docscore_existed else '', 'red'), False: '' } )
 	]
 
-	for msg in _confirm_msg:
-		if len(msg) == 3:
-			print >> sys.stderr, msg[0], ':', msg[1], msg[2][msg[1]]
-		else:
-			print >> sys.stderr, msg[0], ':', msg[1]
-
-	print >> sys.stderr, '='*40
+	config.print_confirm(confirm_msg, bar=40, halt=True)
 	
-	## check if the index(es) are well-functional
-	good_index = check_indexes(target=co_patscore, indexes=['pattern'], auto=False)
-	if not good_index:
-		exit(-1)
-		
-	print >> sys.stderr, 'press any key to start...', raw_input()
-	
-
 	## run
 	import time
 	s = time.time()

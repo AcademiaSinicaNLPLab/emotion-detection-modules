@@ -44,6 +44,8 @@ min_count = 0
 overwirte = False
 verbose = False
 
+topk = 1
+
 opt_fields = {
 	ps_name: ['-p','-s','-v', '-o'],
 	ds_name: ['-p','-d','-s','-g','-l','-v', '-o'],
@@ -90,6 +92,20 @@ def getOpts(fields="-p,-d,-g,-s,-l", key_value='', full=False):
 	cfg = cfgShort if not full else cfgFull
 
 	return [str(x)+key_value+str(cfg[x]) for x in sorted(cfg.keys())]
+
+def print_confirm(confirm_msg, bar=40, halt=True):
+	for msg in confirm_msg:
+		if len(msg) == 3 and type(msg[2]) == dict:
+			print >> sys.stderr, msg[0], ':', msg[1], msg[2][msg[1]]
+		elif len(msg) == 3 and type(msg[2]) == str:
+			print >> sys.stderr, msg[0], ':', msg[1], msg[2]
+		else:
+			print >> sys.stderr, msg[0], ':', msg[1]
+
+	print >> sys.stderr, '='*bar
+
+	if halt:
+		print >> sys.stderr, 'press any key to start...', raw_input()	
 
 def help(program, exit=1):
 
