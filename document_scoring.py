@@ -117,7 +117,8 @@ def event_scoring(pat):
 # 	'happy': 0.2,
 # 	'sad': 0.6,
 # }
-def document_scoring(udocID, limited_search_list=False):
+# def document_scoring(udocID, limited_search_list=False):
+def document_scoring(udocID):
 	# find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
 
@@ -130,8 +131,8 @@ def document_scoring(udocID, limited_search_list=False):
 	for pat in pats:
 
 		## ignore low-frequency patterns
-		if limited_search_list and pat['pattern'] not in limited_search_list:
-			continue
+		# if limited_search_list and pat['pattern'] not in limited_search_list:
+			# continue
 
 		EventScores = event_scoring(pat)
 		for emotion in EventScores:
@@ -145,7 +146,7 @@ def update_all_document_scores():
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
-	search_list = get_search_list()
+	# search_list = get_search_list()
 
 	## drop docscore collection if overwrite is enabled
 	if config.overwirte:
@@ -161,10 +162,14 @@ def update_all_document_scores():
 		if config.verbose:
 			print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
+		else:
+			print >> sys.stderr, '%d > %s' % ( ie, color.render(gold_emotion, 'g') )
+
 		for doc in docs:
 
 			# score a document in 40 diff emotions
-			scores = document_scoring(doc['udocID'], limited_search_list=search_list)
+			# scores = document_scoring(doc['udocID'], limited_search_list=search_list)
+			scores = document_scoring(doc['udocID'])
 
 			mdoc = { 
 				'udocID': doc['udocID'], 
