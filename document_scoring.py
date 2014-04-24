@@ -8,6 +8,7 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 # a local cache for event_scoring to reduce mongo access times
 cache = {}
+search_list = False
 
 def check_indexes(target, indexes, auto=True):
 	# |-- idx_name --| |---------   idx_value  --------------|
@@ -43,6 +44,7 @@ def check_indexes(target, indexes, auto=True):
 
 ## generate/fetch the patterns search list
 def get_search_list():
+
 	if config.min_count < 1: # 0, -1
 		return False
 	# check if the list existed
@@ -56,7 +58,7 @@ def get_search_list():
 	res = co_patsearch.find_one({'limit':config.min_count})
 	if res:
 		# use current list
-		search_list = res['pats']
+		_search_list = res['pats']
 	else:
 		# generate the list
 		print >> sys.stderr, 'failed'
@@ -73,11 +75,11 @@ def get_search_list():
 		# store in mongo
 		db['pats_trim'].insert(mdoc)
 
-		search_list = mdoc['pats']
+		_search_list = mdoc['pats']
 
 	print >> sys.stderr, 'done'
 
-	return search_list
+	return _search_list
 
 
 def significance_factor(pat):
@@ -122,6 +124,8 @@ def document_scoring(udocID):
 	# find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
 
+	global search_list
+
 	if config.verbose:
 		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
 
@@ -129,6 +133,10 @@ def document_scoring(udocID):
 	
 	# calculate the event score in each pattern
 	for pat in pats:
+
+		if search_list:
+			if pat['pattern'] not in search_list:
+				continue
 
 		## ignore low-frequency patterns
 		# if limited_search_list and pat['pattern'] not in limited_search_list:
@@ -144,9 +152,12 @@ def document_scoring(udocID):
 
 def update_all_document_scores():
 
-	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
+	global search_list
 
-	# search_list = get_search_list()
+	search_list = get_search_list()
+
+
+	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
 	## drop docscore collection if overwrite is enabled
 	if config.overwirte:
@@ -168,7 +179,6 @@ def update_all_document_scores():
 		for doc in docs:
 
 			# score a document in 40 diff emotions
-			# scores = document_scoring(doc['udocID'], limited_search_list=search_list)
 			scores = document_scoring(doc['udocID'])
 
 			mdoc = { 
@@ -250,6 +260,7 @@ if __name__ == '__main__':
 	## run
 	import time
 	s = time.time()
+
 	update_all_document_scores()
 	print 'Time total:',time.time() - s,'sec'
 
