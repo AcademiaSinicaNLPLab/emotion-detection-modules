@@ -141,13 +141,17 @@ def document_scoring(udocID, limited_search_list=False):
 
 	return scores
 
-def update_all_document_scores(UPDATE=False):
+def update_all_document_scores():
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
-	_processed = 0
-
 	search_list = get_search_list()
+
+	## drop docscore collection if overwrite is enabled
+	if config.overwirte:
+		print >> sys.stderr, 'drop collection', config.co_docscore_name
+		co_docscore.drop()
+
 
 	for (ie, gold_emotion) in enumerate(emotions):
 
@@ -161,6 +165,7 @@ def update_all_document_scores(UPDATE=False):
 
 			# score a document in 40 diff emotions
 			scores = document_scoring(doc['udocID'], limited_search_list=search_list)
+
 			mdoc = { 
 				'udocID': doc['udocID'], 
 				'gold_emotion': gold_emotion, 
@@ -240,7 +245,7 @@ if __name__ == '__main__':
 	## run
 	import time
 	s = time.time()
-	update_all_document_scores(UPDATE=False)
+	update_all_document_scores()
 	print 'Time total:',time.time() - s,'sec'
 
 				
