@@ -134,13 +134,11 @@ def document_scoring(udocID):
 	# calculate the event score in each pattern
 	for pat in pats:
 
+		# ignore patterns with occurrence less than x
+		# use -l x or --limit x to specify
 		if search_list:
 			if pat['pattern'] not in search_list:
 				continue
-
-		## ignore low-frequency patterns
-		# if limited_search_list and pat['pattern'] not in limited_search_list:
-			# continue
 
 		EventScores = event_scoring(pat)
 		for emotion in EventScores:
@@ -260,7 +258,6 @@ if __name__ == '__main__':
 	## run
 	import time
 	s = time.time()
-
 	update_all_document_scores()
 	print 'Time total:',time.time() - s,'sec'
 
