@@ -8,6 +8,7 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 # a local cache for event_scoring to reduce mongo access times
 cache = {}
+search_list = False
 
 def check_indexes(target, indexes, auto=True):
 	# |-- idx_name --| |---------   idx_value  --------------|
@@ -43,6 +44,7 @@ def check_indexes(target, indexes, auto=True):
 
 ## generate/fetch the patterns search list
 def get_search_list():
+
 	if config.min_count < 1: # 0, -1
 		return False
 	# check if the list existed
@@ -56,7 +58,7 @@ def get_search_list():
 	res = co_patsearch.find_one({'limit':config.min_count})
 	if res:
 		# use current list
-		search_list = res['pats']
+		_search_list = res['pats']
 	else:
 		# generate the list
 		print >> sys.stderr, 'failed'
@@ -73,11 +75,11 @@ def get_search_list():
 		# store in mongo
 		db['pats_trim'].insert(mdoc)
 
-		search_list = mdoc['pats']
+		_search_list = mdoc['pats']
 
 	print >> sys.stderr, 'done'
 
-	return search_list
+	return _search_list
 
 
 def significance_factor(pat):
@@ -117,9 +119,12 @@ def event_scoring(pat):
 # 	'happy': 0.2,
 # 	'sad': 0.6,
 # }
-def document_scoring(udocID, limited_search_list=False):
+# def document_scoring(udocID, limited_search_list=False):
+def document_scoring(udocID):
 	# find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
+
+	global search_list
 
 	if config.verbose:
 		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
@@ -129,9 +134,11 @@ def document_scoring(udocID, limited_search_list=False):
 	# calculate the event score in each pattern
 	for pat in pats:
 
-		## ignore low-frequency patterns
-		if limited_search_list and pat['pattern'] not in limited_search_list:
-			continue
+		# ignore patterns with occurrence less than x
+		# use -l x or --limit x to specify
+		if search_list:
+			if pat['pattern'] not in search_list:
+				continue
 
 		EventScores = event_scoring(pat)
 		for emotion in EventScores:
@@ -141,13 +148,20 @@ def document_scoring(udocID, limited_search_list=False):
 
 	return scores
 
-def update_all_document_scores(UPDATE=False):
+def update_all_document_scores():
+
+	global search_list
+
+	search_list = get_search_list()
+
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
-	_processed = 0
+	## drop docscore collection if overwrite is enabled
+	if config.overwirte:
+		print >> sys.stderr, 'drop collection', config.co_docscore_name
+		co_docscore.drop()
 
-	search_list = get_search_list()
 
 	for (ie, gold_emotion) in enumerate(emotions):
 
@@ -157,10 +171,14 @@ def update_all_document_scores(UPDATE=False):
 		if config.verbose:
 			print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
+		else:
+			print >> sys.stderr, '%d > %s' % ( ie, color.render(gold_emotion, 'g') )
+
 		for doc in docs:
 
 			# score a document in 40 diff emotions
-			scores = document_scoring(doc['udocID'], limited_search_list=search_list)
+			scores = document_scoring(doc['udocID'])
+
 			mdoc = { 
 				'udocID': doc['udocID'], 
 				'gold_emotion': gold_emotion, 
@@ -240,7 +258,7 @@ if __name__ == '__main__':
 	## run
 	import time
 	s = time.time()
-	update_all_document_scores(UPDATE=False)
+	update_all_document_scores()
 	print 'Time total:',time.time() - s,'sec'
 
 				
