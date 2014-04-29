@@ -13,6 +13,7 @@ db_name = 'LJ40K'
 ## mongo collection name
 co_emotions_name = 'emotions'
 co_docs_name = 'docs'
+co_sents_name = 'sents'
 co_pats_name = 'pats'
 co_lexicon_name = 'lexicon'
 co_results_name = 'NewRes'
