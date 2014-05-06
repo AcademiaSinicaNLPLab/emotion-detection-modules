@@ -4,6 +4,8 @@ from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
+cache = {}
+
 ## input: pat
 ## output: a dictionary of emotion, pat_score
 def get_patscore(pattern):
