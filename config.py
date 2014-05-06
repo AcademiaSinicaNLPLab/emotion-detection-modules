@@ -42,6 +42,16 @@ smoothing_type = 0
 ## minimum occurrence of a pattern
 min_count = 0
 
+###################################
+### document feature extraction ###
+
+## names of parameters
+# ......
+
+## default values for document feature
+# ......
+###################################
+
 overwirte = False
 verbose = False
 
