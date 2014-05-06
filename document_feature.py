@@ -18,7 +18,7 @@ def get_patscore(pattern):
 	key = pattern
 
 	if key not in cache:
-		res = co_patscore.find_one(query, projecter)
+		res = co_patscore.find_one(query, query)
 		if not res:
 			cache[key] = {}
 		else:
