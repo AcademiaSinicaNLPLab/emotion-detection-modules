@@ -90,6 +90,8 @@ def document_emotion_locations(udocID):
 
 def update_all_document_features():
 
+	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
+
 	for (ie, gold_emotion) in enumerate(emotions):
 
 		## get all document with emotions <gold_emotion> and ldocID is great than 800
@@ -116,8 +118,6 @@ if __name__ == '__main__':
 	co_pats = db[config.co_pats_name]
 	co_patscore = db['patscore_p2_s0']
 	co_docfeature = db['docfeature_b20_m60_e20_c0_f0']
-
-	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 	
 	config.verbose = True
 
