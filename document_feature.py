@@ -38,7 +38,7 @@ def get_document_feature(udocID, beginning=20, middle=60, end=20):
 
 	# print sents, '\ntotal_words = ', total_words, '\nusentID_offset = ', usentID_offset, '\nth1 = ', th1, '\nth2 = ', th2
 
-	feature = dict()
+	feature = Counter()
 
 	## find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
