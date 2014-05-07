@@ -27,7 +27,7 @@ def get_patscore(pattern):
 	return cache[key]
 
 
-def get_document_feature(udocID, begPercentage, midPercentage, endPercentage, countingUnitType, featureValueType):
+def get_document_feature(udocID):
 
 	sents = { x['usentID']:x['sent_length'] for x in list( co_sents.find( {'udocID': udocID} ) ) }
 	usentID_offset = min(sents)
@@ -139,7 +139,7 @@ def update_all_document_features(begPercentage, midPercentage, endPercentage, co
 			mdoc = {
 				'udocID': doc['udocID'],
 				'emotion': gold_emotion,
-				'feature': get_document_feature(udocID=doc['udocID'], begPercentage, midPercentage, endPercentage, countingUnitType, featureValueType)
+				'feature': get_document_feature(udocID=doc['udocID'])
 			}
 			co_docfeature.insert(mdoc)
 
@@ -156,14 +156,17 @@ if __name__ == '__main__':
 	co_patscore = db['patscore_p2_s0']
 	co_docfeature = db['docfeature_b20_m60_e20_c0_f0']
 
+	## parameters
+	begPercentage=20
+	midPercentage=60
+	endPercentage=20
+	countingUnitType=0
+	featureValueType=0
+
 	## run
 	import time
 	s = time.time()
-	update_all_document_features( begPercentage=20, 
-	                              midPercentage=60, 
-	                              endPercentage=20, 
-	                              countingUnitType=0, 
-	                              featureValueType=0 )
+	update_all_document_features()
 	print 'Time total:',time.time() - s,'sec'
 
 				
