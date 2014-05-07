@@ -56,7 +56,7 @@ def get_document_feature(udocID, beginning=20, middle=60, end=20):
 
 		patscore = get_patscore(pat['pattern'])		
 		for e in patscore: 
-			key = '$position'+ '@'+ position + '_' + e
+			key = '#position'+ '@'+ position + '_' + e
 			feature[key] += patscore[e]
 
 	return feature
