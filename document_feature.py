@@ -1,5 +1,5 @@
 import config
-import sys, pymongo
+import sys, pymongo, color
 from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
