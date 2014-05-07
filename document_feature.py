@@ -39,9 +39,6 @@ def get_document_feature(udocID, beginning=20, middle=60, end=20):
 	# print sents, '\ntotal_words = ', total_words, '\nusentID_offset = ', usentID_offset, '\nth1 = ', th1, '\nth2 = ', th2
 
 	feature = dict()
-	feature['beginning'] = Counter()
-	feature['middle'] = Counter()
-	feature['end'] = Counter()
 
 	## find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
@@ -50,7 +47,7 @@ def get_document_feature(udocID, beginning=20, middle=60, end=20):
 		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
 
 	for pat in pats:
-		## find pattern location ( beginning/middle/end )
+		## find pattern position ( beginning/middle/end )
 		lanchorID = sum([sents[usentID_offset+i] for i in range(pat['usentID'] - usentID_offset)]) + pat['anchor_idx']
 		if lanchorID <= th1: position = 'beginning'
 		elif lanchorID <= th2: position = 'middle'
@@ -59,13 +56,12 @@ def get_document_feature(udocID, beginning=20, middle=60, end=20):
 
 		patscore = get_patscore(pat['pattern'])		
 		for e in patscore: 
-			feature[position][e] += patscore[e]
+			key = '$position'+ '@'+ position + '_' + e
+			feature[key] += patscore[e]
 
-	feature_vector = [feature['beginning'][emotion] for emotion in emotions] + [feature['middle'][emotion] for emotion in emotions] + [feature['end'][emotion] for emotion in emotions]
+	return feature
 
-	return feature_vector
-
-## old version
+## old old old old old old version
 def document_emotion_locations(udocID):
 	# find total number of sents and usentID offset
 	usentIDs = { x['usentID']:x['sent_length'] for x in list( co_sents.find( {'udocID': udocID} ) ) }
@@ -88,29 +84,27 @@ def document_emotion_locations(udocID):
 			D[emotion].append( pat['weight'] * pat_score[emotion] *  pat['usentID'] )
 
 	emotion_locations = dict([ ( e, (sum(D[e])/float(total_weight) - usentID_offset)/float(number_of_sents) ) for e in D ])
+
 	return emotion_locations
 
 
 def update_all_document_features():
 
-	# for (ie, gold_emotion) in enumerate(emotions):
-	ie = 0
-	gold_emotion = emotions[0]
+	for (ie, gold_emotion) in enumerate(emotions):
 
-	## get all document with emotions <gold_emotion> and ldocID is great than 800
-	# docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$lt': 3}} ) )
-	docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': 850} ) )
+		## get all document with emotions <gold_emotion> and ldocID is great than 800
+		docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$lt': 800}} ) )
 
-	if config.verbose:
-		print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
+		if config.verbose:
+			print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
-	for doc in docs:
-		mdoc = {
-			'udocID': doc['udocID'],
-			'emotion': gold_emotion,
-			'feature': get_document_feature(doc['udocID'])
-		}
-		co_docfeature.insert(mdoc)
+		for doc in docs:
+			mdoc = {
+				'udocID': doc['udocID'],
+				'emotion': gold_emotion,
+				'feature': get_document_feature(doc['udocID'])
+			}
+			co_docfeature.insert(mdoc)
 
 
 if __name__ == '__main__':
