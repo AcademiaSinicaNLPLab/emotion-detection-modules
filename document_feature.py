@@ -27,14 +27,14 @@ def get_patscore(pattern):
 	return cache[key]
 
 
-def get_document_feature(udocID, beginning=20, middle=60, end=20):
+def get_document_feature(udocID, begPercentage, midPercentage, endPercentage, countingUnitType, featureValueType):
 
 	sents = { x['usentID']:x['sent_length'] for x in list( co_sents.find( {'udocID': udocID} ) ) }
 	usentID_offset = min(sents)
 	total_words = sum([sents[x] for x in sents])
 
-	th1 = total_words * beginning/float(100)
-	th2 = total_words * (beginning+middle)/float(100)
+	th1 = total_words * begPercentage/float(100)
+	th2 = total_words * (begPercentage+midPercentage)/float(100)
 
 	# print sents, '\ntotal_words = ', total_words, '\nusentID_offset = ', usentID_offset, '\nth1 = ', th1, '\nth2 = ', th2
 
@@ -54,10 +54,42 @@ def get_document_feature(udocID, beginning=20, middle=60, end=20):
 		else: position = 'end'
 		# print '='*30, '\n', pat['pattern'], '\n', 'lanchorID = ', lanchorID, '\n', 'position = ', position
 
-		patscore = get_patscore(pat['pattern'])		
-		for e in patscore: 
+		#########################################################################################
+		## get patfeature according to different featureValueType
+
+		## type 0: pattern scores
+		if featureValueType == 0:
+			patfeature = get_patscore(pat['pattern']) 
+
+		## type 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores
+		elif featureValueType == 1:
+
+			patscore = get_patscore(pat['pattern'])
+
+			## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
+			temp_dict = defaultdict( list() ) 
+			for e in patscore:
+				temp_dict[patscore[e]].append(e)
+
+			## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ]
+			temp_list = temp_dict.items()
+			temp_list.sort(reverse=True)
+
+			th = 0.68 * sum([patscore[k] for k in patscore])
+			current_sum = 0
+			selected_emotions = []
+			while current_sum < th:
+				top = temp_list.pop(0)
+				selected_emotions.extend( top[1] )
+				current_sum += top[0] * len(top[1])
+
+			patfeature = dict( zip(selected_emotions, [1]*len(selected_emotions)) )
+
+		#########################################################################################
+
+		for e in patfeature: 
 			key = '#position'+ '@'+ position + '_' + e
-			feature[key] += patscore[e]
+			feature[key] += patfeature[e]
 
 	return feature
 
@@ -88,7 +120,7 @@ def document_emotion_locations(udocID):
 	return emotion_locations
 
 
-def update_all_document_features():
+def update_all_document_features(begPercentage, midPercentage, endPercentage, countingUnitType, featureValueType):
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
@@ -107,12 +139,14 @@ def update_all_document_features():
 			mdoc = {
 				'udocID': doc['udocID'],
 				'emotion': gold_emotion,
-				'feature': get_document_feature(doc['udocID'])
+				'feature': get_document_feature(udocID=doc['udocID'], begPercentage, midPercentage, endPercentage, countingUnitType, featureValueType)
 			}
 			co_docfeature.insert(mdoc)
 
 
 if __name__ == '__main__':
+
+	config.verbose = True
 
 	## select mongo collections
 	co_emotions = db[config.co_emotions_name]
@@ -121,13 +155,15 @@ if __name__ == '__main__':
 	co_pats = db[config.co_pats_name]
 	co_patscore = db['patscore_p2_s0']
 	co_docfeature = db['docfeature_b20_m60_e20_c0_f0']
-	
-	config.verbose = True
 
 	## run
 	import time
 	s = time.time()
-	update_all_document_features()
+	update_all_document_features( begPercentage=20, 
+	                              midPercentage=60, 
+	                              endPercentage=20, 
+	                              countingUnitType=0, 
+	                              featureValueType=0 )
 	print 'Time total:',time.time() - s,'sec'
 
 				
