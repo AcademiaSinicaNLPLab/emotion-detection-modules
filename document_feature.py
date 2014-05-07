@@ -30,11 +30,13 @@ def get_patscore(pattern):
 def get_document_feature(udocID, beginning=20, middle=60, end=20):
 
 	sents = { x['usentID']:x['sent_length'] for x in list( co_sents.find( {'udocID': udocID} ) ) }
-	usentID_offset = min(sents) - 1
+	usentID_offset = min(sents)
 	total_words = sum([sents[x] for x in sents])
 
-	th1 = total_words * float(beginning/100)
-	th2 = total_words * float((beginning+middle)/100)
+	th1 = total_words * beginning/float(100)
+	th2 = total_words * (beginning+middle)/float(100)
+
+	# print sents, '\ntotal_words = ', total_words, '\nusentID_offset = ', usentID_offset, '\nth1 = ', th1, '\nth2 = ', th2
 
 	feature = dict()
 	feature['beginning'] = Counter()
@@ -48,21 +50,18 @@ def get_document_feature(udocID, beginning=20, middle=60, end=20):
 		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
 
 	for pat in pats:
-
-		patscore = get_patscore(pat['pattern'])
-
-		## find pattern location ( beginning->1, middle->2, end->3 )
-		lanchorID = sum([sents[i] for i in range(pat['usentID'] - usentID_offset)]) + pat['anchor_idx']
+		## find pattern location ( beginning/middle/end )
+		lanchorID = sum([sents[usentID_offset+i] for i in range(pat['usentID'] - usentID_offset)]) + pat['anchor_idx']
 		if lanchorID <= th1: position = 'beginning'
 		elif lanchorID <= th2: position = 'middle'
 		else: position = 'end'
-		
+		# print '='*30, '\n', pat['pattern'], '\n', 'lanchorID = ', lanchorID, '\n', 'position = ', position
+
+		patscore = get_patscore(pat['pattern'])		
 		for e in patscore: 
 			feature[position][e] += patscore[e]
 
-	feature_vector = []
-	for position in feature:
-		feature_vector.extend( [feature[position][emotion] for emotion in emotions] )
+	feature_vector = [feature['beginning'][emotion] for emotion in emotions] + [feature['middle'][emotion] for emotion in emotions] + [feature['end'][emotion] for emotion in emotions]
 
 	return feature_vector
 
@@ -99,7 +98,8 @@ def update_all_document_features():
 	gold_emotion = emotions[0]
 
 	## get all document with emotions <gold_emotion> and ldocID is great than 800
-	docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$lt': 3}} ) )
+	# docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': {'$lt': 3}} ) )
+	docs = list( co_docs.find( { 'emotion': gold_emotion, 'ldocID': 850} ) )
 
 	if config.verbose:
 		print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
@@ -125,6 +125,8 @@ if __name__ == '__main__':
 
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 	
+	config.verbose = True
+
 	## run
 	import time
 	s = time.time()
