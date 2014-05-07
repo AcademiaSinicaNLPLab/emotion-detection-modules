@@ -55,7 +55,8 @@ def get_document_feature(udocID):
 		# print '='*30, '\n', pat['pattern'], '\n', 'lanchorID = ', lanchorID, '\n', 'position = ', position
 
 		#########################################################################################
-		## get patfeature according to different featureValueType
+		## ( get patfeature according to different featureValueType ) 
+		## ( create new function for this block? ) 
 
 		## type 0: pattern scores
 		if featureValueType == 0:
@@ -84,6 +85,8 @@ def get_document_feature(udocID):
 				current_sum += top[0] * len(top[1])
 
 			patfeature = dict( zip(selected_emotions, [1]*len(selected_emotions)) )
+
+		## type 2: accumulated threshold by 0.68 (1 standard diviation) using pattern ocurrence
 
 		#########################################################################################
 
