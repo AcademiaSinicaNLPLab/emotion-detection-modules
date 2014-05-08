@@ -130,15 +130,6 @@ def document_emotion_locations(udocID):
 
 def create_document_features():
 
-	## insert metadata
-	setting = { 
-		"feature_type": "position", 
-		"section": "b"+ str(begPercentage) + "_m" + str(midPercentage) + "_e" + str(endPercentage), 
-		"counting_unit_type": countingUnitType, 
-		"feature_value_type":countingUnitType 
-	}
-	setting_id = str(co_setting.insert( setting ))
-
 	## list of emotions
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
@@ -182,6 +173,24 @@ if __name__ == '__main__':
 	endPercentage=20
 	countingUnitType=0
 	featureValueType=1
+
+	## insert metadata
+	setting = { 
+		"feature_type": "position", 
+		"section": "b"+ str(begPercentage) + "_m" + str(midPercentage) + "_e" + str(endPercentage), 
+		"counting_unit_type": countingUnitType, 
+		"feature_value_type": featureValueType 
+	}
+	setting_id = str(co_setting.insert( setting ))
+
+	## print confirm message
+	confirm_msg = [
+		("feature_type", "position"),
+		("section", setting["section"], 
+		("counting_unit_type", setting["counting_unit_type"]), 
+		("feature_value_type", setting["feature_value_type"]) 
+	]
+	config.print_confirm(confirm_msg, bar=40, halt=True)
 
 	## run
 	import time
