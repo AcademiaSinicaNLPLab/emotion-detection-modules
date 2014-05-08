@@ -13,6 +13,7 @@ db_name = 'LJ40K'
 ## mongo collection name
 co_emotions_name = 'emotions'
 co_docs_name = 'docs'
+co_sents_name = 'sents'
 co_pats_name = 'pats'
 co_lexicon_name = 'lexicon'
 co_results_name = 'NewRes'
@@ -40,6 +41,16 @@ sig_function_type = 0
 smoothing_type = 0
 ## minimum occurrence of a pattern
 min_count = 0
+
+###################################
+### document feature extraction ###
+
+## names of parameters
+# ......
+
+## default values for document feature
+# ......
+###################################
 
 overwirte = False
 verbose = False
