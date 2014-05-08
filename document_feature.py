@@ -186,7 +186,7 @@ if __name__ == '__main__':
 	## print confirm message
 	confirm_msg = [
 		("feature_type", "position"),
-		("section", setting["section"], 
+		("section", setting["section"]), 
 		("counting_unit_type", setting["counting_unit_type"]), 
 		("feature_value_type", setting["feature_value_type"]) 
 	]
