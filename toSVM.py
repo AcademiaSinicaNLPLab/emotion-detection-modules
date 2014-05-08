@@ -80,10 +80,11 @@ def generate_vectors():
 	
 	return vectors
 
-def generate_test_train_files(vectors, train_out='train.txt', test_out='test.txt'):
+def generate_test_train_files(vectors, train_out='train.txt', test_out='test.txt', gold_out='gold.txt'):
 
 	fw_train = open(train_out, 'w')
 	fw_test = open(test_out, 'w')
+	fw_gold = open(gold_out, 'w')
 
 	# default: [800:200]
 	# p = 0
@@ -93,12 +94,16 @@ def generate_test_train_files(vectors, train_out='train.txt', test_out='test.txt
 
 		train_txt = '\n'.join([x[1] for x in train])
 		test_txt = '\n'.join([x[1] for x in test])
+		gold_txt = '\n'.join([x[0] for x in test])
+
 
 		fw_train.write(train_txt + '\n')
 		fw_test.write(test_txt + '\n')
+		fw_gold.write(gold_txt + '\n')
 
 	fw_train.close()
 	fw_test.close()
+	fw_gold.close()
 
 if __name__ == '__main__':
 
