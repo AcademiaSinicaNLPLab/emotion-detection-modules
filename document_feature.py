@@ -183,11 +183,8 @@ if __name__ == '__main__':
 	countingUnitType=0
 	featureValueType=1
 
-
 	## run
 	import time
 	s = time.time()
 	create_document_features()
 	print 'Time total:',time.time() - s,'sec'
-
-				
