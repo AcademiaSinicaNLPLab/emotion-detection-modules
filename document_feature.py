@@ -38,20 +38,21 @@ def get_patfeature(pattern):
 	if featureValueType == 0:
 		patfeature = get_patscore(pattern) 
 
-	elif featureValueType == 1:
+	elif (featureValueType == 1) or (featureValueType == 2):
 
-		patscore = get_patscore(pattern)
+		if featureValueType == 1: score = get_patscore(pattern) # pattern score
+		if featureValueType == 2: score = {} # pattern occurrence
 
 		## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
 		temp_dict = defaultdict( list ) 
-		for e in patscore:
-			temp_dict[patscore[e]].append(e)
+		for e in score:
+			temp_dict[score[e]].append(e)
 
 		## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ]
 		temp_list = temp_dict.items()
 		temp_list.sort(reverse=True)
 
-		th = 0.68 * sum([patscore[k] for k in patscore])
+		th = 0.68 * sum([score[k] for k in patscore])
 		current_sum = 0
 		selected_emotions = []
 		while current_sum < th:
@@ -77,7 +78,7 @@ def get_document_feature(udocID):
 
 	# print sents, '\ntotal_words = ', total_words, '\nusentID_offset = ', usentID_offset, '\nth1 = ', th1, '\nth2 = ', th2
 
-	feature = Counter()
+	docfeature = Counter()
 
 	## find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
@@ -97,9 +98,9 @@ def get_document_feature(udocID):
 
 		for e in patfeature: 
 			key = '#position'+ '@'+ position + '_' + e
-			feature[key] += patfeature[e]
+			docfeature[key] += patfeature[e]
 
-	return feature
+	return docfeature
 
 ## old old old old old old version
 def document_emotion_locations(udocID):
