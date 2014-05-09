@@ -26,6 +26,9 @@ This repository contains source codes and dev notes of the project "[Feelit](htt
 		- program: (comming soon)
 		- include
 			1. feature extraction
+				- position feature [(document_feature.py)](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/document_feature.py)
+				- keyword feature
+				- pattern feature
 			2. training
 			3. testing
 
