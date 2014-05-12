@@ -173,7 +173,7 @@ if __name__ == '__main__':
 	midPercentage=60
 	endPercentage=20
 	countingUnitType=0
-	featureValueType=1
+	featureValueType=0
 
 	## insert metadata
 	setting = { 
