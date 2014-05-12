@@ -52,7 +52,7 @@ def get_patfeature(pattern):
 		temp_list = temp_dict.items()
 		temp_list.sort(reverse=True)
 
-		th = 0.68 * sum([score[k] for k in patscore])
+		th = 0.68 * sum([score[k] for k in score])
 		current_sum = 0
 		selected_emotions = []
 		while current_sum < th:
