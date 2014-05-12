@@ -1,6 +1,47 @@
 emotion-detection-modules
 =========================
 
+This repository contains source codes and dev notes of the project "[Feelit](http://doraemon.iis.sinica.edu.tw/feelit/)" at Academia Sinica
+
+## Workflow
+
+1. Extract Patterns from LJ40K
+	- program: [extract_pattern.py](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/extract_pattern.py)
+	- extract patterns from sentences using dependency relations
+
+2. Construct Lexicon
+	- program: [lexicon_construction.py](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/lexicon_construction.py)
+	- store emotion, pattern in __mongodb__
+	
+3. Pattern Scoring
+	- program: [pattern_scoring.py](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/pattern_scoring.py)
+	- calculate emotion scores for each pattern
+
+4. Document Scoring
+	1. naive approache
+		- program: [document_scoring.py](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/document_scoring.py)
+		- average the emotion scores in each pattern
+
+	2. machine learning
+		- program: (comming soon)
+		- include
+			1. feature extraction
+				- position feature [(document_feature.py)](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/document_feature.py)
+				- keyword feature
+				- pattern feature
+			2. training
+			3. testing
+
+5. Evaluation
+	1. naive document scoring
+		- program: [evaluation.py](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/evaluation.py)
+
+	2. machine learning
+		- program: [evaluation_svm.py](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/evaluation_svm.py)
+
+
+## useful git commands
+
 ``` 
 git clone git@github.com:AcademiaSinicaNLPLab/emotion-detection-modules.git
 ```
@@ -21,41 +62,3 @@ git push
 git pull -u origin master	// first time using pull
 git pull
 ```
-
-
----
-
-* #####[pattern.md](pattern.md)
-
-	pattern extraction modules and database structures
-	
-* #####[pattern.new.md](pattern.new.md)
-
-	new system architecture (03/13)
-
-* #####[scoring.md](scoring.md)
-
-	scoring functions
-
-####/data
-
-* `LJ2M.emolist`
-
-	128 emotion classes in LJ2M
-
-* `LJ40K.emolist`
-
-	40 emotion classes in LJ40K
-
-* `Mishne05.emolist</code>
-
-	37 emotion classes used by Mishen 2005
-
-* `WordNetAffectKeywords.json`
-
-	1,050 emotion keywords acquired from WordNet Affect
-
-* `WordNetAffectKeywordsExt.json`
-
-	3,785 emotion keywords extended from WordNet Affect using synonyms
-
