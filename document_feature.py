@@ -27,6 +27,27 @@ def get_patscore(pattern):
 	return cache[key]
 
 ## input: pat
+## output: a dictionary of (emotion, occurrence)
+def get_patoccurrence(pattern):
+
+	query = { 'pattern': pattern.lower() }
+	projector = { '_id': 0, 'count':1 }
+
+	global cache
+
+	key = pattern
+
+	if key not in cache:
+		res = co_nestedLexicon.find_one(query, projector)
+		if not res:
+			cache[key] = {}
+		else:
+			cache[key] = res['count']
+
+	return cache[key]
+
+
+## input: pat
 ## output: a dictionary of (emotion, patfeature) according to different featureValueType 
 def get_patfeature(pattern):
 	########################################################################################
@@ -41,7 +62,7 @@ def get_patfeature(pattern):
 	elif (featureValueType == 1) or (featureValueType == 2):
 
 		if featureValueType == 1: score = get_patscore(pattern) # pattern score
-		if featureValueType == 2: score = {} # pattern occurrence
+		if featureValueType == 2: score = get_patoccurrence(pattern) # pattern occurrence
 
 		## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
 		temp_dict = defaultdict( list ) 
@@ -52,7 +73,7 @@ def get_patfeature(pattern):
 		temp_list = temp_dict.items()
 		temp_list.sort(reverse=True)
 
-		th = 0.68 * sum([score[k] for k in patscore])
+		th = 0.68 * sum([score[k] for k in score])
 		current_sum = 0
 		selected_emotions = []
 		while current_sum < th:
@@ -162,6 +183,7 @@ if __name__ == '__main__':
 	co_docs = db[config.co_docs_name]
 	co_sents = db[config.co_sents_name]
 	co_pats = db[config.co_pats_name]
+	co_nestedLexicon = db['lexicon.nested']
 	co_patscore = db['patscore_p2_s0']
 
 	## target mongo collections
@@ -173,7 +195,7 @@ if __name__ == '__main__':
 	midPercentage=60
 	endPercentage=20
 	countingUnitType=0
-	featureValueType=0
+	featureValueType=2
 
 	## insert metadata
 	setting = { 
@@ -182,13 +204,15 @@ if __name__ == '__main__':
 		"counting_unit_type": countingUnitType, 
 		"feature_value_type": featureValueType 
 	}
-	setting_id = str(co_setting.insert( setting ))
 
 	## print confirm message
 	config.print_confirm(setting.items(), bar=40, halt=True)
+	
+	## insert metadata
+	setting_id = str(co_setting.insert( setting ))
 
 	## run
 	import time
-	s = time.time()
+	s = time.time()	
 	create_document_features()
 	print 'Time total:',time.time() - s,'sec'
