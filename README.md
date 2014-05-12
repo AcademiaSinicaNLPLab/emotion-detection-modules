@@ -1,9 +1,4 @@
-emotion-detection-modules
-=========================
-
-This repository contains source codes and dev notes of the project "[Feelit](http://doraemon.iis.sinica.edu.tw/feelit/)" at Academia Sinica
-
-## Feelit
+## [Feelit](http://doraemon.iis.sinica.edu.tw/feelit/)
 
 A key focus of this work was to recognize implicit emotions in blog posts.
 
