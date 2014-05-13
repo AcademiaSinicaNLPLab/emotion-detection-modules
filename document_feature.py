@@ -54,7 +54,7 @@ def get_patfeature(pattern):
 	## type 0: pattern scores
 	## type 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores    
 	## type 2: accumulated threshold by 0.68 (1 standard diviation) using pattern occurrence
-	## type 3: same as type 2 but ignore those patterns with total occurrence less than 3   
+	## type 3: same as type 2 but ignore patterns with total occurrence < 4 (1, 2, 3)   
 	########################################################################################
 
 	if config.featureValueType == 0:
@@ -66,7 +66,7 @@ def get_patfeature(pattern):
 		if config.featureValueType == 2: score = get_patoccurrence(pattern) # pattern occurrence
 		if config.featureValueType == 3: 
 			score = get_patoccurrence(pattern)
-			if sum( [ score[e] for e in score ] ) < 3: return {}
+			if sum( [ score[e] for e in score ] ) < 4: return {}
 
 		## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
 		temp_dict = defaultdict( list ) 
