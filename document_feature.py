@@ -176,8 +176,6 @@ def create_document_features():
 
 if __name__ == '__main__':
 
-	config.verbose = True
-
 	## select mongo collections
 	co_emotions = db[config.co_emotions_name]
 	co_docs = db[config.co_docs_name]
@@ -186,16 +184,37 @@ if __name__ == '__main__':
 	co_nestedLexicon = db['lexicon.nested']
 	co_patscore = db['patscore_p2_s0']
 
+
 	## target mongo collections
 	co_setting = db['features.settings']
 	co_feature = db['features.position']
 
-	## parameters
-	begPercentage=20
-	midPercentage=60
-	endPercentage=20
-	countingUnitType=0
-	featureValueType=2
+
+	## input arguments
+	import getopt
+
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:c:f:v',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'countingUnitType=', 'featureValueType=', 'verbose'])
+	except getopt.GetoptError:
+		config.help(config.ds_name, exit=2)
+
+	for opt, arg in opts:
+		if opt in ('-h', '--help'): config.help(config.df_name)
+		elif opt in ('-b','--begPercentage'): config.begPercentage = int(arg.strip())
+		elif opt in ('-m','--midPercentage'): config.midPercentage = int(arg.strip())
+		elif opt in ('-e','--endPercentage'): config.endPercentage = int(arg.strip())
+		elif opt in ('-c','--countingUnitType'): config.countingUnitType = int(arg.strip())
+		elif opt in ('-f','--featureValueType'): config.featureValueType = int(arg.strip())
+		elif opt in ('-v','--verbose'): config.verbose = True
+
+
+	# ## parameters
+	# begPercentage=20
+	# midPercentage=60
+	# endPercentage=20
+	# countingUnitType=0
+	# featureValueType=2
+
 
 	## insert metadata
 	setting = { 
@@ -205,11 +224,14 @@ if __name__ == '__main__':
 		"feature_value_type": featureValueType 
 	}
 
+
 	## print confirm message
 	config.print_confirm(setting.items(), bar=40, halt=True)
+
 	
 	## insert metadata
 	setting_id = str(co_setting.insert( setting ))
+
 
 	## run
 	import time

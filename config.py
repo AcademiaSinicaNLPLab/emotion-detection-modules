@@ -5,6 +5,7 @@ import sys
 ds_name = 'document_scoring'
 ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
+df_name = 'document_feature'
 
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
@@ -44,12 +45,11 @@ min_count = 0
 
 ###################################
 ### document feature extraction ###
-
-## names of parameters
-# ......
-
-## default values for document feature
-# ......
+begPercentage = 20
+midPercentage = 60
+endPercentage = 20
+countingUnitType = 0
+featureValueType = 0
 ###################################
 
 overwirte = False
@@ -61,6 +61,7 @@ opt_fields = {
 	ps_name: ['-p','-s','-v', '-o'],
 	ds_name: ['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: ['-p','-d','-s','-g','-l','-v', '-o']
+	df_name: ['-b','-m','-e','-c','-f','-v']
 }
 _abbr = {
 	'p': 'ps_function',
@@ -156,6 +157,31 @@ def help(program, exit=1):
 
 	params['-v'] = [
 		'-v, --verbose: show debug message']
+
+	#########################################################################################################
+	## document feature extraction
+	
+	params['-b'] = [
+		'-b, --begPercentage: percentage of beginning section']
+	
+	params['-m'] = [
+		'-b, --midPercentage: percentage of middle section']
+	
+	params['-e'] = [
+		'-e, --endPercentage: percentage of ending section']
+	
+	params['-c'] = [
+		'-c, --countingUnitType: counting unit for document segmentation',
+		'                 0: number of words',
+		'                 1: number of sentences (not implemented yet)']
+	
+	params['-f'] = [
+		'-f, --featureValueType: feature value computation',
+		'                 0: pattern scores (patscore_p2_s0)', 
+		'                 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores',
+		'                 2: accumulated threshold by 0.68 (1 standard diviation) using pattern ocurrence']
+
+	#########################################################################################################
 
 	opts = opt_fields[program]
 
