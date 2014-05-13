@@ -1,7 +1,8 @@
-emotion-detection-modules
-=========================
+## [Feelit](http://doraemon.iis.sinica.edu.tw/feelit/)
 
-This repository contains source codes and dev notes of the project "[Feelit](http://doraemon.iis.sinica.edu.tw/feelit/)" at Academia Sinica
+A key focus of this work was to recognize implicit emotions in blog posts.
+
+Different from past approaches using surface features, we utilize syntax and semantic knowledges and learn meaningful patterns to detect a user's intended emotion.
 
 ## Workflow
 
