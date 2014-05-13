@@ -165,7 +165,7 @@ def help(program, exit=1):
 		'-b, --begPercentage: percentage of beginning section']
 	
 	params['-m'] = [
-		'-b, --midPercentage: percentage of middle section']
+		'-m, --midPercentage: percentage of middle section']
 	
 	params['-e'] = [
 		'-e, --endPercentage: percentage of ending section']

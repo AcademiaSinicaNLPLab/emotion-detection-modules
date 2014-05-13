@@ -56,13 +56,13 @@ def get_patfeature(pattern):
 	## type 2: accumulated threshold by 0.68 (1 standard diviation) using pattern ocurrence
 	########################################################################################
 
-	if featureValueType == 0:
+	if config.featureValueType == 0:
 		patfeature = get_patscore(pattern) 
 
-	elif (featureValueType == 1) or (featureValueType == 2):
+	elif (config.featureValueType == 1) or (config.featureValueType == 2):
 
-		if featureValueType == 1: score = get_patscore(pattern) # pattern score
-		if featureValueType == 2: score = get_patoccurrence(pattern) # pattern occurrence
+		if config.featureValueType == 1: score = get_patscore(pattern) # pattern score
+		if config.featureValueType == 2: score = get_patoccurrence(pattern) # pattern occurrence
 
 		## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
 		temp_dict = defaultdict( list ) 
@@ -94,8 +94,8 @@ def get_document_feature(udocID):
 	usentID_offset = min(sents)
 	total_words = sum([sents[x] for x in sents])
 
-	th1 = total_words * begPercentage/float(100)
-	th2 = total_words * (begPercentage+midPercentage)/float(100)
+	th1 = total_words * config.begPercentage/float(100)
+	th2 = total_words * (config.begPercentage+config.midPercentage)/float(100)
 
 	# print sents, '\ntotal_words = ', total_words, '\nusentID_offset = ', usentID_offset, '\nth1 = ', th1, '\nth2 = ', th2
 
@@ -219,9 +219,9 @@ if __name__ == '__main__':
 	## insert metadata
 	setting = { 
 		"feature_name": "position", 
-		"section": "b"+ str(begPercentage) + "_m" + str(midPercentage) + "_e" + str(endPercentage), 
-		"counting_unit_type": countingUnitType, 
-		"feature_value_type": featureValueType 
+		"section": "b"+ str(config.begPercentage) + "_m" + str(config.midPercentage) + "_e" + str(config.endPercentage), 
+		"counting_unit_type": config.countingUnitType, 
+		"feature_value_type": config.featureValueType 
 	}
 
 
