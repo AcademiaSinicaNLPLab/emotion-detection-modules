@@ -60,7 +60,7 @@ topk = 1
 opt_fields = {
 	ps_name: ['-p','-s','-v', '-o'],
 	ds_name: ['-p','-d','-s','-g','-l','-v', '-o'],
-	ev_name: ['-p','-d','-s','-g','-l','-v', '-o']
+	ev_name: ['-p','-d','-s','-g','-l','-v', '-o'],
 	df_name: ['-b','-m','-e','-c','-f','-v']
 }
 _abbr = {
