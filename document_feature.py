@@ -52,24 +52,28 @@ def get_patoccurrence(pattern):
 def get_patfeature(pattern):
 	########################################################################################
 	## type 0: pattern scores
-	## type 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores
-	## type 2: accumulated threshold by 0.68 (1 standard diviation) using pattern ocurrence
+	## type 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores    
+	## type 2: accumulated threshold by 0.68 (1 standard diviation) using pattern occurrence
+	## type 3: same as type 2 but ignore those patterns with total occurrence less than 3   
 	########################################################################################
 
 	if config.featureValueType == 0:
-		patfeature = get_patscore(pattern) 
+		return get_patscore(pattern) 
 
-	elif (config.featureValueType == 1) or (config.featureValueType == 2):
+	elif (config.featureValueType == 1) or (config.featureValueType == 2) or (config.featureValueType == 3):
 
 		if config.featureValueType == 1: score = get_patscore(pattern) # pattern score
 		if config.featureValueType == 2: score = get_patoccurrence(pattern) # pattern occurrence
+		if config.featureValueType == 3: 
+			score = get_patoccurrence(pattern)
+			if sum( [ score[e] for e in score ] ) < 3: return {}
 
 		## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
 		temp_dict = defaultdict( list ) 
 		for e in score:
 			temp_dict[score[e]].append(e)
 
-		## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ]
+		## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ] ((sorted))
 		temp_list = temp_dict.items()
 		temp_list.sort(reverse=True)
 
@@ -81,11 +85,9 @@ def get_patfeature(pattern):
 			selected_emotions.extend( top[1] )
 			current_sum += top[0] * len(top[1])
 
-		patfeature = dict( zip(selected_emotions, [1]*len(selected_emotions)) )
+		return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
 
 	# elif ...
-
-	return patfeature
 
 
 def get_document_feature(udocID):
