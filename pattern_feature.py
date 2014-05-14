@@ -4,7 +4,7 @@ from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-Cache = {}
+cache = {}
 
 ## input: pattern
 ## output: number of occurrence
@@ -92,7 +92,7 @@ if __name__ == '__name__':
 		config.help(config.pf_name, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help(config.df_name)
+		if opt in ('-h', '--help'): config.help(config.pf_name)
 		elif opt in ('-l','--limit'): config.minOccurrence = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 

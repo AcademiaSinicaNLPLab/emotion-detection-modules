@@ -66,7 +66,7 @@ opt_fields = {
 	ds_name: ['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: ['-p','-d','-s','-g','-l','-v', '-o'],
 	df_name: ['-b','-m','-e','-c','-f','-v'],
-	pf_name: ['-l', '-v']
+	pf_name: ['-l','-v']
 }
 _abbr = {
 	'p': 'ps_function',
