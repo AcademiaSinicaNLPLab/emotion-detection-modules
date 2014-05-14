@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
 	## input arguments
 	import getopt
-
+	
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:c:f:v',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'countingUnitType=', 'featureValueType=', 'verbose'])
 	except getopt.GetoptError:
