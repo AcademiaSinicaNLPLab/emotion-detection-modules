@@ -71,7 +71,7 @@ def create_pattern_features(setting_id):
 	# co_feature.create_index("setting")
 
 
-if __name__ == '__name__':
+if __name__ == '__main__':
 
 	## select mongo collections
 	co_emotions = db[config.co_emotions_name]
@@ -85,7 +85,6 @@ if __name__ == '__name__':
 
 	## input arguments
 	import getopt
-
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'hl:v',['help', 'min_count=', 'verbose'])
 	except getopt.GetoptError:
