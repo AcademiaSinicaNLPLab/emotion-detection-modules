@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=9" />
+
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" type="text/css">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/chart.css') }}" type="text/css">
+	<link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}"/>
+	
+	<title>Feelit</title>
+
+</head>
+<body>
+	{% block content %}
+	{% endblock %}
+	<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/chart.js') }}"></script>
+	
+	<script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+	
+</body>
+</html>
