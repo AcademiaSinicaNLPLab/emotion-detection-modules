@@ -29,7 +29,7 @@ def get_count(pattern):
 ## output: a dictionary of (pattern: occurrence)
 def get_pattern_feature(udocID):
 
-	patFeature = {}
+	patFeature = Counter()
 
 	## find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
@@ -39,10 +39,8 @@ def get_pattern_feature(udocID):
 
 	for pat in pats:
 
-		count = get_occurrence(pat['pattern'])
-
-		if count >= config.min_count:
-			patFeature[pat['pattern']] = count
+		if get_count(pat['pattern']) >= config.min_count:
+			patFeature[ pat['pattern'] ] += 1
 
 	return patFeature
 
@@ -66,9 +64,9 @@ def create_pattern_features(setting_id):
 				"feature": get_pattern_feature(udocID=doc['udocID']).items(),
 				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
-			# co_feature.insert(mdoc)
+			co_feature.insert(mdoc)
 
-	# co_feature.create_index("setting")
+	co_feature.create_index("setting")
 
 
 if __name__ == '__main__':
