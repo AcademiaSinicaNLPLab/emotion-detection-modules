@@ -117,7 +117,7 @@ def evals():
 			'f1': 2*P*R/float(P+R) if P+R > 0 else 0.0			
 		}
 
-	# if config.overwirte:
+	# if config.overwrite:
 	print >> sys.stderr, 'upsert mongo document', cfg
 	co_results.update({'cfg': cfg}, {'$set': {'emotions':mdoc['emotions']}}, upsert=True )
 
@@ -165,7 +165,7 @@ if __name__ == '__main__':
 	import getopt
 	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:vo',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose', 'overwirte'])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:vo',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose', 'overwrite'])
 	except getopt.GetoptError:
 		config.help('evaluation', exit=2)
 
@@ -177,7 +177,7 @@ if __name__ == '__main__':
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-l','--limit'): config.min_count = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
-		elif opt in ('-o','--overwirte'): config.overwirte = True
+		elif opt in ('-o','--overwrite'): config.overwrite = True
 
 	## fetch from collection
 	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ev_name], full=False))
@@ -192,7 +192,7 @@ if __name__ == '__main__':
 	# check if the collection already exists
 	cfg = ','.join(config.getOpts(fields=config.opt_fields[config.ev_name], key_value='=', full=True))
 	mdoc_results_existed = True if db[config.co_results_name].find_one( {'cfg': cfg} ) else False
-	skip_eval = False if not mdoc_results_existed or config.overwirte else True
+	skip_eval = False if not mdoc_results_existed or config.overwrite else True
 
 	co_docscore = db[ config.co_docscore_name ]
 	co_results = db[ config.co_results_name ]
@@ -206,7 +206,7 @@ if __name__ == '__main__':
 		('fetch collection', config.co_docscore_name, '(existed)' if co_docscore_existed else '(none)'),
 		('insert collection', config.co_results_name, '(existed)' if mdoc_results_existed else '(none)'),
 		('verbose', config.verbose),
-		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_docscore_name+' ]' if co_docscore_existed else '', 'red'), False: '' })
+		('overwrite', config.overwrite, { True: color.render('!Note: This will drop the collection [ '+config.co_docscore_name+' ]' if co_docscore_existed else '', 'red'), False: '' })
 	]
 
 
@@ -216,7 +216,7 @@ if __name__ == '__main__':
 	if skip_eval:
 		## (warning) destination's already existed
 		print >> sys.stderr, '(warning) destination mongo doc', color.render(config.co_results_name+' > '+cfg, 'red'),'is already existed'
-		print >> sys.stderr, '\t  use -o or --overwirte to force update'
+		print >> sys.stderr, '\t  use -o or --overwrite to force update'
 
 	if not skip_eval:
 		evals()
