@@ -179,7 +179,8 @@ def help(program, exit=1):
 		'-f, --featureValueType: feature value computation',
 		'                 0: pattern scores (patscore_p2_s0)', 
 		'                 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores',
-		'                 2: accumulated threshold by 0.68 (1 standard diviation) using pattern ocurrence']
+		'                 2: accumulated threshold by 0.68 (1 standard diviation) using pattern occurrence',
+		'                 3: same as type 2 but ignore those with total occurrence < 4 (1, 2, 3)']
 
 	#########################################################################################################
 
