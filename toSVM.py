@@ -5,15 +5,12 @@ import config, color
 import pymongo, sys, os
 from collections import defaultdict
 
-print >> sys.stderr, '[info]\tconnecting mongodb'
+# print >> sys.stderr, '[info]\tconnecting mongodb'
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-
-
 # later used in getting emotion id
-
 emotion_list = sorted([d['emotion'] for d in db['emotions'].find({'label': 'LJ40K'})])
-print >> sys.stderr, '[info]\tget emotion list:', len(emotion_list), 'emotions'
+# print >> sys.stderr, '[info]\tget emotion list:', len(emotion_list), 'emotions'
 
 ## ------------------------------------------------------- ##
 
@@ -33,11 +30,11 @@ def check_and_generate_destination(pathes, token, ext='txt'):
 			continue
 
 		fn = pathes[ftype]
-		fn = fn if len(fn.strip()) else '.'.join([token, ftype, ext])
+		## auto-generated filename
+		fn = fn if fn else '.'.join([token, ftype, ext])
 
 		## check if destination path already exists
-
-		# generate destination path
+		# join root to yield destination path
 		dest_path = os.path.join(pathes['_root_'], fn)
 		new_pathes[ftype] = dest_path
 
@@ -131,45 +128,74 @@ def generate_test_train_files(vectors, pathes):
 
 if __name__ == '__main__':
 	import getopt
-	
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hvo',['help', 'verbose', 'overwrite', 'train=', 'test=', 'gold='])
-	except getopt.GetoptError:
-		config.help('toSVM', exit=2)
 
-	## path to files of train/test/gold
+	add_opts = [
+		('--setting', ['--setting: specify a setting ID (e.g., 537086fcd4388c7e81676914)', 
+					   '           which can be retrieved from the mongo collection features.settings' ]),
+		('--train', ['--train: specify the output filename for training file']),
+		('--test', ['--test: specify the output filename for testing file']),
+		('--gold', ['--gold: specify the output filename for gold file']),
+		('--root', ['--root: specify the output root directory'])
+	]
+
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],'hvo',['help', 'verbose', 'overwrite', 'setting=', 'train=', 'test=', 'gold=', 'root='])
+	except getopt.GetoptError:
+		config.help('toSVM', addon=add_opts, exit=2)
+
+
+	## default: path to files of train/test/gold
 	pathes = {
 		'_root_': 'tmp', # path generation will ignore entry surrounded with "_"
-		'train': '',
-		'test': '',
-		'gold': ''
+		'train': None,
+		'test': None,
+		'gold': None
 	}
-
-	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help('toSVM')
-		elif opt in ('--train'): pathes['train'] = arg.strip()
-		elif opt in ('--test'): pathes['test'] = arg.strip()
-		elif opt in ('--gold'): pathes['gold'] = arg.strip()
-		elif opt in ('-v','--verbose'): config.verbose = True
-		elif opt in ('-o','--overwrite'): config.overwrite = True
-
-	## ------------------------ setting <dict> --------------------- ##
+	## default: setting
 	setting = {
 		"counting_unit_type" : 0, 
 		"section" : "b20_m60_e20", 
 		"feature_name" : "position", ## important ## ussed in selecting collection
 		"feature_value_type" : 1
 	}
-	## pring current setting
+	## set default setting as None
+	setting_id = None
+
+	## read options
+	for opt, arg in opts:
+		if opt in ('-h', '--help'): config.help('toSVM', addon=add_opts)
+		elif opt in ('--train'): pathes['train'] = arg.strip()
+		elif opt in ('--test'): pathes['test'] = arg.strip()
+		elif opt in ('--gold'): pathes['gold'] = arg.strip()
+		elif opt in ('--root'): pathes['_root_'] = arg.strip()
+		elif opt in ('--setting'): 
+			setting_id = arg.strip() if len(arg.strip()) > 0 else None
+		elif opt in ('-v','--verbose'): config.verbose = True
+		elif opt in ('-o','--overwrite'): config.overwrite = True
+
+
+
+	## got specified setting_id
+	# use setting_id to retrieve setting from db.feature.settings, which is defined in config.co_feature_setting_name
+	if setting_id:
+		from bson.objectid import ObjectId
+		setting = db[config.co_feature_setting_name].find_one( {'_id': ObjectId(setting_id) } )
+		if not setting:
+			print >> sys.stderr, '(error) cannot match setting using', color.render(setting_id, 'yellow'),' this setting_id'
+			print >> sys.stderr, '\tcheck the setting_id and run again!!'
+			exit(-1)
+
+	## no specified setting_id
+	# use default setting to obtain setting_id
+	else:
+		setting_id = str(db[config.co_feature_setting_name].find_one(setting)['_id'])
+
+	## pring current setting and setting_id
+	print >> sys.stderr, '[info]\tget setting id:', color.render(setting_id, 'lc')
 	print >> sys.stderr, '[info]\tcurrent setting:', '\n\t', '-'*30
 	for key in setting:
 		print >> sys.stderr, '\t', color.render(key, 'w'), ':', color.render( str(setting[key]), 'g')
 	print >> sys.stderr, '\t', '-'*30
-
-
-	# get setting id
-	setting_id = str(db['features.settings'].find_one(setting)['_id'])
-	print >> sys.stderr, '[info]\tget setting id:', color.render(setting_id, 'lc')
 
 	## check if fetch collection existed
 	co_feature_name = 'features.'+setting['feature_name']
@@ -188,16 +214,14 @@ if __name__ == '__main__':
 
 	## confirm message
 	confirm_msg = [
-		('[opt]\tfetch collection', color.render(co_feature_name, 'y'), '(existed)' if co_feature_existed else '(none)'),
+		('[opt]\tfetch collection', color.render(co_feature_name, 'y'), '(ok)' if co_feature_existed else '(missing)'),
 		('[opt]\tdestination', color.render(pathes['_root_'], 'y') ),
 		('[opt]\tverbose', config.verbose ),
 		('[opt]\toverwrite', config.overwrite)
-		# ('overwrite', config.overwrite, { True: color.render('!Note: This will drop the collection [ '+config.co_patscore_name+' ]' if co_patscore_existed else '', 'red'), False: '' } )
 	]
 	config.print_confirm(confirm_msg, bar=40, halt=True)	
 
 	# -- run --
-
 	## generate svm vectors
 	print >> sys.stderr, 'generating vectors...',
 	sys.stderr.flush()
