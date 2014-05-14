@@ -8,7 +8,7 @@ cache = {}
 
 ## input: pattern
 ## output: number of occurrence
-def get_occurrence(pattern):
+def get_count(pattern):
 
 	global cache
 
@@ -39,10 +39,10 @@ def get_pattern_feature(udocID):
 
 	for pat in pats:
 
-		occurrence = get_occurrence(pat['pattern'])
+		count = get_occurrence(pat['pattern'])
 
-		if occurrence >= config.min_count:
-			patFeature[pat['pattern']] = occurrence
+		if count >= config.min_count:
+			patFeature[pat['pattern']] = count
 
 	return patFeature
 
@@ -71,7 +71,7 @@ def create_pattern_features(setting_id):
 	# co_feature.create_index("setting")
 
 
-if __name__ == '__name__':
+if __name__ == '__main__':
 
 	## select mongo collections
 	co_emotions = db[config.co_emotions_name]
@@ -85,7 +85,6 @@ if __name__ == '__name__':
 
 	## input arguments
 	import getopt
-
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'hl:v',['help', 'min_count=', 'verbose'])
 	except getopt.GetoptError:

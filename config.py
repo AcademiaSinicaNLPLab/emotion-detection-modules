@@ -64,7 +64,7 @@ opt_fields = {
 	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	df_name: 	['-b','-m','-e','-c','-f','-v'],
-	svm_name:	['-v', '-o']
+	svm_name:	['-v', '-o'],
 	pf_name:	['-l','-v']
 }
 _abbr = {
