@@ -8,7 +8,7 @@ cache = {}
 
 ## input: pattern
 ## output: number of occurrence
-def get_occurrence(pattern):
+def get_count(pattern):
 
 	global cache
 
@@ -39,10 +39,10 @@ def get_pattern_feature(udocID):
 
 	for pat in pats:
 
-		occurrence = get_occurrence(pat['pattern'])
+		count = get_occurrence(pat['pattern'])
 
-		if occurrence >= config.min_count:
-			patFeature[pat['pattern']] = occurrence
+		if count >= config.min_count:
+			patFeature[pat['pattern']] = count
 
 	return patFeature
 

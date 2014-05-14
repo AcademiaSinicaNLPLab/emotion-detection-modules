@@ -94,7 +94,7 @@ def update_all_pattern_scores():
 	print >> sys.stderr, 'done ( got',len(patterns),'distinct patterns )'
 
 	## drop old collection if overwrite is enabled
-	if config.overwirte:
+	if config.overwrite:
 		print >> sys.stderr, 'drop collection', config.co_patscore_name
 		co_patscore.drop()
 
@@ -130,7 +130,7 @@ if __name__ == '__main__':
 	import getopt
 	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hp:s:vo',['help','ps_function=', 'smoothing=', 'verbose', 'overwirte'])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:s:vo',['help','ps_function=', 'smoothing=', 'verbose', 'overwrite'])
 	except getopt.GetoptError:
 		config.help(config.ps_name, exit=2)
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
 		elif opt in ('-p','--ps_function'): config.ps_function_type = int(arg.strip())
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
-		elif opt in ('-o','--overwirte'): config.overwirte = True
+		elif opt in ('-o','--overwrite'): config.overwrite = True
 
 	# check if fetch source existed
 	co_lexicon_existed = config.co_lexicon_name in db.collection_names()
@@ -151,10 +151,10 @@ if __name__ == '__main__':
 	# check if the destination collection existed
 	config.co_patscore_name = '_'.join([config.co_patscore_prefix] + config.getOpts(fields=config.opt_fields[config.ps_name], full=False))
 	co_patscore_existed = config.co_patscore_name in db.collection_names()
-	if co_patscore_existed and not config.overwirte:
+	if co_patscore_existed and not config.overwrite:
 		## (warning) destination's already existed
 		print >> sys.stderr, '(warning) destination collection', color.render(config.co_patscore_name, 'red'),'is already existed'
-		print >> sys.stderr, '\t  use -o or --overwirte to force update'
+		print >> sys.stderr, '\t  use -o or --overwrite to force update'
 		exit(-1)
 
 	## use mongo collection
@@ -168,7 +168,7 @@ if __name__ == '__main__':
 		('fetch collection', config.co_lexicon_name, '(existed)' if co_lexicon_existed else '(none)'),
 		('insert collection', config.co_patscore_name, '(existed)' if co_patscore_existed else '(none)'),
 		('verbose', config.verbose),
-		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_patscore_name+' ]' if co_patscore_existed else '', 'red'), False: '' } )
+		('overwrite', config.overwrite, { True: color.render('!Note: This will drop the collection [ '+config.co_patscore_name+' ]' if co_patscore_existed else '', 'red'), False: '' } )
 	]
 
 	config.print_confirm(confirm_msg, bar=40, halt=True)
