@@ -83,7 +83,6 @@ if __name__ == '__main__':
 
 	## input arguments
 	import getopt
-
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'hl:v',['help', 'min_count=', 'verbose'])
 	except getopt.GetoptError:

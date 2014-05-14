@@ -38,6 +38,9 @@ def generate_vectors():
 			print >> sys.stderr, '[error]\tcannot read feature with', type(mdoc['feature']) ,'type'
 			exit(-1)
 
+		if config.verbose:
+			print >> sys.stderr, 'got mongo doc with', len(mdoc['feature']), 'feature values'
+
 		## form the feature vector
 		feature_vector = []
 		for feature_name, feature_value in feature:
@@ -74,7 +77,7 @@ def generate_vectors():
 
 def generate_test_train_files(vectors, out_root='tmp', train_out='', test_out='', gold_out=''):
 
-	# if not os.path.exists(out_root): os.mkdir(out_root)
+	if not os.path.exists(out_root): os.mkdir(out_root)
 	files = { 'train': train_out, 'test': test_out, 'gold': gold_out }
 
 	# dict contains file pointers
@@ -99,14 +102,13 @@ def generate_test_train_files(vectors, out_root='tmp', train_out='', test_out=''
 		vector = sorted(vectors[e], key=lambda x:x[0])
 		train, test = vector[:800], vector[800:]
 
-		train_txt = '\n'.join([x[1] for x in train])
-		test_txt = '\n'.join([x[1] for x in test])
-		gold_txt = '\n'.join([x[0] for x in test])
-
-
-		fw['train'].write(train_txt + '\n')
-		fw['test'].write(test_txt + '\n')
-		fw['gold'].write(gold_txt + '\n')
+		train_txt = '\n'.join([str(x[1]) for x in train]) + '\n'
+		test_txt  = '\n'.join([str(x[1]) for x in test])  + '\n'
+		gold_txt  = '\n'.join([str(x[0]) for x in test])  + '\n'
+		
+		fw['train'].write(train_txt)
+		fw['test'].write(test_txt)
+		fw['gold'].write(gold_txt)
 
 	# close all file pointer
 	for ftype in fw:
@@ -164,8 +166,13 @@ if __name__ == '__main__':
 	]
 	config.print_confirm(confirm_msg, bar=40, halt=True)	
 
+	# -- run --
+	print >> sys.stderr, 'generating vectors...',
+	sys.stderr.flush()
 	vectors = generate_vectors()
+	print >> sys.stderr, 'done.'
 
+	print >> sys.stderr, 'generate test train files...',
 	generate_test_train_files(vectors)
 
 
