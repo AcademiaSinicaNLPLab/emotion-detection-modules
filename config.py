@@ -8,6 +8,7 @@ ev_name = 'evaluation'
 df_name = 'document_feature'
 svm_name = 'toSVM'
 pf_name = 'pattern_feature'
+kf_name = 'keyword_feature'
 
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
@@ -53,6 +54,11 @@ endPercentage = 20
 countingUnitType = 0
 featureValueType = 0
 ###################################
+### document feature extraction ###
+keyword_type = 'basic' 
+lemma = False
+###################################
+
 
 overwrite = False
 verbose = False
@@ -65,7 +71,8 @@ opt_fields = {
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	df_name: 	['-b','-m','-e','-c','-f','-v'],
 	svm_name:	['-v', '-o'],
-	pf_name:	['-l','-v']
+	pf_name:	['-l','-v'],
+	kf_name:	['-k','-a','-v']
 }
 _abbr = {
 	'p': 'ps_function',
@@ -217,6 +224,16 @@ def help(program, exit=1):
 		'                 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores',
 		'                 2: accumulated threshold by 0.68 (1 standard diviation) using pattern occurrence',
 		'                 3: same as type 2 but ignore those with total occurrence < 4 (1, 2, 3)']
+
+	#########################################################################################################
+	## document feature extraction
+
+	params['-k'] = [
+		'-k, --keyword_type: keyword set in WordNetAffect',
+		'                 0: basic',
+		'                 1: extend']
+	params['-a']
+		'-a, --lemma: use word lemma (not implemented)']
 
 	#########################################################################################################
 
