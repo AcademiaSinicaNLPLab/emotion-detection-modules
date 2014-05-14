@@ -9,18 +9,22 @@ def get_keyword_feature(udocID):
 
 	keywordFeature = Counter()
 
-	## find all pats in the document <udocID>
-	pats = list( co_pats.find( {'udocID': udocID} ) )
+	## find all words in the document <udocID>
+	words = []
+	sents = list( co_sents.find( {'udocID': udocID} ) )
+	for sent in sents:
+		words.extend( sent['sent'].split(' ') )
 
 	if config.verbose:
 		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
 
-	for pat in pats:
+	for word in words:
+		# if config.lemma: 
+			# word = lemmatize(word)
+		if co_keywords.find( {'word': word, 'type': config.keyword_type} ):
+			keywordFeature[ word ] += 1
 
-		if get_count(pat['pattern']) >= config.min_count:
-			patFeature[ pat['pattern'] ] += 1
-
-	return patFeature
+	return keywordFeature
 
 def create_keyword_features(setting_id):
 
@@ -39,7 +43,7 @@ def create_keyword_features(setting_id):
 			mdoc = {
 				"emotion": gold_emotion,
 				"udocID": doc['udocID'],
-				"feature": get_pattern_feature(udocID=doc['udocID']).items(),
+				"feature": get_keyword_feature(udocID=doc['udocID']).items(),
 				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
 			co_feature.insert(mdoc)
@@ -62,23 +66,31 @@ if __name__ == '__main__':
 
 	## input arguments
 	import getopt
+
+	add_opts = [
+		('-k', ['-k: keyword set in WordNetAffect',
+				'                 0: basic',
+				'                 1: extend']),
+		('--lemma', ['--lemma: use word lemma (not implemented yet)'])
+	]
+
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hk:av',['help', 'keyword_type=', 'lemma', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hk:v',['help', 'keyword_type=', 'lemma', 'verbose'])
 	except getopt.GetoptError:
-		config.help(config.kf_name, exit=2)
+		config.help(config.kf_name, addon=add_opts, exit=2)
 
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help(config.pf_name)
 		elif opt in ('-k','--keyword_type'): 
 			if int(arg.strip()) == 0: config.keyword_type = 'basic'
 			elif int(arg.strip()) == 1: config.keyword_type = 'extend'
-		elif opt in ('-a', '--lemma'): config.lemma = True
+		elif opt in ('--lemma'): config.lemma = True
 		elif opt in ('-v','--verbose'): config.verbose = True
 
 	## insert metadata
 	setting = { 
 		"feature_name": "keyword", 
-		"keyword_type": config.keyword_type 
+		"keyword_type": config.keyword_type,
 		"lemma": config.lemma 
 	}
 
