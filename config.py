@@ -7,6 +7,7 @@ ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
 df_name = 'document_feature'
 svm_name = 'toSVM'
+pf_name = 'pattern_feature'
 
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
@@ -64,6 +65,7 @@ opt_fields = {
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	df_name: 	['-b','-m','-e','-c','-f','-v'],
 	svm_name:	['-v', '-o']
+	pf_name:	['-l','-v']
 }
 _abbr = {
 	'p': 'ps_function',
