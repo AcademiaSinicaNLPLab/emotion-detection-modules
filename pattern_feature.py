@@ -41,7 +41,7 @@ def get_pattern_feature(udocID):
 
 		occurrence = get_occurrence(pat['pattern'])
 
-		if occurrence >= config.minOccurrence:
+		if occurrence >= config.min_count:
 			patFeature[pat['pattern']] = occurrence
 
 	return patFeature
@@ -87,19 +87,19 @@ if __name__ == '__name__':
 	import getopt
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hl:v',['help', 'minOccurrence=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hl:v',['help', 'min_count=', 'verbose'])
 	except getopt.GetoptError:
 		config.help(config.pf_name, exit=2)
 
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help(config.pf_name)
-		elif opt in ('-l','--limit'): config.minOccurrence = int(arg.strip())
+		elif opt in ('-l','--limit'): config.min_count = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 
 	## insert metadata
 	setting = { 
 		"feature_name": "pattern", 
-		"min_occurrence": config.minOccurrence 
+		"min_count": config.min_count 
 	}
 
 	## print confirm message

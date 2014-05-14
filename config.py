@@ -52,9 +52,6 @@ endPercentage = 20
 countingUnitType = 0
 featureValueType = 0
 ###################################
-### pattern feature extraction ###
-minOccurrence = 0
-###################################
 
 overwirte = False
 verbose = False
