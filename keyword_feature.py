@@ -81,7 +81,7 @@ if __name__ == '__main__':
 		config.help(config.kf_name, addon=add_opts, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help(config.pf_name)
+		if opt in ('-h', '--help'): config.help(config.kf_name)
 		elif opt in ('-k','--keyword_type'): 
 			if int(arg.strip()) == 0: config.keyword_type = 'basic'
 			elif int(arg.strip()) == 1: config.keyword_type = 'extend'
