@@ -75,27 +75,13 @@ def generate_vectors():
 # out_root = 'tmp'
 
 
-def generate_test_train_files(vectors, out_root='tmp', train_out='', test_out='', gold_out=''):
+def generate_test_train_files(vectors, pathes):
 
-	if not os.path.exists(out_root): os.mkdir(out_root)
-	files = { 'train': train_out, 'test': test_out, 'gold': gold_out }
-
-	# dict contains file pointers
+	# setup file pointers
 	fw = {}
-
-	for ftype in files:
-		fn = files[ftype]
-		fn = fn if fn else '.'.join([setting_id, ftype, 'txt'])
-
-		## check if destination path already exists
-		dest_path = os.path.join(out_root, fn)
-
-		if not os.path.exists(dest_path) or config.overwrite:
-			fw[ftype] = open(dest_path, 'w')
-		else:
-			print >> sys.stderr, '[error] destination file', color.render(dest_path, 'red') ,'is already existed'
-			print >> sys.stderr, '        use -o or --overwrite to force overwrite'
-			exit(-1)
+	for ftype in pathes:
+		dest_path = pathes[ftype]
+		fw[ftype] = open(dest_path, 'w')
 
 	# default: [800:200]
 	for e in vectors:
@@ -105,7 +91,7 @@ def generate_test_train_files(vectors, out_root='tmp', train_out='', test_out=''
 		train_txt = '\n'.join([str(x[1]) for x in train]) + '\n'
 		test_txt  = '\n'.join([str(x[1]) for x in test])  + '\n'
 		gold_txt  = '\n'.join([str(x[0]) for x in test])  + '\n'
-		
+
 		fw['train'].write(train_txt)
 		fw['test'].write(test_txt)
 		fw['gold'].write(gold_txt)
@@ -114,19 +100,58 @@ def generate_test_train_files(vectors, out_root='tmp', train_out='', test_out=''
 	for ftype in fw:
 		fw[ftype].close()
 
+def check_and_generate_destination(pathes, token, ext='txt'):
+
+	if not os.path.exists(pathes['_root_']):
+		os.mkdir(pathes['_root_'])
+
+	new_pathes = {}
+
+	for ftype in pathes:
+
+		if ftype.startswith('_') and ftype.endswith('_'):
+			continue
+
+		fn = pathes[ftype]
+		fn = fn if len(fn.strip()) else '.'.join([token, ftype, ext])
+
+		## check if destination path already exists
+
+		# generate destination path
+		dest_path = os.path.join(pathes['_root_'], fn)
+		new_pathes[ftype] = dest_path
+
+		## destination's already existed
+		if os.path.exists(dest_path) and not config.overwrite:
+			print >> sys.stderr, '[error] destination file', color.render(dest_path, 'red') ,'is already existed'
+			print >> sys.stderr, '        use -o or --overwrite to force overwrite'
+			exit(-1)
+
+	return new_pathes
+
 if __name__ == '__main__':
 	import getopt
 	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hvo',['help', 'verbose', 'overwirte'])
+		opts, args = getopt.getopt(sys.argv[1:],'hvo',['help', 'verbose', 'overwirte', 'train=', 'test=', 'gold='])
 	except getopt.GetoptError:
 		config.help('toSVM', exit=2)
 
+	## path to files of train/test/gold
+	pathes = {
+		'_root_': 'tmp', # path generation will ignore entry surrounded with "_"
+		'train': '',
+		'test': '',
+		'gold': ''
+	}
+
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('toSVM')
+		elif opt in ('--train'): pathes['train'] = arg.strip()
+		elif opt in ('--test'): pathes['test'] = arg.strip()
+		elif opt in ('--gold'): pathes['gold'] = arg.strip()
 		elif opt in ('-v','--verbose'): config.verbose = True
 		elif opt in ('-o','--overwrite'): config.overwrite = True
-
 
 	## ------------------------ setting <dict> --------------------- ##
 	setting = {
@@ -154,12 +179,17 @@ if __name__ == '__main__':
 		print >> sys.stderr, '\tcheck the fetch target and run again!!'
 		exit(-1)
 
+	## check destination files/folder
+	# token: setting_id
+	new_pathes = check_and_generate_destination(pathes, token=setting_id, ext='txt')
+
 	# use collection e.g., features.position
 	co_feature = db[co_feature_name]
 
 	## confirm message
 	confirm_msg = [
 		('[opt]\tfetch collection', color.render(co_feature_name, 'y'), '(existed)' if co_feature_existed else '(none)'),
+		('[opt]\tdestination', color.render(pathes['_root_'], 'y') ),
 		('[opt]\tverbose', config.verbose ),
 		('[opt]\toverwrite', config.overwrite)
 		# ('overwrite', config.overwrite, { True: color.render('!Note: This will drop the collection [ '+config.co_patscore_name+' ]' if co_patscore_existed else '', 'red'), False: '' } )
@@ -167,13 +197,17 @@ if __name__ == '__main__':
 	config.print_confirm(confirm_msg, bar=40, halt=True)	
 
 	# -- run --
+
+	## generate svm vectors
 	print >> sys.stderr, 'generating vectors...',
 	sys.stderr.flush()
 	vectors = generate_vectors()
 	print >> sys.stderr, 'done.'
 
+	## generate test and train files
 	print >> sys.stderr, 'generate test train files...',
-	generate_test_train_files(vectors)
-
+	generate_test_train_files(vectors, new_pathes)
+	sys.stderr.flush()
+	print >> sys.stderr, 'done.'
 
 
