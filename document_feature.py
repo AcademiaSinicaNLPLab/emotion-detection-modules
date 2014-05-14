@@ -10,41 +10,40 @@ cache = {}
 ## output: a dictionary of (emotion, patscore)
 def get_patscore(pattern):
 
-	query = { 'pattern': pattern.lower() }
-	projector = { '_id': 0, 'scores':1 }
-
 	global cache
 
-	key = pattern
-
-	if key not in cache:
+	if pattern not in cache:
+		
+		query = { 'pattern': pattern.lower() }
+		projector = { '_id': 0, 'scores':1 }
 		res = co_patscore.find_one(query, projector)
+		
 		if not res:
-			cache[key] = {}
+			cache[pattern] = {}
 		else:
-			cache[key] = res['scores']
+			cache[pattern] = res['scores']
 
-	return cache[key]
+	return cache[pattern]
+
 
 ## input: pat
 ## output: a dictionary of (emotion, occurrence)
 def get_patoccurrence(pattern):
 
-	query = { 'pattern': pattern.lower() }
-	projector = { '_id': 0, 'count':1 }
-
 	global cache
 
-	key = pattern
+	if pattern not in cache:
 
-	if key not in cache:
+		query = { 'pattern': pattern.lower() }
+		projector = { '_id': 0, 'count':1 }
 		res = co_nestedLexicon.find_one(query, projector)
-		if not res:
-			cache[key] = {}
-		else:
-			cache[key] = res['count']
 
-	return cache[key]
+		if not res:
+			cache[pattern] = {}
+		else:
+			cache[pattern] = res['count']
+
+	return cache[pattern]
 
 
 ## input: pat
@@ -152,7 +151,7 @@ def document_emotion_locations(udocID):
 	return emotion_locations
 
 
-def create_document_features():
+def create_document_features(setting_id):
 
 	## list of emotions
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
@@ -186,11 +185,9 @@ if __name__ == '__main__':
 	co_nestedLexicon = db['lexicon.nested']
 	co_patscore = db['patscore_p2_s0']
 
-
 	## target mongo collections
 	co_setting = db['features.settings']
 	co_feature = db['features.position']
-
 
 	## input arguments
 	import getopt
@@ -209,15 +206,6 @@ if __name__ == '__main__':
 		elif opt in ('-f','--featureValueType'): config.featureValueType = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 
-
-	# ## parameters
-	# begPercentage=20
-	# midPercentage=60
-	# endPercentage=20
-	# countingUnitType=0
-	# featureValueType=2
-
-
 	## insert metadata
 	setting = { 
 		"feature_name": "position", 
@@ -226,17 +214,14 @@ if __name__ == '__main__':
 		"feature_value_type": config.featureValueType 
 	}
 
-
 	## print confirm message
 	config.print_confirm(setting.items(), bar=40, halt=True)
-
 	
 	## insert metadata
 	setting_id = str(co_setting.insert( setting ))
 
-
 	## run
 	import time
 	s = time.time()	
-	create_document_features()
+	create_document_features(setting_id)
 	print 'Time total:',time.time() - s,'sec'

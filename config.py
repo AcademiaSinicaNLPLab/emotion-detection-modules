@@ -6,6 +6,7 @@ ds_name = 'document_scoring'
 ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
 df_name = 'document_feature'
+pf_name = 'pattern_feature'
 
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
@@ -51,6 +52,9 @@ endPercentage = 20
 countingUnitType = 0
 featureValueType = 0
 ###################################
+### pattern feature extraction ###
+minOccurrence = 0
+###################################
 
 overwirte = False
 verbose = False
@@ -61,7 +65,8 @@ opt_fields = {
 	ps_name: ['-p','-s','-v', '-o'],
 	ds_name: ['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: ['-p','-d','-s','-g','-l','-v', '-o'],
-	df_name: ['-b','-m','-e','-c','-f','-v']
+	df_name: ['-b','-m','-e','-c','-f','-v'],
+	pf_name: ['-l', '-v']
 }
 _abbr = {
 	'p': 'ps_function',
