@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import sys
+import sys, color
 
 #### define program names
 ds_name = 'document_scoring'
 ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
 df_name = 'document_feature'
+svm_name = 'toSVM'
 
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
@@ -52,16 +53,17 @@ countingUnitType = 0
 featureValueType = 0
 ###################################
 
-overwirte = False
+overwrite = False
 verbose = False
 
 topk = 1
 
 opt_fields = {
-	ps_name: ['-p','-s','-v', '-o'],
-	ds_name: ['-p','-d','-s','-g','-l','-v', '-o'],
-	ev_name: ['-p','-d','-s','-g','-l','-v', '-o'],
-	df_name: ['-b','-m','-e','-c','-f','-v']
+	ps_name: 	['-p','-s','-v', '-o'],
+	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
+	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
+	df_name: 	['-b','-m','-e','-c','-f','-v'],
+	svm_name:	['-v', '-o']
 }
 _abbr = {
 	'p': 'ps_function',
@@ -105,14 +107,46 @@ def getOpts(fields="-p,-d,-g,-s,-l", key_value='', full=False):
 
 	return [str(x)+key_value+str(cfg[x]) for x in sorted(cfg.keys())]
 
+color_for = {
+	bool:
+	{
+		False: 'r',
+		True: 'g'
+	},
+	str:
+	{
+
+	},
+	list:
+	{
+
+	},
+	dict:
+	{
+
+	}
+}
+
+
 def print_confirm(confirm_msg, bar=40, halt=True):
 	for msg in confirm_msg:
+		msg = list(msg)
+		if len(msg) > 1:
+			for i in range(len(msg)-1):
+				if type(msg[i+1]) == bool:
+					if msg[i+1] == False:
+						msg[i+1] = color.render(str(msg[i+1]), color_for[bool][False])
+					else:
+						msg[i+1] = color.render(str(msg[i+1]),color_for[bool][True])
+
 		if len(msg) == 3 and type(msg[2]) == dict:
 			print >> sys.stderr, msg[0], ':', msg[1], msg[2][msg[1]]
 		elif len(msg) == 3 and type(msg[2]) == str:
 			print >> sys.stderr, msg[0], ':', msg[1], msg[2]
-		else:
+		elif len(msg) == 2:
 			print >> sys.stderr, msg[0], ':', msg[1]
+		else:
+			print >> sys.stderr, msg
 
 	print >> sys.stderr, '='*bar
 
@@ -153,7 +187,7 @@ def help(program, exit=1):
 		'                 n: at least occurs < n > times for each pattern']
 
 	params['-o'] = [
-		'-o, --overwirte: overwirte the destination mongo database']
+		'-o, --overwrite: overwrite the destination file (or mongo database)']
 
 	params['-v'] = [
 		'-v, --verbose: show debug message']
@@ -186,7 +220,7 @@ def help(program, exit=1):
 
 	opts = opt_fields[program]
 
-	usage = 'usage: python '+program+'.py [options]\n' + '='*50 + '\n[options]'
+	usage = '\nusage: python '+program+'.py [options]\n' + '='*50 + '\n[options]'
 	params_str = '\n'.join(['\n'.join(params[opt]) + '\n' for opt in opts])
 
 

@@ -158,7 +158,7 @@ def update_all_document_scores():
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
 	## drop docscore collection if overwrite is enabled
-	if config.overwirte:
+	if config.overwrite:
 		print >> sys.stderr, 'drop collection', config.co_docscore_name
 		co_docscore.drop()
 
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 	import getopt
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:vo',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose', 'overwirte'])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:d:g:s:l:vo',['help','ps_function=', 'ds_function=', 'sig_function=', 'smoothing=', 'limit=', 'verbose', 'overwrite'])
 	except getopt.GetoptError:
 		config.help(config.ds_name, exit=2)
 
@@ -203,7 +203,7 @@ if __name__ == '__main__':
 		elif opt in ('-s','--smoothing'): config.smoothing_type = int(arg.strip())
 		elif opt in ('-l','--limit'): config.min_count = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
-		elif opt in ('-o','--overwirte'): config.overwirte = True
+		elif opt in ('-o','--overwrite'): config.overwrite = True
 
 	## select mongo collections
 	co_emotions = db[config.co_emotions_name]
@@ -224,10 +224,10 @@ if __name__ == '__main__':
 	# check if the destination collection existed
 	config.co_docscore_name = '_'.join([config.co_docscore_prefix] + config.getOpts(fields=config.opt_fields[config.ds_name], full=False))
 	co_docscore_existed = config.co_docscore_name in db.collection_names()
-	if co_docscore_existed and not config.overwirte:
+	if co_docscore_existed and not config.overwrite:
 		## (warning) destination's already existed
 		print >> sys.stderr, '(warning) destination collection', color.render(config.co_docscore_name, 'red'),'is already existed'
-		print >> sys.stderr, '\t  use -o or --overwirte to force update'
+		print >> sys.stderr, '\t  use -o or --overwrite to force update'
 		exit(-1)
 
 
@@ -250,7 +250,7 @@ if __name__ == '__main__':
 		('fetch collection', config.co_patscore_name, '(existed)' if co_patscore_existed else '(none)'),
 		('insert collection', config.co_docscore_name, '(existed)' if co_docscore_existed else '(none)'),
 		('verbose', config.verbose),
-		('overwirte', config.overwirte, { True: color.render('!Note: This will drop the collection [ '+config.co_docscore_name+' ]' if co_docscore_existed else '', 'red'), False: '' } )
+		('overwrite', config.overwrite, { True: color.render('!Note: This will drop the collection [ '+config.co_docscore_name+' ]' if co_docscore_existed else '', 'red'), False: '' } )
 	]
 
 	config.print_confirm(confirm_msg, bar=40, halt=True)
