@@ -1,3 +1,4 @@
+import config
 import sys, pymongo, color
 from collections import defaultdict, Counter
 
