@@ -102,14 +102,13 @@ def generate_test_train_files(vectors, out_root='tmp', train_out='', test_out=''
 		vector = sorted(vectors[e], key=lambda x:x[0])
 		train, test = vector[:800], vector[800:]
 
-		train_txt = '\n'.join([x[1] for x in train])
-		test_txt = '\n'.join([x[1] for x in test])
-		gold_txt = '\n'.join([x[0] for x in test])
-
-
-		fw['train'].write(train_txt + '\n')
-		fw['test'].write(test_txt + '\n')
-		fw['gold'].write(gold_txt + '\n')
+		train_txt = '\n'.join([str(x[1]) for x in train]) + '\n'
+		test_txt  = '\n'.join([str(x[1]) for x in test])  + '\n'
+		gold_txt  = '\n'.join([str(x[0]) for x in test])  + '\n'
+		
+		fw['train'].write(train_txt)
+		fw['test'].write(test_txt)
+		fw['gold'].write(gold_txt)
 
 	# close all file pointer
 	for ftype in fw:
@@ -168,8 +167,12 @@ if __name__ == '__main__':
 	config.print_confirm(confirm_msg, bar=40, halt=True)	
 
 	# -- run --
+	print >> sys.stderr, 'generating vectors...',
+	sys.stderr.flush()
 	vectors = generate_vectors()
+	print >> sys.stderr, 'done.'
 
+	print >> sys.stderr, 'generate test train files...',
 	generate_test_train_files(vectors)
 
 
