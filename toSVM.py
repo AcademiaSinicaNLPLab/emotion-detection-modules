@@ -20,6 +20,35 @@ print >> sys.stderr, '[info]\tget emotion list:', len(emotion_list), 'emotions'
 feature_names = {} # global used because of multiple feature sets
 
 
+def check_and_generate_destination(pathes, token, ext='txt'):
+
+	if not os.path.exists(pathes['_root_']):
+		os.mkdir(pathes['_root_'])
+
+	new_pathes = {}
+
+	for ftype in pathes:
+
+		if ftype.startswith('_') and ftype.endswith('_'):
+			continue
+
+		fn = pathes[ftype]
+		fn = fn if len(fn.strip()) else '.'.join([token, ftype, ext])
+
+		## check if destination path already exists
+
+		# generate destination path
+		dest_path = os.path.join(pathes['_root_'], fn)
+		new_pathes[ftype] = dest_path
+
+		## destination's already existed
+		if os.path.exists(dest_path) and not config.overwrite:
+			print >> sys.stderr, '[error] destination file', color.render(dest_path, 'red') ,'is already existed'
+			print >> sys.stderr, '        use -o or --overwrite to force overwrite'
+			exit(-1)
+
+	return new_pathes
+
 def generate_vectors():
 
 	vectors = defaultdict(list)
@@ -100,40 +129,11 @@ def generate_test_train_files(vectors, pathes):
 	for ftype in fw:
 		fw[ftype].close()
 
-def check_and_generate_destination(pathes, token, ext='txt'):
-
-	if not os.path.exists(pathes['_root_']):
-		os.mkdir(pathes['_root_'])
-
-	new_pathes = {}
-
-	for ftype in pathes:
-
-		if ftype.startswith('_') and ftype.endswith('_'):
-			continue
-
-		fn = pathes[ftype]
-		fn = fn if len(fn.strip()) else '.'.join([token, ftype, ext])
-
-		## check if destination path already exists
-
-		# generate destination path
-		dest_path = os.path.join(pathes['_root_'], fn)
-		new_pathes[ftype] = dest_path
-
-		## destination's already existed
-		if os.path.exists(dest_path) and not config.overwrite:
-			print >> sys.stderr, '[error] destination file', color.render(dest_path, 'red') ,'is already existed'
-			print >> sys.stderr, '        use -o or --overwrite to force overwrite'
-			exit(-1)
-
-	return new_pathes
-
 if __name__ == '__main__':
 	import getopt
 	
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hvo',['help', 'verbose', 'overwirte', 'train=', 'test=', 'gold='])
+		opts, args = getopt.getopt(sys.argv[1:],'hvo',['help', 'verbose', 'overwrite', 'train=', 'test=', 'gold='])
 	except getopt.GetoptError:
 		config.help('toSVM', exit=2)
 
