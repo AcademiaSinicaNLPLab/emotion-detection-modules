@@ -21,6 +21,7 @@ co_pats_name = 'pats'
 co_lexicon_name = 'lexicon'
 co_results_name = 'NewRes'
 co_patsearch_name = 'pats_trim'
+co_feature_setting_name = 'features.settings'
 
 ## default
 co_patscore_prefix = 'patscore'
@@ -64,7 +65,7 @@ opt_fields = {
 	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	df_name: 	['-b','-m','-e','-c','-f','-v'],
-	svm_name:	['-v', '-o'],
+	svm_name:	['-v', '-o', '--train', '--test', '--gold', '--root', '--setting'],
 	pf_name:	['-l','-v']
 }
 _abbr = {
@@ -155,7 +156,7 @@ def print_confirm(confirm_msg, bar=40, halt=True):
 	if halt:
 		print >> sys.stderr, 'press any key to start...', raw_input()	
 
-def help(program, exit=1):
+def help(program, addon=[], exit=1):
 
 	params = {}
 	record = ['p','d','g','s','l'] # record the option of ps_function, ds_function, sig_function, smoothing and limit
@@ -194,6 +195,7 @@ def help(program, exit=1):
 	params['-v'] = [
 		'-v, --verbose: show debug message']
 
+
 	#########################################################################################################
 	## document feature extraction
 	
@@ -219,6 +221,10 @@ def help(program, exit=1):
 		'                 3: same as type 2 but ignore those with total occurrence < 4 (1, 2, 3)']
 
 	#########################################################################################################
+
+	## add all self-defined option description
+	for k, v in addon:
+		params[k] = v
 
 	opts = opt_fields[program]
 
