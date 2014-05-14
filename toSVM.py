@@ -38,6 +38,9 @@ def generate_vectors():
 			print >> sys.stderr, '[error]\tcannot read feature with', type(mdoc['feature']) ,'type'
 			exit(-1)
 
+		if config.verbose:
+			print >> sys.stderr, 'got mongo doc with', len(mdoc['feature']), 'feature values'
+
 		## form the feature vector
 		feature_vector = []
 		for feature_name, feature_value in feature:
@@ -74,7 +77,7 @@ def generate_vectors():
 
 def generate_test_train_files(vectors, out_root='tmp', train_out='', test_out='', gold_out=''):
 
-	# if not os.path.exists(out_root): os.mkdir(out_root)
+	if not os.path.exists(out_root): os.mkdir(out_root)
 	files = { 'train': train_out, 'test': test_out, 'gold': gold_out }
 
 	# dict contains file pointers
@@ -164,6 +167,7 @@ if __name__ == '__main__':
 	]
 	config.print_confirm(confirm_msg, bar=40, halt=True)	
 
+	# -- run --
 	vectors = generate_vectors()
 
 	generate_test_train_files(vectors)
