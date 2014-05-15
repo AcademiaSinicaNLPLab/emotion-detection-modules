@@ -9,6 +9,7 @@ df_name = 'document_feature'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
 pf_name = 'pattern_feature'
+kf_name = 'keyword_feature'
 
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
@@ -55,6 +56,11 @@ endPercentage = 20
 countingUnitType = 0
 featureValueType = 0
 ###################################
+### document feature extraction ###
+keyword_type = 'basic' 
+lemma = False
+###################################
+
 
 overwrite = False
 verbose = False
@@ -66,9 +72,12 @@ opt_fields = {
 	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	df_name: 	['-b','-m','-e','-c','-f','-v'],
+
+	pf_name:	['-l','-v']
+	kf_name:	['-k','--lemma','-v']
+
 	genSVM_name:['-v', '-o', '--train', '--test', '--gold', '--root', '--setting'],
 	runSVM_name:['-v', '-o', '--param', '--setting'],
-	pf_name:	['-l','-v']
 }
 _abbr = {
 	'p': 'ps_function',
