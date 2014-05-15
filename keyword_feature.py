@@ -92,10 +92,10 @@ if __name__ == '__main__':
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'hk:v',['help', 'keyword_type=', 'lemma', 'verbose'])
 	except getopt.GetoptError:
-		config.help(config.kf_name, addon=add_opts, exit=2)
+		config.help(config.keywordFeat_name, addon=add_opts, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help(config.kf_name, addon=add_opts)
+		if opt in ('-h', '--help'): config.help(config.keywordFeat_name, addon=add_opts)
 		elif opt in ('-k','--keyword_type'): 
 			if int(arg.strip()) == 0: config.keyword_type = 'basic'
 			elif int(arg.strip()) == 1: config.keyword_type = 'extend'
