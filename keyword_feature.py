@@ -23,7 +23,7 @@ def get_keyword_feature(udocID):
 	for word in words:
 		# if config.lemma: 
 			# word = lemmatize(word)
-		if co_keywords.find( {'word': word, 'type': config.keyword_type} ):
+		if co_keywords.find_one( {'word': word, 'type': config.keyword_type} ):
 			keywordFeature[ word ] += 1
 
 	return keywordFeature
