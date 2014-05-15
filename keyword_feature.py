@@ -33,7 +33,7 @@ def get_keyword_feature(udocID):
 			if POS.startswith('J'): pos = 'a'
 			elif POS.startswith('V'): pos = 'v'
 			elif POS.startswith('R'): pos = 'r'
-			else pos = 'n'
+			else: pos = 'n'
 			word = lmtzr.lemmatize(word, pos)
 
 		if word in keyword_list:
