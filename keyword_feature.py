@@ -4,6 +4,7 @@ from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
+
 ## input: udocID
 ## output: a dictionary of (word: occurrence)
 def get_keyword_feature(udocID):
@@ -17,7 +18,7 @@ def get_keyword_feature(udocID):
 		words.extend( sent['sent'].split(' ') )
 
 	if config.verbose:
-		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
+		print >> sys.stderr, '\t%s (%d words)\t' % (  color.render('#' + str(udocID), 'y'), len(words))
 
 	for word in words:
 		# if config.lemma: 
@@ -81,7 +82,7 @@ if __name__ == '__main__':
 		config.help(config.kf_name, addon=add_opts, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help(config.kf_name)
+		if opt in ('-h', '--help'): config.help(config.kf_name, addon=add_opts)
 		elif opt in ('-k','--keyword_type'): 
 			if int(arg.strip()) == 0: config.keyword_type = 'basic'
 			elif int(arg.strip()) == 1: config.keyword_type = 'extend'
