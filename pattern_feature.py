@@ -86,10 +86,10 @@ if __name__ == '__main__':
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'hl:v',['help', 'min_count=', 'verbose'])
 	except getopt.GetoptError:
-		config.help(config.pf_name, exit=2)
+		config.help(config.patternFeat_name, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help(config.pf_name)
+		if opt in ('-h', '--help'): config.help(config.patternFeat_name)
 		elif opt in ('-l','--limit'): config.min_count = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 
