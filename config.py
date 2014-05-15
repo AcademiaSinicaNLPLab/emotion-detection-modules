@@ -73,8 +73,8 @@ opt_fields = {
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	df_name: 	['-b','-m','-e','-c','-f','-v'],
 
-	pf_name:	['-l','-v']
-	kf_name:	['-k','--lemma','-v']
+	pf_name:	['-l','-v'],
+	kf_name:	['-k','--lemma','-v'],
 
 	genSVM_name:['-v', '-o', '--train', '--test', '--gold', '--root', '--setting'],
 	runSVM_name:['-v', '-o', '--param', '--setting'],
