@@ -28,7 +28,7 @@ def get_patscore(pattern):
 
 ## input: pat
 ## output: a dictionary of (emotion, occurrence)
-def get_patoccurrence(pattern):
+def get_patcount(pattern):
 
 	global cache
 
@@ -45,46 +45,72 @@ def get_patoccurrence(pattern):
 
 	return cache[pattern]
 
+## input: dictionary of (emotion, count)
+## output: dictionary of (emotion, count)
+def remove_self_count(score_dict, udocID):
+	 
+	mdoc = co_docs.find_one( {'udocID': udocID} )
+	
+	## ldocID: 0-799	
+	if mdoc['ldocID'] < 800: return score_dict
+		score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - 1
+	
+	return score_dict
+
 
 ## input: pat
 ## output: a dictionary of (emotion, patfeature) according to different featureValueType 
-def get_patfeature(pattern):
+def get_patfeature(pattern, udocID):
 	########################################################################################
 	## type 0: pattern scores
-	## type 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores    
-	## type 2: accumulated threshold by 0.68 (1 standard diviation) using pattern occurrence
-	## type 3: same as type 2 but ignore patterns with total occurrence < 4 (1, 2, 3)   
+	## type 1: accumulated threshold by 0.68 (1 std) using pattern scores    
+	## type 2: accumulated threshold by 0.68 (1 std) using pattern occurrence
+	## type 3: type 2 + ignore patterns with total occurrence < 4 (1, 2, 3)  
+	## type 4: type 2 + remove the pattern occurrence counted from oneself (for ldocID 0-799)   
+	## type 5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)
 	########################################################################################
 
 	if config.featureValueType == 0:
 		return get_patscore(pattern) 
 
-	elif (config.featureValueType == 1) or (config.featureValueType == 2) or (config.featureValueType == 3):
+	elif config.featureValueType == 1: 
+		score = get_patscore(pattern) # pattern score
 
-		if config.featureValueType == 1: score = get_patscore(pattern) # pattern score
-		if config.featureValueType == 2: score = get_patoccurrence(pattern) # pattern occurrence
-		if config.featureValueType == 3: 
-			score = get_patoccurrence(pattern)
-			if sum( [ score[e] for e in score ] ) < 4: return {}
+	elif config.featureValueType == 2: 
+		score = get_patcount(pattern) # pattern occurrence
 
-		## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
-		temp_dict = defaultdict( list ) 
-		for e in score:
-			temp_dict[score[e]].append(e)
+	elif config.featureValueType == 3: 
+		score = get_patcount(pattern) # pattern occurrence
+		if sum( [ score[e] for e in score ] ) < 4: return {}
 
-		## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ] ((sorted))
-		temp_list = temp_dict.items()
-		temp_list.sort(reverse=True)
+	elif config.featureValueType == 4:
+		score = get_patcount(pattern) # pattern occurrence
+		score = remove_self_count(score, udocID)
 
-		th = 0.68 * sum([score[k] for k in score])
-		current_sum = 0
-		selected_emotions = []
-		while current_sum < th:
-			top = temp_list.pop(0)
-			selected_emotions.extend( top[1] )
-			current_sum += top[0] * len(top[1])
+	elif config.featureValueType == 5:
+		score = get_patcount(pattern) # pattern occurrence
+		score = remove_self_count(score, udocID)
+		if sum( [ score[e] for e in score ] ) < 4: return {}		
 
-		return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
+
+	## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
+	temp_dict = defaultdict( list ) 
+	for e in score:
+		temp_dict[score[e]].append(e)
+
+	## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ] ((sorted))
+	temp_list = temp_dict.items()
+	temp_list.sort(reverse=True)
+
+	th = 0.68 * sum([score[k] for k in score])
+	current_sum = 0
+	selected_emotions = []
+	while current_sum < th:
+		top = temp_list.pop(0)
+		selected_emotions.extend( top[1] )
+		current_sum += top[0] * len(top[1])
+
+	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
 
 	# elif ...
 
@@ -116,7 +142,7 @@ def get_document_feature(udocID):
 		else: position = 'end'
 		# print '='*30, '\n', pat['pattern'], '\n', 'lanchorID = ', lanchorID, '\n', 'position = ', position
 
-		patfeature = get_patfeature(pat['pattern'])
+		patfeature = get_patfeature(pat['pattern'], udocID)
 
 		for e in patfeature: 
 			key = '#position'+ '@'+ position + '_' + e
@@ -192,18 +218,34 @@ if __name__ == '__main__':
 	## input arguments
 	import getopt
 	
+	add_opts = [
+		('-b', ['-b: percentage of beginning section']),
+		('-m', ['-m: percentage of middle section']),
+		('-e', ['-e: percentage of ending section']),
+		('-c', ['-c: counting unit for document segmentation',
+				'                 0: number of words',
+				'                 1: number of sentences (not implemented yet)']),
+		('-f', ['-f: feature value computation',
+				'                 0: pattern scores (patscore_p2_s0)', 
+				'                 1: accumulated threshold by 0.68 (1 std) using pattern scores',
+				'                 2: accumulated threshold by 0.68 (1 std) using pattern count',
+				'                 3: type 2 + ignore those with total occurrence < 4 (1, 2, 3)', 
+				'                 4: type 2 + remove the pattern occurrence counted from oneself (for ldocID 0-799)',   
+				'                 5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)'])
+	]
+
 	try:
 		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:c:f:v',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'countingUnitType=', 'featureValueType=', 'verbose'])
 	except getopt.GetoptError:
-		config.help(config.ds_name, exit=2)
+		config.help(config.positionFeat_name, addon=add_opts, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help(config.df_name)
-		elif opt in ('-b','--begPercentage'): config.begPercentage = int(arg.strip())
-		elif opt in ('-m','--midPercentage'): config.midPercentage = int(arg.strip())
-		elif opt in ('-e','--endPercentage'): config.endPercentage = int(arg.strip())
-		elif opt in ('-c','--countingUnitType'): config.countingUnitType = int(arg.strip())
-		elif opt in ('-f','--featureValueType'): config.featureValueType = int(arg.strip())
+		if opt in ('-h', '--help'): config.help(config.positionFeat_name, addon=add_opts)
+		elif opt in ('-b'): config.begPercentage = int(arg.strip())
+		elif opt in ('-m'): config.midPercentage = int(arg.strip())
+		elif opt in ('-e'): config.endPercentage = int(arg.strip())
+		elif opt in ('-c'): config.countingUnitType = int(arg.strip())
+		elif opt in ('-f'): config.featureValueType = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 
 	## insert metadata
