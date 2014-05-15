@@ -26,6 +26,7 @@ def get_keyword_feature(udocID):
 		print >> sys.stderr, '\t%s (%d words)\t' % (  color.render('#' + str(udocID), 'y'), len(words))
 
 	for idx, word in enumerate(words):
+		word = word.lower()
 
 		if config.lemma: 
 			POS = POSs[idx].split('/').pop()
@@ -33,7 +34,7 @@ def get_keyword_feature(udocID):
 			elif POS.startswith('V'): pos = 'v'
 			elif POS.startswith('R'): pos = 'r'
 			else pos = 'n'
-			word = lmtzr.lemmatize(word.lower(), pos)
+			word = lmtzr.lemmatize(word, pos)
 
 		if word in keyword_list:
 			keywordFeature[ word ] += 1
