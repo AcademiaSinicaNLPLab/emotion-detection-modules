@@ -4,6 +4,7 @@ from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
+keyword_list = []
 
 ## input: udocID
 ## output: a dictionary of (word: occurrence)
@@ -23,7 +24,7 @@ def get_keyword_feature(udocID):
 	for word in words:
 		# if config.lemma: 
 			# word = lemmatize(word)
-		if co_keywords.find_one( {'word': word, 'type': config.keyword_type} ):
+		if word in keyword_list:
 			keywordFeature[ word ] += 1
 
 	return keywordFeature
@@ -101,6 +102,9 @@ if __name__ == '__main__':
 	
 	## insert metadata
 	setting_id = str(co_setting.insert( setting ))
+
+	## create keyword_list
+	keyword_list = [ mdoc['word'] for mdoc in list( co_keywords.find( {'type': config.keyword_type} ) ) ]
 
 	## run
 	import time
