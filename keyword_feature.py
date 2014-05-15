@@ -1,10 +1,12 @@
 import config
 import sys, pymongo, color
 from collections import defaultdict, Counter
+from nltk.stem.wordnet import WordNetLemmatizer
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 keyword_list = []
+lmtzr = WordNetLemmatizer()
 
 ## input: udocID
 ## output: a dictionary of (word: occurrence)
@@ -14,16 +16,25 @@ def get_keyword_feature(udocID):
 
 	## find all words in the document <udocID>
 	words = []
-	sents = list( co_sents.find( {'udocID': udocID} ) )
-	for sent in sents:
-		words.extend( sent['sent'].split(' ') )
+	POSs = []
+	sent_mdocs = list( co_sents.find( {'udocID': udocID} ) )
+	for sent_mdoc in sent_mdocs:
+		words.extend( sent_mdoc['sent'].split(' ') ) # words: list of 'happy'
+		POSs.extend( sent_mdoc['sent_pos'].split(' ') ) # POSs: list of 'happy/JJ'
 
 	if config.verbose:
 		print >> sys.stderr, '\t%s (%d words)\t' % (  color.render('#' + str(udocID), 'y'), len(words))
 
-	for word in words:
-		# if config.lemma: 
-			# word = lemmatize(word)
+	for idx, word in enumerate(words):
+
+		if config.lemma: 
+			POS = POSs[idx].split('/').pop()
+			if POS.startswith('J'): pos = 'a'
+			elif POS.startswith('V'): pos = 'v'
+			elif POS.startswith('R'): pos = 'r'
+			else pos = 'n'
+			word = lmtzr.lemmatize(word.lower(), pos)
+
 		if word in keyword_list:
 			keywordFeature[ word ] += 1
 
@@ -74,7 +85,7 @@ if __name__ == '__main__':
 		('-k', ['-k: keyword set in WordNetAffect',
 				'                 0: basic',
 				'                 1: extend']),
-		('--lemma', ['--lemma: use word lemma (not implemented yet)'])
+		('--lemma', ['--lemma: use word lemma when looking for keywords'])
 	]
 
 	try:
