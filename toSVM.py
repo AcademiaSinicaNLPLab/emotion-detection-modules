@@ -214,7 +214,7 @@ if __name__ == '__main__':
 
 	## confirm message
 	confirm_msg = [
-		('[opt]\tfetch collection', color.render(co_feature_name, 'y'), '(ok)' if co_feature_existed else '(missing)'),
+		('[opt]\tfetch collection', color.render(co_feature_name, 'y'), '(ok)' if co_feature_existed else '(none)'),
 		('[opt]\tdestination', color.render(pathes['_root_'], 'y') ),
 		('[opt]\tverbose', config.verbose ),
 		('[opt]\toverwrite', config.overwrite)

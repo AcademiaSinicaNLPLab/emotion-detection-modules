@@ -6,7 +6,8 @@ ds_name = 'document_scoring'
 ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
 df_name = 'document_feature'
-svm_name = 'toSVM'
+genSVM_name = 'toSVM'
+runSVM_name = 'run_svm'
 pf_name = 'pattern_feature'
 
 ## mongo setting
@@ -65,7 +66,8 @@ opt_fields = {
 	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	df_name: 	['-b','-m','-e','-c','-f','-v'],
-	svm_name:	['-v', '-o', '--train', '--test', '--gold', '--root', '--setting'],
+	genSVM_name:['-v', '-o', '--train', '--test', '--gold', '--root', '--setting'],
+	runSVM_name:['-v', '-o', '--param', '--setting'],
 	pf_name:	['-l','-v']
 }
 _abbr = {
