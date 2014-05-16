@@ -5,11 +5,11 @@ import sys, color
 ds_name = 'document_scoring'
 ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
-df_name = 'document_feature'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
-pf_name = 'pattern_feature'
-kf_name = 'keyword_feature'
+positionFeat_name = 'position_feature'
+patternFeat_name = 'pattern_feature'
+keywordFeat_name = 'keyword_feature'
 
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
@@ -71,10 +71,10 @@ opt_fields = {
 	ps_name: 	['-p','-s','-v', '-o'],
 	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
-	df_name: 	['-b','-m','-e','-c','-f','-v'],
-
-	pf_name:	['-l','-v'],
-	kf_name:	['-k','--lemma','-v'],
+	
+	positionFeat_name: 	['-b','-m','-e','-c','-f','-v'],
+	patternFeat_name:	['-l','-v'],
+	keywordFeat_name:	['-k','--lemma','-v'],
 
 	genSVM_name:['-v', '-o', '--train', '--test', '--gold', '--root', '--setting'],
 	runSVM_name:['-v', '-o'],
@@ -205,7 +205,6 @@ def help(program, addon=[], exit=1):
 
 	params['-v'] = [
 		'-v, --verbose: show debug message']
-
 
 	#########################################################################################################
 	## document feature extraction
