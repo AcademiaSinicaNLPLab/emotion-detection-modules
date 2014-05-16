@@ -28,41 +28,44 @@ Different from past approaches using surface features, we utilize syntax and sem
 		- include
 			1. feature extraction
 				- position feature [(position_feature.py)](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/position_feature.py)
-``` javascript
-[options]
--b: percentage of beginning section
--m: percentage of middle section
--e: percentage of ending section
--c: counting unit for document segmentation
-                 0: number of words
-                 1: number of sentences (not implemented yet)
--f: feature value computation
-                 0: pattern scores (patscore_p2_s0)  
-                 1: accumulated threshold by 0.68 (1 std) using pattern scores  
-                 2: accumulated threshold by 0.68 (1 std) using pattern count  
-                 3: type 2 + ignore those with total occurrence < 4 (1, 2, 3)  
-                 4: type 2 + remove the pattern occurrence counted from oneself (for ldocID 0-799)  
-                 5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)  
--v, --verbose: show debug message
-```
+				``` javascript
+				[options]
+				-b: percentage of beginning section
+				-m: percentage of middle section
+				-e: percentage of ending section
+				-c: counting unit for document segmentation
+				                 0: number of words
+				                 1: number of sentences (not implemented yet)
+				-f: feature value computation
+				                 0: pattern scores (patscore_p2_s0)  
+				                 1: accumulated threshold by 0.68 (1 std) using pattern scores  
+				                 2: accumulated threshold by 0.68 (1 std) using pattern count  
+				                 3: type 2 + ignore those with total occurrence < 4 (1, 2, 3)  
+				                 4: type 2 + remove the pattern occurrence counted from oneself (for ldocID 0-799)  
+				                 5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)  
+				-v, --verbose: show debug message
+				```
+
 				- pattern feature [(pattern_feature.py)](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/pattern_feature.py)
-``` javascript
-[options]
--l, --limit: minimum occurrence of a pattern
-              	  0: (default) collect all patterns
-                  n: at least occurs < n > times for each pattern
--v, --verbose: show debug message
-```
+				
+				``` javascript
+				[options]
+				-l, --limit: minimum occurrence of a pattern
+				              	  0: (default) collect all patterns
+				                  n: at least occurs < n > times for each pattern
+				-v, --verbose: show debug message
+				```
 
 				- keyword feature [(keyword_feature.py)](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/keyword_feature.py)
-``` javascript
-[options]
--k: keyword set in WordNetAffect
-                 0: basic
-                 1: extend
---lemma: use word lemma when looking for keywords
--v, --verbose: show debug message
-```
+				
+				``` javascript
+				[options]
+				-k: keyword set in WordNetAffect
+				                 0: basic
+				                 1: extend
+				--lemma: use word lemma when looking for keywords
+				-v, --verbose: show debug message
+				```
 
 			2. training
 			3. testing
