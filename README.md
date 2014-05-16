@@ -45,9 +45,7 @@ Different from past approaches using surface features, we utilize syntax and sem
                  5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)  
 -v, --verbose: show debug message
 ```
-
 				- pattern feature [(pattern_feature.py)](https://github.com/AcademiaSinicaNLPLab/emotion-detection-modules/blob/master/pattern_feature.py)
-				
 ``` javascript
 [options]
 -l, --limit: minimum occurrence of a pattern
