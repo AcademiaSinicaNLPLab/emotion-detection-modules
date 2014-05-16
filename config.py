@@ -77,7 +77,7 @@ opt_fields = {
 	kf_name:	['-k','--lemma','-v'],
 
 	genSVM_name:['-v', '-o', '--train', '--test', '--gold', '--root', '--setting'],
-	runSVM_name:['-v', '-o', '--param', '--setting'],
+	runSVM_name:['-v', '-o'],
 }
 _abbr = {
 	'p': 'ps_function',
@@ -233,11 +233,15 @@ def help(program, addon=[], exit=1):
 
 	#########################################################################################################
 
-	## add all self-defined option description
-	for k, v in addon:
-		params[k] = v
-
 	opts = opt_fields[program]
+
+	## add all self-defined option description
+	# addon_opt: --setting
+	# addon_description: ['--setting: specify a setting ID (e.g., 537086fcd4388c7e81676914)', ... ]
+	for addon_opt, addon_description in addon:  
+		params[ addon_opt ] = addon_description
+		if addon_opt not in opts:
+			opts.append( addon_opt )
 
 	usage = '\nusage: python '+program+'.py [options]\n' + '='*50 + '\n[options]'
 	params_str = '\n'.join(['\n'.join(params[opt]) + '\n' for opt in opts])
