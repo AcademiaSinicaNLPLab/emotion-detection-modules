@@ -52,8 +52,10 @@ def remove_self_count(score_dict, udocID):
 	mdoc = co_docs.find_one( {'udocID': udocID} )
 	
 	## ldocID: 0-799	
-	if mdoc['ldocID'] < 800: return score_dict
+	if mdoc['ldocID'] < 800: 
 		score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - 1
+		if score_dict[mdoc['emotion']] == 0 :
+			del score_dict[mdoc['emotion']]
 	
 	return score_dict
 
