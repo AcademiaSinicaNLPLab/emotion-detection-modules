@@ -2,6 +2,7 @@
 import config, color
 import os, sys, re
 import subprocess
+from collections import defaultdict
 
 ## 1. given a setting_id
 ## 2. setup svm options
@@ -16,7 +17,8 @@ import subprocess
 ##		output:	predict output (.out)
 
 ## given setting id
-setting_id = ''
+setting_id = None
+show_sids = False
 # setting_id = '5371bc38d4388c470a7fb71f'
 # setting_id = '537086fcd4388c7e81676914'
 
@@ -128,29 +130,61 @@ def exec_svm(todo):
 	# print '='*100,'\nretcode:',retcode
 	# subprocess.call()
 
+## grouping available setting ids and corresponding files
+def grouping(file_root, display=False):
+	sids = defaultdict(list)
+
+	for fn in os.listdir(file_root):
+		sid = re.findall(r'^([a-z0-9]{24})', fn)
+		if sid: sids[sid[0]].append(fn)
+
+	if display:
+		print >> sys.stderr, '='*50	
+		for sid in sids:
+			print >> sys.stderr, '>', sid
+			for fn in sids[sid]:
+				print >> sys.stderr, '\t-',fn
+		print >> sys.stderr, '='*50
+	return dict(sids)
+
 if __name__ == '__main__':
 
 	import getopt
 
 	add_opts = [
-		('--setting', ['--setting: specify a setting ID (e.g., 537086fcd4388c7e81676914)', 
-					   '           which can be retrieved from the mongo collection features.settings' ]),
-		('--param', ['--param: parameter string for libsvm (e.g., use "c4b1" or "-c 4 -b 1" to represent the libsvm parameters -c 4 -b 1)'])
+		('--setting', 	['--setting: specify a setting ID (e.g., 537086fcd4388c7e81676914)', 
+					   	 '           which can be retrieved from the mongo collection features.settings' ]),
+		('--list', 		['--list: list local available setting IDs and related files']), 
+		('--param', 	['--param: parameter string for libsvm (e.g., use "c4b1" or "-c 4 -b 1" to represent the libsvm parameters -c 4 -b 1)'])
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hvo',['help', 'verbose', 'overwrite', 'setting=', 'param='])
+		opts, args = getopt.getopt(sys.argv[1:],'hvol',['help', 'verbose', 'overwrite', 'setting=', 'param=', 'list'])
 	except getopt.GetoptError:
 		config.help('run_svm', addon=add_opts, exit=2)
 
 	## read options
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('run_svm', addon=add_opts)
+		elif opt in ('--list'): show_sids = True
 		elif opt in ('--param'): libsvm_params = parse_params( arg.strip() )
 		elif opt in ('--setting'): setting_id = arg.strip()
-			# setting_id = arg.strip() if len(arg.strip()) > 0 else None
 		elif opt in ('-v','--verbose'): config.verbose = True
 		elif opt in ('-o','--overwrite'): config.overwrite = True
+
+	## group files by setting_id
+	sids = grouping(file_root, display=show_sids)
+
+	## check setting id
+	while True:
+		if not setting_id: # setteing_id is empty
+			print >> sys.stderr, '> enter a setting_id: ',
+			setting_id = raw_input().strip()
+		elif setting_id and not re.findall(r'^([a-z0-9]{24})', str(setting_id).strip()): # invalid setting id
+			print >> sys.stderr, '> enter a valid setting_id: ',
+			setting_id = raw_input().strip()
+		else:
+			break
 
 	## files related to this setting id
 	# 537193e3d4388c33d581668a.default.m
@@ -158,7 +192,8 @@ if __name__ == '__main__':
 	# 537193e3d4388c33d581668a.gold.txt
 	# 537193e3d4388c33d581668a.test.txt
 	# 537193e3d4388c33d581668a.train.txt
-	related_files = [x for x in os.listdir(file_root) if x.startswith(setting_id)]
+	related_files = None if setting_id not in sids else sids[setting_id]
+
 
 	## model params: looks like "default" or "b1c4"
 	## the options string will be in the ascending alphabet order after runing parse_params()
@@ -170,8 +205,8 @@ if __name__ == '__main__':
 
 	## check current files
 	## use model_params to check "5371bc38d4388c470a7fb71f.b1c4.m" and "5371bc38d4388c470a7fb71f.b1c4.out"
-	
-	
+
+
 	## generate workflow
 
 	## execute programs
