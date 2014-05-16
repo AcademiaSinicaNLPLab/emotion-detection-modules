@@ -215,7 +215,7 @@ if __name__ == '__main__':
 			# print >> sys.stderr, color.render('[cmd]', 'lc'), ' '.join(cmd)
 			print >> sys.stderr, color.render('['+cmd[0].split('/')[-1]+']', 'r')
 			print >> sys.stderr, color.render(' start '+'>'*10, 'y' )
-			# retcode = subprocess.call(cmd, shell=False)
+			retcode = subprocess.call(cmd, shell=False)
 			print >> sys.stderr, color.render( ' end '+'<'*10, 'b')
 	
 
