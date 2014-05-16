@@ -67,6 +67,11 @@ verbose = False
 
 topk = 1
 
+
+### latest version: support automatically insert addon option names
+### i.e, config.py doesn't care about neither the addon opts nor the description
+### e.g., in runSVM_name, addon is a list of length 3, which looks like [ ('--setting', [...]), ('--list', [...]), ('--param', [...]) ]
+###       and the program will incorporate missing opts and yield: ['-v', '-o', '--setting', '--list', '--param']
 opt_fields = {
 	ps_name: 	['-p','-s','-v', '-o'],
 	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
@@ -76,7 +81,7 @@ opt_fields = {
 	patternFeat_name:	['-l','-v'],
 	keywordFeat_name:	['-k','--lemma','-v'],
 
-	genSVM_name:['-v', '-o', '--train', '--test', '--gold', '--root', '--setting'],
+	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
 }
 _abbr = {
