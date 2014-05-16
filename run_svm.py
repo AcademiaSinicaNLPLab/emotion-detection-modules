@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import config, color
 import os, sys, re
@@ -16,15 +17,18 @@ from collections import defaultdict
 ## 				model file (.m)
 ##		output:	predict output (.out)
 
-## given setting id
+
+# -------------------------------------------- config --------------------------------------------------- #
+
 setting_id = None
-show_sids = False
-# setting_id = '5371bc38d4388c470a7fb71f'
-# setting_id = '537086fcd4388c7e81676914'
 
-libsvm_path = '/Users/Maxis/tools/libsvm-3.17'
+## <bool> for display all available setting id and corresponding files
+list_availabel_settings = False
 
-libsvm = {
+# libsvm abs path
+libsvm_path  = '/tools/libsvm'
+
+libsvm_program = {
 	'train':'svm-train',
 	'test': 'svm-predict',
 	'check': 'tools/checkdata.py',
@@ -32,111 +36,34 @@ libsvm = {
 
 ## setup libsvm parameters
 libsvm_params = []
-# libsvm_params = [('b', '1'), ('c', '4')]
 
+# current model abs path
+# this program will operate all train, test, model, out files locally
+module_path = os.path.dirname(os.path.abspath(__file__))
+
+# relative file pathes for train, test, model and out
 file_root = 'tmp'
+file_root_abs = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_root)
 
-def get_to_do_list(related_files, model_params):
+## for naming a default svm setting
+model_params = 'default'
 
-	files = {
-		'train': False,
-		'test': False,
-		'model': False,
-		'output': False,
-	}
+files = {}
+sids = defaultdict(list)
 
-	for fn in related_files:
-
-		## svm-predict output
-		if fn.endswith(model_params+'.out'):
-			files['output'] = fn
-
-		## svm-train output
-		## svm-predict input
-		elif fn.endswith(model_params+'.m'):
-			files['model'] = fn
-
-		## svm-predict input
-		elif fn.endswith('test.txt'):
-			files['test'] = fn
-
-		## svm-train input
-		elif fn.endswith('train.txt'):
-			files['train'] = fn
-
-		## ignore other files
-		else:
-			continue
-
-	# todo = ['svm-train', 'svm-predict']
-	todo = []
-	# predicted
-	if files['output']:
-		# do nothing
-		pass
-
-	# trained, to predict
-	elif files['output'] == False and files['model']:
-		todo = [ (libsvm['test'], files['test']) ]
-
-	# not even trained, to train and then to predict
-	elif files['output'] == False and files['model'] == False and (files['train'] and files['test']):
-		# todo = 
-
-		todo = [ (libsvm['train'], files['train']), (libsvm['test'], files['test'])]
-
-	# some file are missing
-	else:
-		print >> sys.stderr, '[error] check files', files
-		todo = False
-
-	return todo
-
+# ---------------------------------------------------------------------------------------------------- #
 
 def parse_params(str_params):
 	# target forms: ["-c 4 -b 1", "-c 4-b1", "-c4 -b1", "c4b1", "c4 b1", "c4 b 1"]
 	return sorted( re.findall(r'-?([a-z])\s*([0-9])', str_params), key=lambda x:x[0] )
 
-
-def exec_svm(todo):
-	# print os.getcwd()
-
-	# ./svm-train -c 4 -b 1 tmp/537193e3d4388c33d581668a.train.txt tmp/537193e3d4388c33d581668a.b1c4.m
-	# ./svm-predict -b 1 tmp/537193e3d4388c33d581668a.test.txt tmp/537193e3d4388c33d581668a.b1c4.m tmp/537193e3d4388c33d581668a.b1c4.out
-
-	for (program, fn) in todo:
-		print color.render(' '.join(['>'*5,'start',program]), 'y') 
-
-
-		print 'exec program:',program
-		program_abs_path = os.path.join(libsvm_path, program)
-		# cmd = os.path.join(, exec_path)
-
-		print program_abs_path
-		
-
-		print 'input:', fn
-		fp = os.path.join(file_root, fn)
-		print color.render(' '.join(['<'*5, 'finish',program]), 'g')
-
-
-		if program == 'svm-train':
-			program_args = []
-
-		# retcode = subprocess.call([program_abs_path, program_params] + program_args, shell=False)
-		# retcode = subprocess.call(['/Users/Maxis/tools/libsvm-3.17/tools/checkdata.py','tmp/537193e3d4388c33d581668a.test.txt'], shell=False)
-		# retcode = subprocess.call('/Users/Maxis/tools/libsvm-3.17/tools/checkdata.py tmp/537193e3d4388c33d581668a.test.txt', shell=True)
-
-	# print '='*100,'\nretcode:',retcode
-	# subprocess.call()
-
 ## grouping available setting ids and corresponding files
-def grouping(file_root, display=False):
-	sids = defaultdict(list)
-
-	for fn in os.listdir(file_root):
-		sid = re.findall(r'^([a-z0-9]{24})', fn)
-		if sid: sids[sid[0]].append(fn)
+def grouping(display=False):
+	global sids
+	if len(sids) == 0:
+		for fn in os.listdir(file_root):
+			sid = re.findall(r'^([a-z0-9]{24})', fn)
+			if sid: sids[sid[0]].append(fn)
 
 	if display:
 		print >> sys.stderr, '='*50	
@@ -145,7 +72,74 @@ def grouping(file_root, display=False):
 			for fn in sids[sid]:
 				print >> sys.stderr, '\t-',fn
 		print >> sys.stderr, '='*50
-	return dict(sids)
+
+## prompt until obtain a valid setting id
+def setup_setting_id():
+	global setting_id
+	while True:
+		if not setting_id: # setteing_id is empty
+			grouping(display=True)
+			print >> sys.stderr, '> choose a setting_id: ',
+			setting_id = raw_input().strip()
+		elif setting_id and not re.findall(r'^([a-z0-9]{24})$', str(setting_id).strip()): # invalid setting id
+			grouping(display=True)
+			print >> sys.stderr, '> choose a valid setting_id: ',
+			setting_id = raw_input().strip()
+		else:
+			break
+	print >> sys.stderr
+
+## restore svm parameters
+## e.g.,
+## input: 'b1c4'
+## return: ['-b', '1', '-c', '4']
+def restore(model_params):
+	return list(reduce(lambda x,y: x+y, [('-'+k,v) for (k,v) in re.findall( r'(\w)(\d)', model_params.strip() )]))
+
+## workflow = [
+##		[ <libsvm_path>/svm-train,		svm-params,		<setting_id>.train.txt,		<setting_id>.<model_params>.m  									],
+##		[ <libsvm_path>/svm-predict 	svm-params,		<setting_id>.test.txt,		<setting_id>.<model_params>.m, <setting_id>.<model_params>.out 	],
+##	]
+## svm-params: -c 4 -b 1
+def create_workflow(files, model_params):
+
+	workflow = []
+
+	## status: {'test': True, 'output': False, 'model': False, 'train': True}
+	status = { ftype: os.path.exists( os.path.join( file_root, files[ftype] ) ) for ftype in files }
+	
+	## params_list: ['-b', '1', '-c', '4']
+	params_list = [] if model_params == 'default' else restore(model_params)
+
+	## absolute pathes for files
+	abs_pathes = { ftype: os.path.join(module_path, file_root, files[ftype]) for ftype in files }
+	
+	if status['output']: # output exists
+		# do nothing
+		pass
+
+	elif not status['output']: # no output
+
+		train_args =  [ os.path.join(libsvm_path, libsvm_program['train']) ]
+		train_args += params_list
+		train_args += [ abs_pathes['train'], abs_pathes['model'] ]
+
+		test_args =  [ os.path.join(libsvm_path, libsvm_program['test']) ]
+		test_args += ['-b', '1'] if 'b1' in model_params else []
+		test_args += [ abs_pathes['test'], abs_pathes['model'], abs_pathes['output'] ]
+
+		# with model --> svm-predict only
+		if status['model']:
+			workflow = [ test_args ]
+		# without model --> svm-train + svm-predict
+		else: 
+			workflow = [ train_args, test_args ]
+
+	else: # WTF?!
+		workflow = False
+
+	return workflow
+
 
 if __name__ == '__main__':
 
@@ -166,55 +160,65 @@ if __name__ == '__main__':
 	## read options
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('run_svm', addon=add_opts)
-		elif opt in ('--list'): show_sids = True
+		elif opt in ('--list'): list_availabel_settings = True
 		elif opt in ('--param'): libsvm_params = parse_params( arg.strip() )
 		elif opt in ('--setting'): setting_id = arg.strip()
 		elif opt in ('-v','--verbose'): config.verbose = True
 		elif opt in ('-o','--overwrite'): config.overwrite = True
 
 	## group files by setting_id
-	sids = grouping(file_root, display=show_sids)
+	grouping(display=list_availabel_settings)
 
 	## check setting id
-	while True:
-		if not setting_id: # setteing_id is empty
-			print >> sys.stderr, '> enter a setting_id: ',
-			setting_id = raw_input().strip()
-		elif setting_id and not re.findall(r'^([a-z0-9]{24})', str(setting_id).strip()): # invalid setting id
-			print >> sys.stderr, '> enter a valid setting_id: ',
-			setting_id = raw_input().strip()
-		else:
-			break
+	setup_setting_id()
 
-	## files related to this setting id
-	# 537193e3d4388c33d581668a.default.m
-	# 537193e3d4388c33d581668a.default.out
-	# 537193e3d4388c33d581668a.gold.txt
-	# 537193e3d4388c33d581668a.test.txt
-	# 537193e3d4388c33d581668a.train.txt
-	related_files = None if setting_id not in sids else sids[setting_id]
-
+	# setup_param()
 
 	## model params: looks like "default" or "b1c4"
-	## the options string will be in the ascending alphabet order after runing parse_params()
-	# print libsvm_params
-	model_params = 'default' if len(libsvm_params) == 0 else ''.join( [k+v for k,v in libsvm_params ] )
+	## the options string will be in the ascending alphabet order after runing parse_params(), e.g., b1c4
+	## used in checking "5371bc38d4388c470a7fb71f.b1c4.m" and "5371bc38d4388c470a7fb71f.b1c4.out"
+	if libsvm_params:
+		model_params = ''.join( [k+v for k,v in libsvm_params ] )
+
+	files = {
+		'train'	: '.'.join([setting_id, 'train', 		'txt']),
+		'test' 	: '.'.join([setting_id, 'test', 		'txt']),
+		'model'	: '.'.join([setting_id, model_params, 	'm']),
+		'output': '.'.join([setting_id, model_params, 	'out'])
+	}
+
+	## create workflow for svm training/testing
+	workflow = create_workflow(files, model_params)
 	
-	print 'related_files:',related_files	## ['5371bc38d4388c470a7fb71f.gold.txt', '5371bc38d4388c470a7fb71f.test.txt', '5371bc38d4388c470a7fb71f.train.txt']
-	print 'model_params:',model_params		## b1c4
+	## prompt workflow messages
+	if workflow == False:
+		print >> sys.stderr, '[error] validate the files:','\n',files
+		exit(-1)
+	elif len(workflow) == 0:
+		# grouping(display=True)
+		print >> sys.stderr, '[info] All train/test tasks are done!'
+		print >> sys.stderr, '[info] Related files:'
+		for fn in files.values():
+			print >> sys.stderr, '       -', fn
 
-	## check current files
-	## use model_params to check "5371bc38d4388c470a7fb71f.b1c4.m" and "5371bc38d4388c470a7fb71f.b1c4.out"
+	# confirm message
+	for cmd in workflow:
+		print >> sys.stderr, color.render('[cmd]', 'lc'), ' '.join(cmd)
+	print >> sys.stderr, color.render('> correct? [Y/n] ', 'g'),
+	ok = raw_input()
+	print >> sys.stderr
+
+	if ok.lower().startswith('n'):
+		exit(-1)
+	else:
+		for cmd in workflow:
+			# print >> sys.stderr, color.render('[cmd]', 'lc'), ' '.join(cmd)
+			print >> sys.stderr, color.render('['+cmd[0].split('/')[-1]+']', 'r')
+			print >> sys.stderr, color.render(' start '+'>'*10, 'y' )
+			# retcode = subprocess.call(cmd, shell=False)
+			print >> sys.stderr, color.render( ' end '+'<'*10, 'b')
+	
 
 
-	## generate workflow
-
-	## execute programs
-
-	# check current status and obtain the to-do-list
-	# todo = get_to_do_list(related_files, model_params)
-	# print 'todo:',todo
 
 
-	# exec_svm(todo)
-	# pass
