@@ -58,11 +58,12 @@ def remove_self_count(score_dict, udocID):
 
 		if mdoc['emotion'] in score_dict:
 			score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - 1
+			if score_dict[mdoc['emotion']] == 0 :
+				del score_dict[mdoc['emotion']]
 		else:
 			record.append(udocID)
 
-		if score_dict[mdoc['emotion']] == 0 :
-			del score_dict[mdoc['emotion']]
+
 	
 	return score_dict
 
