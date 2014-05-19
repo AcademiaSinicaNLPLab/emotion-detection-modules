@@ -67,6 +67,11 @@ verbose = False
 
 topk = 1
 
+
+### latest version: support automatically insert addon option names
+### i.e, config.py doesn't care about neither the addon opts nor the description
+### e.g., in runSVM_name, addon is a list of length 3, which looks like [ ('--setting', [...]), ('--list', [...]), ('--param', [...]) ]
+###       and the program will incorporate missing opts and yield: ['-v', '-o', '--setting', '--list', '--param']
 opt_fields = {
 	ps_name: 	['-p','-s','-v', '-o'],
 	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
@@ -76,8 +81,8 @@ opt_fields = {
 	patternFeat_name:	['-l','-v'],
 	keywordFeat_name:	['-k','--lemma','-v'],
 
-	genSVM_name:['-v', '-o', '--train', '--test', '--gold', '--root', '--setting'],
-	runSVM_name:['-v', '-o', '--param', '--setting'],
+	genSVM_name:['-v', '-o'],
+	runSVM_name:['-v', '-o'],
 }
 _abbr = {
 	'p': 'ps_function',
@@ -206,12 +211,41 @@ def help(program, addon=[], exit=1):
 	params['-v'] = [
 		'-v, --verbose: show debug message']
 
+	#########################################################################################################
+	## document feature extraction
+	
+	params['-b'] = [
+		'-b, --begPercentage: percentage of beginning section']
+	
+	params['-m'] = [
+		'-m, --midPercentage: percentage of middle section']
+	
+	params['-e'] = [
+		'-e, --endPercentage: percentage of ending section']
+	
+	params['-c'] = [
+		'-c, --countingUnitType: counting unit for document segmentation',
+		'                 0: number of words',
+		'                 1: number of sentences (not implemented yet)']
+	
+	params['-f'] = [
+		'-f, --featureValueType: feature value computation',
+		'                 0: pattern scores (patscore_p2_s0)', 
+		'                 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores',
+		'                 2: accumulated threshold by 0.68 (1 standard diviation) using pattern occurrence',
+		'                 3: same as type 2 but ignore those with total occurrence < 4 (1, 2, 3)']
 
-	## add all self-defined option description
-	for k, v in addon:
-		params[k] = v
+	#########################################################################################################
 
 	opts = opt_fields[program]
+
+	## add all self-defined option description
+	# addon_opt: --setting
+	# addon_description: ['--setting: specify a setting ID (e.g., 537086fcd4388c7e81676914)', ... ]
+	for addon_opt, addon_description in addon:  
+		params[ addon_opt ] = addon_description
+		if addon_opt not in opts:
+			opts.append( addon_opt )
 
 	usage = '\nusage: python '+program+'.py [options]\n' + '='*50 + '\n[options]'
 	params_str = '\n'.join(['\n'.join(params[opt]) + '\n' for opt in opts])
