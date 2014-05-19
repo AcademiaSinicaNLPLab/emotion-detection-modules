@@ -1,53 +1,72 @@
 # -*- coding: utf-8 -*-
 import config
 import color
-import pymongo, sys
+import pymongo, sys, os
 from collections import Counter
 from itertools import product
 
-# db = pymongo.Connection(config.mongo_addr)[config.db_name]
+db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-# get all emotions
-emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])
+setting_id = '53744d55d4388c49faffe9b5'
+root = 'tmp'
 
 def accuracy(res, ratio=1):
 	TP = res['TP']
 	TN = res['TN']/float(ratio)
 	FP = res['FP']/float(ratio)
 	FN = res['FN']
-	return round((TP+TN)/float(TP+TN+FN+FP), 4)
+	return 0.0 if TP+TN+FN+FP == 0 else round((TP+TN)/float(TP+TN+FN+FP), 4)
 
 def precision(res, ratio=1):
 	TP = res['TP']
 	TN = res['TN']/float(ratio)
 	FP = res['FP']/float(ratio)
 	FN = res['FN']
-	return round((TP)/float(TP+FP), 4)
+	return 0.0 if TP+FP == 0 else round((TP)/float(TP+FP), 4)
 
 def recall(res, ratio=1):
 	TP = res['TP']
 	TN = res['TN']/float(ratio)
 	FP = res['FP']/float(ratio)
 	FN = res['FN']
-	return round((TP)/float(TP+FN), 4)
-	
+	return 0.0 if TP+FN == 0 else round((TP)/float(TP+FN), 4)
+
+
+# get all emotions
+emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])
 
 eids = dict( enumerate(sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])) )
 
-def load_files(answer="gold.txt", predict="0.out"):
 
-	a = [line.strip().split('\t') for line in open(answer) if len(line.strip())]
-	p = [int(line.strip()) for line in open(predict) if len(line.strip())]
+def load_files(setting_id, root='tmp', param='default'):
+
+	fn_gold = '.'.join([setting_id, 'gold', 'txt'])
+	fn_out  = '.'.join([setting_id, param,  'out'])
+
+	path_gold = os.path.join(root, fn_gold)
+	path_out  = os.path.join(root, fn_out)
+
+	list_gold = [line.strip().split('\t') for line in open(path_gold) if len(line.strip())]
+	list_out = [int(line.strip()) for line in open(path_out) if len(line.strip())]
+
+	# print a
+	# print p
+	# raw_input()
 
 	# generate <answer - predict> pair
-	pairs = zip([ int(x[0]) for x in a], p)
+	pairs = zip([ int(x[0]) for x in list_gold], list_out)
+
+	# # print pairs
+	# w = [(x,y) for (x,y) in pairs if x == y]
+	# print w
+	# print len(w)
 
 	## make sure the eid is in the default assending order
 	## i.e., 0:accomplished, 1:aggravated, ..., 39:tired
 	## just in case the order has been changed in the previous stage
-	global eids
-	eids = dict([( int(x[0]) , x[2]) for x in a])
-
+	# global eids
+	# eids = dict([( int(x[0]) , x[2]) for x in list_gold])
+	# print eids
 	return pairs
 
 
@@ -65,11 +84,13 @@ def evaluate(pairs):
 	As = []
 
 	for target_gold_id in eids:
-		print >> sys.stderr, '>',eids[target_gold_id] ,'...',
+		# print >> sys.stderr, '>',eids[target_gold_id] ,'...',
 		sys.stderr.flush()
 
 		really_is_positive, really_is_negative = 0, 0
 		res = Counter()
+
+		ri, rn = 0, 0
 
 		for pair in pairs:
 
@@ -92,24 +113,29 @@ def evaluate(pairs):
 			res['FP'] += 1 if FP else 0
 			res['FN'] += 1 if FN else 0
 
+		# print eids[target_gold_id]
+		# print '\t', res
+
 		r = really_is_negative/float(really_is_positive)
 
 		A = accuracy(res, ratio=r)
 		P = precision(res, ratio=r)
 		R = recall(res, ratio=r)
 
-		print >> sys.stderr, 'done'
+		# print >> sys.stderr, 'done'
 
-		print '\taccu', A
-		print '\tprec', P
-		print '\trecall', R
-		print '\tf1', 2*P*R/float(P+R) if P+R > 0 else 0.0
-		print 
-		raw_input()
+		# print '\taccu', A
+		# print '\tprec', P
+		# print '\trecall', R
+		# print '\tf1', 2*P*R/float(P+R) if P+R > 0 else 0.0
+		# print 
+		# raw_input()
+
 		As.append(A)
 
-	print sum(As)/float(len(As))
+	return As
 
+	# print sum(As)/float(len(As))
 
 
 def average():
@@ -152,9 +178,35 @@ def average():
 
 if __name__ == '__main__':
 
-	working_root = '/Users/Maxis/projects/emotion-detection-modules/data/'
+	import re
 
-	pairs = load_files(answer = os.path.join(working_root, "gold.txt"), predict = os.path.join(working_root, "0.out") )
+	# setting_id = '5378c702d4388c5df3475bee'
+	setting_id = None
+	# ids = 
+	root = 'tmp'
+	svm_param = ''
+
+	if not setting_id:
+
+		setting_ids = set([fn.split('.')[0] for fn in os.listdir(root) if re.match(r'^[0-9a-z]{24}', fn) ])
+	else:
+		setting_ids = [setting_id]
+
+	for setting_id in setting_ids:
+
+
+		pairs = load_files(setting_id)
+		As = evaluate(pairs)
+		# print As
+		print setting_id, '\t', sum(As)/float(len(As))
+		# raw_input()	
+
+
+
+	# working_root = '/Users/Maxis/projects/emotion-detection-modules/data/'
+
+
+	# print pairs
 
 
 
