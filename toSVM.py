@@ -12,6 +12,8 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 emotion_list = sorted([d['emotion'] for d in db['emotions'].find({'label': 'LJ40K'})])
 # print >> sys.stderr, '[info]\tget emotion list:', len(emotion_list), 'emotions'
 
+eids = { emotion_list[i]: i for i in range(len(emotion_list)) }
+
 ## ------------------------------------------------------- ##
 
 feature_names = {} # global used because of multiple feature sets
@@ -111,12 +113,24 @@ def generate_test_train_files(vectors, pathes):
 
 	# default: [800:200]
 	for e in vectors:
+
+		print e
+
 		vector = sorted(vectors[e], key=lambda x:x[0])
+
 		train, test = vector[:800], vector[800:]
 
 		train_txt = '\n'.join([str(x[1]) for x in train]) + '\n'
 		test_txt  = '\n'.join([str(x[1]) for x in test])  + '\n'
-		gold_txt  = '\n'.join([str(x[0]) for x in test])  + '\n'
+
+		eid = emotion_list.index(e)
+		### format of <setting_id>.golt.txt
+		### eid docID	emotion
+		### -------------------
+		### 3	3950	annoyed
+		### 3	3951	annoyed
+		### ...
+		gold_txt  = '\n'.join([ '\t'.join([str(eid),str(x[0]),e]) for x in test])  + '\n'
 
 		fw['train'].write(train_txt)
 		fw['test'].write(test_txt)
