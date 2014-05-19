@@ -5,6 +5,7 @@ from collections import defaultdict, Counter
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 cache = {}
+record = []
 
 ## input: pat
 ## output: a dictionary of (emotion, patscore)
@@ -45,6 +46,7 @@ def get_patcount(pattern):
 
 	return cache[pattern]
 
+
 ## input: dictionary of (emotion, count)
 ## output: dictionary of (emotion, count)
 def remove_self_count(score_dict, udocID):
@@ -53,7 +55,12 @@ def remove_self_count(score_dict, udocID):
 	
 	## ldocID: 0-799	
 	if mdoc['ldocID'] < 800: 
-		score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - 1
+
+		if mdoc['emotion'] in score_dict:
+			score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - 1
+		else:
+			record.append(udocID)
+
 		if score_dict[mdoc['emotion']] == 0 :
 			del score_dict[mdoc['emotion']]
 	
@@ -269,3 +276,5 @@ if __name__ == '__main__':
 	s = time.time()	
 	create_document_features(setting_id)
 	print 'Time total:',time.time() - s,'sec'
+
+	print record
