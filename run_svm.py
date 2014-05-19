@@ -168,6 +168,8 @@ if __name__ == '__main__':
 
 	## group files by setting_id
 	grouping(display=list_availabel_settings)
+	if list_availabel_settings:
+		exit(1)
 
 	## check setting id
 	setup_setting_id()
