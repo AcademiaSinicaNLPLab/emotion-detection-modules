@@ -1,5 +1,6 @@
 venv
 tmp
+res
 *.pyo
 *.pyc
 *.db
