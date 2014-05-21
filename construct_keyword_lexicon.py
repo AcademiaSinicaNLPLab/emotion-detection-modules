@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import config
-import pymongo
+import sys, pymongo, color
 from collections import defaultdict, Counter
 from nltk.stem.wordnet import WordNetLemmatizer
 
@@ -18,14 +18,19 @@ emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}, 
 # build lexicon storing keyword occurrence
 def build_lexicon():
 
+	print 'type: ', wordType
+	print 'lemma: ', str(lemma)
+
 	keyword_list = list( co_keywords.find({ 'type': wordType }) )
 
 	keywordCount = defaultdict(Counter)
 
-	for e in emotions:
+	for (ie, e) in enumerate(emotions):
+
+		print >> sys.stderr, '%d > %s' % ( ie, color.render(e, 'g') )
 
 		for doc in co_docs.find( { 'emotion': e, 'ldocID': {'$lt': 800}} ):
-		
+
 			udocID = doc['udocID']
 			mdocs = list( co_sents.find( {'udocID': udocID} ) )
 			
@@ -57,25 +62,25 @@ def build_lexicon():
 if __name__ == '__main__':
 
 	## setting 1
-	wordType='basic'
+	wordType = 'basic'
 	lemma = False	
 	co_keyword_lexicon = db['lexicon.keyword.basic.wo_lemma']
 	build_lexicon()
 
 	## setting 2
-	wordType='basic'
+	wordType = 'basic'
 	lemma = True	
 	co_keyword_lexicon = db['lexicon.keyword.basic.w_lemma']
 	build_lexicon()
 
 	## setting 3
-	wordType='extend'
+	wordType = 'extend'
 	lemma = False	
 	co_keyword_lexicon = db['lexicon.keyword.extend.wo_lemma']
 	build_lexicon()
 
 	## setting 4
-	wordType='extend'
+	wordType = 'extend'
 	lemma = True	
 	co_keyword_lexicon = db['lexicon.keyword.extend.w_lemma']
 	build_lexicon()
