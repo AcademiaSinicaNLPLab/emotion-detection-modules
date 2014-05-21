@@ -7,7 +7,7 @@ from itertools import product
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-setting_id = '53744d55d4388c49faffe9b5'
+setting_id = '537af6923681dff466c19e38'
 root = 'tmp'
 
 def accuracy(res, ratio=1):
@@ -130,7 +130,7 @@ def evaluate(pairs):
 		# print '\tf1', 2*P*R/float(P+R) if P+R > 0 else 0.0
 		# print 
 		# raw_input()
-
+		print eids[target_gold_id], '\t', A
 		As.append(A)
 
 	return As
@@ -180,11 +180,11 @@ if __name__ == '__main__':
 
 	import re
 
-	# setting_id = '5378c702d4388c5df3475bee'
-	setting_id = None
+	setting_id = '537b00e33681df445d93d57e'
+	# setting_id = None
 	# ids = 
 	root = 'tmp'
-	svm_param = ''
+	svm_param = 'c9'
 
 	if not setting_id:
 
@@ -195,10 +195,10 @@ if __name__ == '__main__':
 	for setting_id in setting_ids:
 
 
-		pairs = load_files(setting_id)
+		pairs = load_files(setting_id, param=svm_param)
 		As = evaluate(pairs)
 		# print As
-		print setting_id, '\t', sum(As)/float(len(As))
+		print >> sys.stderr, setting_id, '\t', sum(As)/float(len(As))
 		# raw_input()	
 
 
