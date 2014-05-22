@@ -40,9 +40,9 @@ Different from past approaches using surface features, we utilize syntax and sem
 				                 0: pattern scores (patscore_p2_s0)  
 				                 1: accumulated threshold by 0.68 (1 std) using pattern scores  
 				                 2: accumulated threshold by 0.68 (1 std) using pattern count  
-				                 3: type 2 + ignore those with total occurrence < 4 (1, 2, 3)  
-				                 4: type 2 + remove the pattern occurrence counted from oneself (for ldocID 0-799)  
-				                 5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)  
+				                 3: [type 2] & min_count=4  
+				                 4: [type 2] & remove the pattern occurrence counted from oneself (for ldocID 0-799)  
+				                 5: [type 3] & remove the pattern occurrence counted from oneself (for ldocID 0-799)  
 				-v, --verbose: show debug message
 				```
 
