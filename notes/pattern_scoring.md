@@ -13,7 +13,7 @@ Pattern scoring
 
 	* occurrences:
 
-		![image](img/dist_of_i-am-pissed.png)
+		![image](../img/dist_of_i-am-pissed.png)
 	
 	* idea:
 	
@@ -81,9 +81,9 @@ How
 		
 		However, in Case 2, we know that 39 is centralized in one emotion, and that emotion belongs to `!happy`. So the score of the pattern in emotion happy will be very low. (close to 0)
 
-		![image](img/all-1.png)
+		![image](../img/all-1.png)
 
-		![image](img/increase.png)
+		![image](../img/increase.png)
 
 
 Methods
@@ -190,16 +190,16 @@ Results
 
 #### Method 1
 
-![image](img/m1.png)
+![image](../img/m1.png)
 
 #### Method 2
 
-![image](img/m2.png)
+![image](../img/m2.png)
 
 #### Method 3
 
-![image](img/m3.png)
+![image](../img/m3.png)
 
 #### Method 4
 
-![image](img/m4.png)
+![image](../img/m4.png)
