@@ -66,6 +66,29 @@ def remove_self_count(score_dict, udocID):
 	return score_dict
 
 
+## input: dictionary of (emotion, value)
+## output: dictionary of (emotion, 1) for emotions passed the threshold
+def accumulate_threshold(score, percentage=0.68):
+	## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
+	temp_dict = defaultdict( list ) 
+	for e in score:
+		temp_dict[score[e]].append(e)
+
+	## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ] ((sorted))
+	temp_list = temp_dict.items()
+	temp_list.sort(reverse=True)
+
+	th = percentage * sum([score[k] for k in score])
+	current_sum = 0
+	selected_emotions = []
+	while current_sum < th:
+		top = temp_list.pop(0)
+		selected_emotions.extend( top[1] )
+		current_sum += top[0] * len(top[1])
+
+	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
+
+
 ## input: pat
 ## output: a dictionary of (emotion, patfeature) according to different featureValueType 
 def get_patfeature(pattern, udocID):
@@ -83,44 +106,27 @@ def get_patfeature(pattern, udocID):
 
 	elif config.featureValueType == 1: 
 		score = get_patscore(pattern) # pattern score
+		return accumulate_threshold(score)
 
 	elif config.featureValueType == 2: 
 		score = get_patcount(pattern) # pattern occurrence
+		return accumulate_threshold(score)
 
 	elif config.featureValueType == 3: 
 		score = get_patcount(pattern) # pattern occurrence
 		if sum( [ score[e] for e in score ] ) < 4: return {}
+		return accumulate_threshold(score)
 
 	elif config.featureValueType == 4:
 		score = get_patcount(pattern) # pattern occurrence
 		score = remove_self_count(score, udocID)
+		return accumulate_threshold(score)
 
 	elif config.featureValueType == 5:
 		score = get_patcount(pattern) # pattern occurrence
 		score = remove_self_count(score, udocID)
-		if sum( [ score[e] for e in score ] ) < 4: return {}		
-
-
-	## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
-	temp_dict = defaultdict( list ) 
-	for e in score:
-		temp_dict[score[e]].append(e)
-
-	## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ] ((sorted))
-	temp_list = temp_dict.items()
-	temp_list.sort(reverse=True)
-
-	th = 0.68 * sum([score[k] for k in score])
-	current_sum = 0
-	selected_emotions = []
-	while current_sum < th:
-		top = temp_list.pop(0)
-		selected_emotions.extend( top[1] )
-		current_sum += top[0] * len(top[1])
-
-	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
-
-	# elif ...
+		if sum( [ score[e] for e in score ] ) < 4: return {}
+		return accumulate_threshold(score)		
 
 
 def get_document_feature(udocID):
