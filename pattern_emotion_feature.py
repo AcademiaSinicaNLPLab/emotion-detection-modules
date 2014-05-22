@@ -191,8 +191,8 @@ if __name__ == '__main__':
 		('-f', ['-f: feature value computation',
 				'                 0: pattern scores (patscore_p2_s0)', 
 				'                 1: accumulated threshold by 0.68 (1 std) using pattern scores',
-				'                 2: accumulated threshold by 0.68 (1 std) using pattern count',
-				'                 3: [type 2] & set min_count=4', 
+				'              (X)2: accumulated threshold by 0.68 (1 std) using pattern count',
+				'              (X)3: [type 2] & set min_count=4', 
 				'                 4: [type 2] & remove the pattern occurrence counted from oneself (for ldocID 0-799)',   
 				'                 5: [type 3] & remove the pattern occurrence counted from oneself (for ldocID 0-799)'])
 	]
