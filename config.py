@@ -84,7 +84,7 @@ opt_fields = {
 	keywordFeat_name:	['-k','--lemma','-v'],
 	patternEmotionPositionFeat_name:	['-b','-m','-e','-c','-f','-v'],
 	patternEmotionFeat_name:	['-c','-f','-v'],
-	keywordEmotionFeat_name:	['-k','--lemma','-v']
+	keywordEmotionFeat_name:	['-k','--lemma','-v'],
 
 	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
