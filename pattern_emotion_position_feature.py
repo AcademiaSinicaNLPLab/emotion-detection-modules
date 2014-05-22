@@ -164,32 +164,6 @@ def get_document_feature(udocID):
 
 	return docfeature
 
-## old old old old old old version
-def document_emotion_locations(udocID):
-	# find total number of sents and usentID offset
-	usentIDs = { x['usentID']:x['sent_length'] for x in list( co_sents.find( {'udocID': udocID} ) ) }
-	usentID_offset = min(usentIDs) - 1
-	number_of_sents = len(usentIDs)
-
-	# find all pats in the document <udocID>
-	pats = list( co_pats.find( {'udocID': udocID} ) )
-	total_weight = 0
-
-	if config.verbose:
-		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
-
-	D = defaultdict(list)
-	for pat in pats:
-		pat_score = get_patscore(pat)
-		if pat_score:
-			total_weight += pat['weight']
-		for emotion in pat_score:
-			D[emotion].append( pat['weight'] * pat_score[emotion] *  pat['usentID'] )
-
-	emotion_locations = dict([ ( e, (sum(D[e])/float(total_weight) - usentID_offset)/float(number_of_sents) ) for e in D ])
-
-	return emotion_locations
-
 
 def create_document_features(setting_id):
 
