@@ -73,9 +73,9 @@ def get_patfeature(pattern, udocID):
 	## type 0: pattern scores
 	## type 1: accumulated threshold by 0.68 (1 std) using pattern scores    
 	## type 2: accumulated threshold by 0.68 (1 std) using pattern occurrence
-	## type 3: type 2 + ignore patterns with total occurrence < 4 (1, 2, 3)  
-	## type 4: type 2 + remove the pattern occurrence counted from oneself (for ldocID 0-799)   
-	## type 5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)
+	## type 3: [type 2] & set min_count=4  
+	## type 4: [type 2] & remove the pattern occurrence counted from oneself (for ldocID 0-799)   
+	## type 5: [type 3] & remove the pattern occurrence counted from oneself (for ldocID 0-799)
 	########################################################################################
 
 	if config.featureValueType == 0:
@@ -221,7 +221,7 @@ if __name__ == '__main__':
 
 	## target mongo collections
 	co_setting = db['features.settings']
-	co_feature = db['features.position']
+	co_feature = db['features.pattern_emotion_position']
 
 	## input arguments
 	import getopt
@@ -237,9 +237,9 @@ if __name__ == '__main__':
 				'                 0: pattern scores (patscore_p2_s0)', 
 				'                 1: accumulated threshold by 0.68 (1 std) using pattern scores',
 				'                 2: accumulated threshold by 0.68 (1 std) using pattern count',
-				'                 3: type 2 + ignore those with total occurrence < 4 (1, 2, 3)', 
-				'                 4: type 2 + remove the pattern occurrence counted from oneself (for ldocID 0-799)',   
-				'                 5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)'])
+				'                 3: [type 2] & set min_count=4', 
+				'                 4: [type 2] & remove the pattern occurrence counted from oneself (for ldocID 0-799)',   
+				'                 5: [type 3] & remove the pattern occurrence counted from oneself (for ldocID 0-799)'])
 	]
 
 	try:
@@ -276,4 +276,4 @@ if __name__ == '__main__':
 	create_document_features(setting_id)
 	print 'Time total:',time.time() - s,'sec'
 
-	print record
+	if record: print record

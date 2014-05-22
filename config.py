@@ -7,9 +7,11 @@ ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
-positionFeat_name = 'position_feature'
-patternFeat_name = 'pattern_feature'
+
 keywordFeat_name = 'keyword_feature'
+patternFeat_name = 'pattern_feature'
+patternEmotionPositionFeat_name = 'pattern_emotion_position_feature'
+patternEmotionFeat_name = 'pattern_emotion_feature'
 
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
@@ -77,9 +79,10 @@ opt_fields = {
 	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	
-	positionFeat_name: 	['-b','-m','-e','-c','-f','-v'],
 	patternFeat_name:	['-l','-v'],
 	keywordFeat_name:	['-k','--lemma','-v'],
+	patternEmotionPositionFeat_name:	['-b','-m','-e','-c','-f','-v'],
+	patternEmotionFeat_name:	['-c','-f','-v'],
 
 	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
