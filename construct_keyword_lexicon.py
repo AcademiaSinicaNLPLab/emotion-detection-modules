@@ -21,7 +21,7 @@ def build_lexicon():
 	print 'type: ', wordType
 	print 'lemma: ', str(lemma)
 
-	keyword_list = list( co_keywords.find({ 'type': wordType }) )
+	keyword_list = [ x['word'] for x in list( co_keywords.find({ 'type': wordType }) ) ]
 
 	keywordCount = defaultdict(Counter)
 
@@ -41,13 +41,15 @@ def build_lexicon():
 			
 				for idx, word in enumerate(words):
 			
+					word = word.lower()
+
 					if lemma:
 						pos = 'n'						
 						if POSs[idx].startswith('J'): pos = 'a'
 						elif POSs[idx].startswith('V'): pos = 'v'
 						elif POSs[idx].startswith('R'): pos = 'r'
 						word = lmtzr.lemmatize(word, pos)
-			
+
 					if word in keyword_list:
 						keywordCount[word][e] += 1
 
