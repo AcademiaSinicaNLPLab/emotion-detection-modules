@@ -32,6 +32,10 @@ co_results_name = 'NewRes'
 co_patsearch_name = 'pats_trim'
 co_feature_setting_name = 'features.settings'
 
+co_svm_out_name  = 'svm.out'	# (svm) .out.txt
+co_svm_gold_name = 'svm.gold'	# (svm) .gold
+co_svm_eval_name = 'svm.eval'	# (svm) evalutation results
+
 ## default
 co_patscore_prefix = 'patscore'
 co_docscore_prefix = 'docscore'
