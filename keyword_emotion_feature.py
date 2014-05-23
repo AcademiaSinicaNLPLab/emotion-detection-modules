@@ -84,7 +84,7 @@ def get_keyword_feature(udocID):
 			word = lmtzr.lemmatize(word, pos)
 
 		count = get_keyword_count(word)
-		if count: ## word is a keyword
+		if count: 
 			count = remove_self_count( count,  udocID )
 
 		for e in accumulate_threshold(count):
