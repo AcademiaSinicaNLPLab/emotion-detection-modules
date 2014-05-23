@@ -5,15 +5,24 @@ from nltk.stem.wordnet import WordNetLemmatizer
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-keyword_list = []
 lmtzr = WordNetLemmatizer()
+
+cache = {}
 
 ## input: word
 ## output: a dictionary of (emotion: count)
 def get_keyword_count(word):
-	mdoc = co_keyword_lexicon.find_one({ 'keyword': word })
-	if mdoc: return mdoc['count']
-	else: return {}
+
+	global cache
+
+	if word not in cache:
+		mdoc = co_keyword_lexicon.find_one({ 'keyword': word })
+		if mdoc: 
+			cache[word] = mdoc['count']
+		else: 
+			cache[word] = {}
+
+	return cache[word]
 
 
 ## input: dictionary of (emotion, count)
