@@ -62,47 +62,13 @@ def remove_self_count(score_dict, udocID):
 				del score_dict[mdoc['emotion']]
 		else:
 			record.append(udocID)
-
-
 	
 	return score_dict
 
 
-## input: pat
-## output: a dictionary of (emotion, patfeature) according to different featureValueType 
-def get_patfeature(pattern, udocID):
-	########################################################################################
-	## type 0: pattern scores
-	## type 1: accumulated threshold by 0.68 (1 std) using pattern scores    
-	## type 2: accumulated threshold by 0.68 (1 std) using pattern occurrence
-	## type 3: type 2 + ignore patterns with total occurrence < 4 (1, 2, 3)  
-	## type 4: type 2 + remove the pattern occurrence counted from oneself (for ldocID 0-799)   
-	## type 5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)
-	########################################################################################
-
-	if config.featureValueType == 0:
-		return get_patscore(pattern) 
-
-	elif config.featureValueType == 1: 
-		score = get_patscore(pattern) # pattern score
-
-	elif config.featureValueType == 2: 
-		score = get_patcount(pattern) # pattern occurrence
-
-	elif config.featureValueType == 3: 
-		score = get_patcount(pattern) # pattern occurrence
-		if sum( [ score[e] for e in score ] ) < 4: return {}
-
-	elif config.featureValueType == 4:
-		score = get_patcount(pattern) # pattern occurrence
-		score = remove_self_count(score, udocID)
-
-	elif config.featureValueType == 5:
-		score = get_patcount(pattern) # pattern occurrence
-		score = remove_self_count(score, udocID)
-		if sum( [ score[e] for e in score ] ) < 4: return {}		
-
-
+## input: dictionary of (emotion, value)
+## output: dictionary of (emotion, 1) for emotions passed the threshold
+def accumulate_threshold(score, percentage=0.68):
 	## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
 	temp_dict = defaultdict( list ) 
 	for e in score:
@@ -112,7 +78,7 @@ def get_patfeature(pattern, udocID):
 	temp_list = temp_dict.items()
 	temp_list.sort(reverse=True)
 
-	th = 0.68 * sum([score[k] for k in score])
+	th = percentage * sum([score[k] for k in score])
 	current_sum = 0
 	selected_emotions = []
 	while current_sum < th:
@@ -122,19 +88,48 @@ def get_patfeature(pattern, udocID):
 
 	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
 
-	# elif ...
+
+## input: pat
+## output: a dictionary of (emotion, patfeature) according to different featureValueType 
+def get_patfeature(pattern, udocID):
+	########################################################################################
+	## type 0: pattern scores
+	## type 1: accumulated threshold by 0.68 (1 std) using pattern scores    
+	## type 2: accumulated threshold by 0.68 (1 std) using pattern occurrence
+	## type 3: [type 2] & set min_count=4  
+	## type 4: [type 2] & remove the pattern occurrence counted from oneself (for ldocID 0-799)   
+	## type 5: [type 3] & remove the pattern occurrence counted from oneself (for ldocID 0-799)
+	########################################################################################
+
+	if config.featureValueType == 0:
+		return get_patscore(pattern) 
+
+	elif config.featureValueType == 1: 
+		score = get_patscore(pattern) # pattern score
+		return accumulate_threshold(score)
+
+	elif config.featureValueType == 2: 
+		score = get_patcount(pattern) # pattern occurrence
+		return accumulate_threshold(score)
+
+	elif config.featureValueType == 3: 
+		score = get_patcount(pattern) # pattern occurrence
+		if sum( [ score[e] for e in score ] ) < 4: return {}
+		return accumulate_threshold(score)
+
+	elif config.featureValueType == 4:
+		score = get_patcount(pattern) # pattern occurrence
+		score = remove_self_count(score, udocID)
+		return accumulate_threshold(score)
+
+	elif config.featureValueType == 5:
+		score = get_patcount(pattern) # pattern occurrence
+		score = remove_self_count(score, udocID)
+		if sum( [ score[e] for e in score ] ) < 4: return {}
+		return accumulate_threshold(score)		
 
 
 def get_document_feature(udocID):
-
-	sents = { x['usentID']:x['sent_length'] for x in list( co_sents.find( {'udocID': udocID} ) ) }
-	usentID_offset = min(sents)
-	total_words = sum([sents[x] for x in sents])
-
-	th1 = total_words * config.begPercentage/float(100)
-	th2 = total_words * (config.begPercentage+config.midPercentage)/float(100)
-
-	# print sents, '\ntotal_words = ', total_words, '\nusentID_offset = ', usentID_offset, '\nth1 = ', th1, '\nth2 = ', th2
 
 	docfeature = Counter()
 
@@ -145,46 +140,13 @@ def get_document_feature(udocID):
 		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
 
 	for pat in pats:
-		## find pattern position ( beginning/middle/end )
-		lanchorID = sum([sents[usentID_offset+i] for i in range(pat['usentID'] - usentID_offset)]) + pat['anchor_idx']
-		if lanchorID <= th1: position = 'beginning'
-		elif lanchorID <= th2: position = 'middle'
-		else: position = 'end'
-		# print '='*30, '\n', pat['pattern'], '\n', 'lanchorID = ', lanchorID, '\n', 'position = ', position
 
 		patfeature = get_patfeature(pat['pattern'], udocID)
 
 		for e in patfeature: 
-			key = '#position'+ '@'+ position + '_' + e
-			docfeature[key] += patfeature[e]
+			docfeature[e] += patfeature[e]
 
 	return docfeature
-
-## old old old old old old version
-def document_emotion_locations(udocID):
-	# find total number of sents and usentID offset
-	usentIDs = { x['usentID']:x['sent_length'] for x in list( co_sents.find( {'udocID': udocID} ) ) }
-	usentID_offset = min(usentIDs) - 1
-	number_of_sents = len(usentIDs)
-
-	# find all pats in the document <udocID>
-	pats = list( co_pats.find( {'udocID': udocID} ) )
-	total_weight = 0
-
-	if config.verbose:
-		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
-
-	D = defaultdict(list)
-	for pat in pats:
-		pat_score = get_patscore(pat)
-		if pat_score:
-			total_weight += pat['weight']
-		for emotion in pat_score:
-			D[emotion].append( pat['weight'] * pat_score[emotion] *  pat['usentID'] )
-
-	emotion_locations = dict([ ( e, (sum(D[e])/float(total_weight) - usentID_offset)/float(number_of_sents) ) for e in D ])
-
-	return emotion_locations
 
 
 def create_document_features(setting_id):
@@ -223,45 +185,38 @@ if __name__ == '__main__':
 
 	## target mongo collections
 	co_setting = db['features.settings']
-	co_feature = db['features.position']
+	co_feature = db['features.pattern_emotion']
 
 	## input arguments
 	import getopt
 	
 	add_opts = [
-		('-b', ['-b: percentage of beginning section']),
-		('-m', ['-m: percentage of middle section']),
-		('-e', ['-e: percentage of ending section']),
 		('-c', ['-c: counting unit for document segmentation',
 				'                 0: number of words',
 				'                 1: number of sentences (not implemented yet)']),
 		('-f', ['-f: feature value computation',
 				'                 0: pattern scores (patscore_p2_s0)', 
 				'                 1: accumulated threshold by 0.68 (1 std) using pattern scores',
-				'                 2: accumulated threshold by 0.68 (1 std) using pattern count',
-				'                 3: type 2 + ignore those with total occurrence < 4 (1, 2, 3)', 
-				'                 4: type 2 + remove the pattern occurrence counted from oneself (for ldocID 0-799)',   
-				'                 5: type 3 + remove the pattern occurrence counted from oneself (for ldocID 0-799)'])
+				'              (X)2: accumulated threshold by 0.68 (1 std) using pattern count',
+				'              (X)3: [type 2] & set min_count=4', 
+				'                 4: [type 2] & remove the pattern occurrence counted from oneself (for ldocID 0-799)',   
+				'                 5: [type 3] & remove the pattern occurrence counted from oneself (for ldocID 0-799)'])
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:c:f:v',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'countingUnitType=', 'featureValueType=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hc:f:v',['help', 'countingUnitType=', 'featureValueType=', 'verbose'])
 	except getopt.GetoptError:
-		config.help(config.positionFeat_name, addon=add_opts, exit=2)
+		config.help(config.patternEmotionFeat_name, addon=add_opts, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help(config.positionFeat_name, addon=add_opts)
-		elif opt in ('-b'): config.begPercentage = int(arg.strip())
-		elif opt in ('-m'): config.midPercentage = int(arg.strip())
-		elif opt in ('-e'): config.endPercentage = int(arg.strip())
+		if opt in ('-h', '--help'): config.help(config.patternEmotionFeat_name, addon=add_opts)
 		elif opt in ('-c'): config.countingUnitType = int(arg.strip())
 		elif opt in ('-f'): config.featureValueType = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 
 	## insert metadata
 	setting = { 
-		"feature_name": "position", 
-		"section": "b"+ str(config.begPercentage) + "_m" + str(config.midPercentage) + "_e" + str(config.endPercentage), 
+		"feature_name": "pattern_emotion", 
 		"counting_unit_type": config.countingUnitType, 
 		"feature_value_type": config.featureValueType 
 	}
@@ -278,4 +233,4 @@ if __name__ == '__main__':
 	create_document_features(setting_id)
 	print 'Time total:',time.time() - s,'sec'
 
-	print record
+	if record: print record
