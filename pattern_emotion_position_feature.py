@@ -210,9 +210,6 @@ if __name__ == '__main__':
 		('-b', ['-b: percentage of beginning section']),
 		('-m', ['-m: percentage of middle section']),
 		('-e', ['-e: percentage of ending section']),
-		('-c', ['-c: counting unit for document segmentation',
-				'                 0: number of words',
-				'                 1: number of sentences (not implemented yet)']),
 		('-f', ['-f: feature value computation',
 				'                 0: pattern scores (patscore_p2_s0)', 
 				'                 1: accumulated threshold by 0.68 (1 std) using pattern scores',
@@ -223,7 +220,7 @@ if __name__ == '__main__':
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:c:f:v',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'countingUnitType=', 'featureValueType=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:f:v',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'featureValueType=', 'verbose'])
 	except getopt.GetoptError:
 		config.help(config.patternEmotionPositionFeat_name, addon=add_opts, exit=2)
 
@@ -232,7 +229,6 @@ if __name__ == '__main__':
 		elif opt in ('-b'): config.begPercentage = int(arg.strip())
 		elif opt in ('-m'): config.midPercentage = int(arg.strip())
 		elif opt in ('-e'): config.endPercentage = int(arg.strip())
-		elif opt in ('-c'): config.countingUnitType = int(arg.strip())
 		elif opt in ('-f'): config.featureValueType = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 
@@ -240,7 +236,6 @@ if __name__ == '__main__':
 	setting = { 
 		"feature_name": "position", 
 		"section": "b"+ str(config.begPercentage) + "_m" + str(config.midPercentage) + "_e" + str(config.endPercentage), 
-		"counting_unit_type": config.countingUnitType, 
 		"feature_value_type": config.featureValueType 
 	}
 

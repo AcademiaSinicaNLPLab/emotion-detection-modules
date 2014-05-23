@@ -191,9 +191,6 @@ if __name__ == '__main__':
 	import getopt
 	
 	add_opts = [
-		('-c', ['-c: counting unit for document segmentation',
-				'                 0: number of words',
-				'                 1: number of sentences (not implemented yet)']),
 		('-f', ['-f: feature value computation',
 				'                 0: pattern scores (patscore_p2_s0)', 
 				'                 1: accumulated threshold by 0.68 (1 std) using pattern scores',
@@ -204,20 +201,18 @@ if __name__ == '__main__':
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hc:f:v',['help', 'countingUnitType=', 'featureValueType=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hf:v',['help', 'featureValueType=', 'verbose'])
 	except getopt.GetoptError:
 		config.help(config.patternEmotionFeat_name, addon=add_opts, exit=2)
 
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help(config.patternEmotionFeat_name, addon=add_opts)
-		elif opt in ('-c'): config.countingUnitType = int(arg.strip())
 		elif opt in ('-f'): config.featureValueType = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 
 	## insert metadata
 	setting = { 
 		"feature_name": "pattern_emotion", 
-		"counting_unit_type": config.countingUnitType, 
 		"feature_value_type": config.featureValueType 
 	}
 
