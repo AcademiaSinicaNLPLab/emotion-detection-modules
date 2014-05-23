@@ -1,14 +1,23 @@
 # -*- coding: utf-8 -*-
 import config
 import color
+import re
 import pymongo, sys, os
-from collections import Counter
+from collections import Counter, defaultdict
 from itertools import product
 
-db = pymongo.Connection(config.mongo_addr)[config.db_name]
+from pprint import pprint
 
-setting_id = '537af6923681dff466c19e38'
-root = 'tmp'
+print >> sys.stderr, '[info] init ...',
+sys.stderr.flush()
+db = pymongo.Connection(config.mongo_addr)[config.db_name]
+# get all emotions
+emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])
+eids = dict( enumerate(sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])) )
+print >> sys.stderr, 'ok'
+
+# setting_id = '537af6923681dff466c19e38'
+# root = 'tmp'
 
 def accuracy(res, ratio=1):
 	TP = res['TP']
@@ -32,13 +41,33 @@ def recall(res, ratio=1):
 	return 0.0 if TP+FN == 0 else round((TP)/float(TP+FN), 4)
 
 
-# get all emotions
-emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])
 
-eids = dict( enumerate(sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])) )
+# > svm.out
+# {
+# 	'setting': <str>,
+# 	'param': <str>,
+# 	'output': <list>
+# }
+# > svm.gold
+# {
+# 	'setting': <str>,
+# 	'gold': <list>
+# }
 
+## load .gold.txt and .out from mongodb
+def load_gold_out_from_mongo(setting_id, param):
+	out_mdoc = co_svm_out.find_one({'setting': setting_id, 'param': param})
+	gold_mdoc = co_svm_gold.find_one({'setting': setting_id})
 
-def load_files(setting_id, root='tmp', param='default'):
+	# generate <answer - predict> pair
+	if out_mdoc and gold_mdoc:
+		return zip(gold_mdoc['gold'], out_mdoc['out'])
+	else:
+		return False
+
+## load .gold.txt and .out files
+## and zip them together
+def load_files(setting_id, param, root='tmp'):
 
 	fn_gold = '.'.join([setting_id, 'gold', 'txt'])
 	fn_out  = '.'.join([setting_id, param,  'out'])
@@ -49,26 +78,31 @@ def load_files(setting_id, root='tmp', param='default'):
 	list_gold = [line.strip().split('\t') for line in open(path_gold) if len(line.strip())]
 	list_out = [int(line.strip()) for line in open(path_out) if len(line.strip())]
 
-	# print a
-	# print p
-	# raw_input()
-
 	# generate <answer - predict> pair
 	pairs = zip([ int(x[0]) for x in list_gold], list_out)
 
-	# # print pairs
-	# w = [(x,y) for (x,y) in pairs if x == y]
-	# print w
-	# print len(w)
-
-	## make sure the eid is in the default assending order
-	## i.e., 0:accomplished, 1:aggravated, ..., 39:tired
-	## just in case the order has been changed in the previous stage
-	# global eids
-	# eids = dict([( int(x[0]) , x[2]) for x in list_gold])
-	# print eids
 	return pairs
 
+def save_gold_out_to_mongo(setting_id, param, gold_out_paris):
+	co_svm_gold.insert({'setting': setting_id, 'gold': [x[0] for x in gold_out_paris] })
+	co_svm_gold.create_index('setting')
+
+	co_svm_out.insert({'setting': setting_id, 'param': param, 'output': [x[1] for x in gold_out_paris] })
+	co_svm_out.create_index([('setting', pymongo.ASCENDING), ('param', pymongo.ASCENDING)])
+
+
+def load_eval_from_mongo(setting_id, param):
+	eval_mdoc = co_svm_eval.find_one({'setting': setting_id, 'param': param})
+	return False if not eval_mdoc else eval_mdoc
+
+def save_eval_to_mongo(setting_id, param, results):
+	eval_mdoc = {'setting': setting_id, 'param': param}
+	for measure in ['accuracy', 'precision', 'recall', 'f1']:
+		eval_mdoc[measure] = dict(Results[measure])
+		eval_mdoc['avg_'+measure] = round(sum(map(lambda x:x[1], results[measure]))/float(len(results[measure])), 4)
+	co_svm_eval.insert(eval_mdoc)
+	co_svm_eval.create_index([('setting', pymongo.ASCENDING), ('param', pymongo.ASCENDING)])
+	return eval_mdoc
 
 # target: happy
 # really is Positive
@@ -82,10 +116,15 @@ def evaluate(pairs):
 	global eids
 	Positive, Negative = True, False
 	As = []
+	## results
+	Results = defaultdict(list)
 
 	for target_gold_id in eids:
-		# print >> sys.stderr, '>',eids[target_gold_id] ,'...',
-		sys.stderr.flush()
+		emotion = eids[target_gold_id]
+
+		if config.verbose: 
+			print >> sys.stderr, '>',emotion ,'...',
+			sys.stderr.flush()
 
 		really_is_positive, really_is_negative = 0, 0
 		res = Counter()
@@ -113,30 +152,24 @@ def evaluate(pairs):
 			res['FP'] += 1 if FP else 0
 			res['FN'] += 1 if FN else 0
 
-		# print eids[target_gold_id]
-		# print '\t', res
-
 		r = really_is_negative/float(really_is_positive)
 
 		A = accuracy(res, ratio=r)
 		P = precision(res, ratio=r)
 		R = recall(res, ratio=r)
+		F = round(2*P*R/float(P+R), 4) if P+R > 0 else 0.0
 
-		# print >> sys.stderr, 'done'
+		if config.verbose: print >> sys.stderr, A
 
-		# print '\taccu', A
-		# print '\tprec', P
-		# print '\trecall', R
-		# print '\tf1', 2*P*R/float(P+R) if P+R > 0 else 0.0
-		# print 
-		# raw_input()
-		print eids[target_gold_id], '\t', A
-		As.append(A)
+		Results['accuracy'].append((emotion, A))
+		Results['precision'].append((emotion, P))
+		Results['recall'].append((emotion, R))
+		Results['f1'].append((emotion, F))
 
-	return As
+
+	return Results
 
 	# print sum(As)/float(len(As))
-
 
 def average():
 	LJ40K = [x['emotion'] for x in db['emotions'].find( { 'label': 'LJ40K' } )]
@@ -176,37 +209,114 @@ def average():
 
 	return avg_LJ40K, avg_Mishne05, avg_shared
 
+# eval_mdoc = {
+#     setting: <str>, 		# setting_id
+#     param: <str>,			# svm parameters
+#
+#     accuracy: <dict>,		# emotion -> accuracy 	-> score
+#     precision: <dict>,	# emotion -> precision 	-> score
+#     recall: <dict>,		# emotion -> recall 	-> score
+#     f1: <dict>,			# emotion -> f1-score 	-> score
+#
+#     avg_accuracy: <float> # average accuracy
+# }
+
+def run(setting_id, param):
+	if config.verbose: print >> sys.stderr, "[info] load eval mdoc from mongo"
+	eval_mdoc = load_eval_from_mongo(setting_id, param)
+
+	if not eval_mdoc:
+
+		### (1) get paris
+		if config.verbose: print >> sys.stderr, "[oops] can't find eval mdoc in mongo: to create one"
+		if config.verbose: print >> sys.stderr, "[info] load gold/out pairs from mongo"
+		pairs = load_gold_out_from_mongo(setting_id, param)
+		
+		if not pairs:
+
+			if config.verbose: print >> sys.stderr, "[oops] can't find gold/out pairs in mongo: try local files"
+			pairs = load_files(setting_id, param)
+
+			
+			if pairs:
+				if config.verbose: print >> sys.stderr, "[info] got pairs from local files, save to mongo"
+				save_gold_out_to_mongo(setting_id, param, gold_out_paris=pairs)
+			else:
+				print >> sys.stderr, "[error] can't load gold/out files"
+				exit(-1)
+		else:
+			print >> sys.stderr, "[ok] <gold, out> pairs loaded"
+
+		### (2) get results
+		### send <gold,out> pairs to evaluate
+		if config.verbose: print >> sys.stderr, "[info] start evaluating"
+		Results = evaluate(pairs)
+
+		### (3) get eval mdoc
+		### save all results to mongo
+		eval_mdoc = save_eval_to_mongo(setting_id, param, results=Results)
+		if not eval_mdoc: 
+			print >> sys.stderr, "[error] failed to save eval mdoc to mongo"
+			exit(-1)
+
+	if config.verbose: print >> sys.stderr, "[info] eval mdoc loaded"
+
+	pprint(eval_mdoc)
 if __name__ == '__main__':
 
-	import re
-
-	setting_id = '537b00e33681df445d93d57e'
-	# setting_id = None
-	# ids = 
+	## default parameters
+	setting_id = None
 	root = 'tmp'
-	svm_param = 'c9'
+	param = 'default'
+	update_all = False
 
+	import getopt
+
+	add_opts = [
+		('--setting', 	['--setting: specify a setting ID (e.g., 537b00e33681df445d93d57e)', 
+					   	 '           which can be retrieved from the mongo collection features.settings' ]),
+		('--all', 		['-a, --all: evaluate and update all current experiments, default: '+str(update_all)+' )']), 
+		('--param', 	['--param: parameter string for libsvm (e.g., use "b1c4", default: '+param+' )']),
+		('--path', 		['-p, --path: path to local files (default: '+root+' )'])
+	]
+
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],'hva',['help', 'verbose', 'setting=', 'param=', 'all'])
+	except getopt.GetoptError:
+		config.help('run_svm', addon=add_opts, exit=2)
+
+	## read options
+	for opt, arg in opts:
+		if opt in ('-h', '--help'): config.help('run_svm', addon=add_opts)
+		elif opt in ('-a','--all'): update_all = True
+		elif opt in ('--param'): param = arg.strip()
+		elif opt in ('-p','--path'): root = arg.strip()
+		elif opt in ('--setting'): setting_id = arg.strip()
+		elif opt in ('-v','--verbose'): config.verbose = True
+
+	## select collections
+	co_svm_eval = db[config.co_svm_eval_name]
+	co_svm_out = db[config.co_svm_out_name]
+	co_svm_gold = db[config.co_svm_gold_name]
+
+	## check setting id
 	if not setting_id:
-
-		setting_ids = set([fn.split('.')[0] for fn in os.listdir(root) if re.match(r'^[0-9a-z]{24}', fn) ])
+		print >> sys.stderr, '[error] specify a setting id'
+		exit(-1)
+		# setting_ids = set([fn.split('.')[0] for fn in os.listdir(root) if re.match(r'^[0-9a-z]{24}', fn) ])
 	else:
 		setting_ids = [setting_id]
 
-	for setting_id in setting_ids:
+	## generate to do list
+	if update_all:
+		pass
+	else:
+		to_do_list = [(setting_id, param)]
 
-
-		pairs = load_files(setting_id, param=svm_param)
-		As = evaluate(pairs)
-		# print As
-		print >> sys.stderr, setting_id, '\t', sum(As)/float(len(As))
-		# raw_input()	
-
-
-
-	# working_root = '/Users/Maxis/projects/emotion-detection-modules/data/'
-
-
-	# print pairs
+	for (setting_id, param) in to_do_list:
+		run(setting_id, param)
 
 
 
+
+		
