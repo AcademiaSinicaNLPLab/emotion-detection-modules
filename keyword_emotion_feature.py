@@ -86,9 +86,8 @@ def get_keyword_feature(udocID):
 		count = get_keyword_count(word)
 		if count: 
 			count = remove_self_count( count,  udocID )
-
-		for e in accumulate_threshold(count):
-			keywordFeature[ e ] += 1
+			for e in accumulate_threshold(count):
+				keywordFeature[ e ] += 1
 
 	return keywordFeature
 
