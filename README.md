@@ -4,6 +4,8 @@ A key focus of this work was to recognize implicit emotions in blog posts.
 
 Different from past approaches using surface features, we utilize syntax and semantic knowledges and learn meaningful patterns to detect a user's intended emotion.
 
+[flowchart](https://www.gliffy.com/go/html5/5776824?app=1b5094b0-6042-11e2-bcfd-0800200c9a66)
+
 ## Workflow
 
 1. Extract Patterns from LJ40K
