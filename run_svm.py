@@ -50,12 +50,11 @@ model_params = 'default'
 
 files = {}
 sids = defaultdict(list)
-
 # ---------------------------------------------------------------------------------------------------- #
 
 def parse_params(str_params):
-	# target forms: ["-c 4 -b 1", "-c 4-b1", "-c4 -b1", "c4b1", "c4 b1", "c4 b 1"]
-	return sorted( re.findall(r'-?([a-z])\s*([0-9])', str_params), key=lambda x:x[0] )
+	# target forms: ["-c 4 -b 1", "-c 4-b1", "-c4 -b1", "c4b1", "c4 b1", "c4 b 1", "-n 0.5"]
+	return sorted( re.findall(r'-?([a-z])\s*([0-9\.]+)', str_params), key=lambda x:x[0] )
 
 ## grouping available setting ids and corresponding files
 def grouping(display=False):
@@ -140,7 +139,6 @@ def create_workflow(files, model_params):
 
 	return workflow
 
-
 if __name__ == '__main__':
 
 	import getopt
@@ -202,6 +200,7 @@ if __name__ == '__main__':
 		print >> sys.stderr, '[info] Related files:'
 		for fn in files.values():
 			print >> sys.stderr, '       -', fn
+		exit(0)
 
 	# confirm message
 	for cmd in workflow:
@@ -214,13 +213,9 @@ if __name__ == '__main__':
 		exit(-1)
 	else:
 		for cmd in workflow:
-			# print >> sys.stderr, color.render('[cmd]', 'lc'), ' '.join(cmd)
 			print >> sys.stderr, color.render('['+cmd[0].split('/')[-1]+']', 'r')
 			print >> sys.stderr, color.render(' start '+'>'*10, 'y' )
 			retcode = subprocess.call(cmd, shell=False)
 			print >> sys.stderr, color.render( ' end '+'<'*10, 'b')
-	
-
-
 
 
