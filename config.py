@@ -11,6 +11,7 @@ runSVM_name = 'run_svm'
 keywordFeat_name = 'keyword_feature'
 keywordEmotionFeat_name = 'keyword_emotion_feature'
 keywordPositionFeat_name = 'keyword_position_feature'
+keywordEmotionPositionFeat_name = 'keyword_emotion_position_feature'
 
 patternFeat_name = 'pattern_feature'
 patternEmotionFeat_name = 'pattern_emotion_feature'
@@ -90,6 +91,7 @@ opt_fields = {
 	keywordFeat_name:	['-k','--lemma','-v'],
 	keywordEmotionFeat_name:	['-k','--lemma','-v'],
 	keywordPositionFeat_name:	['-b','-m','-e','-k','--lemma','-v'],
+	keywordEmotionPositionFeat_name:	['-b','-m','-e','-k','--lemma','-v'],
 
 	patternFeat_name:	['-l','-v'],
 	patternEmotionFeat_name:	['-c','-f','-v'],
