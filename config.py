@@ -188,7 +188,7 @@ def print_confirm(confirm_msg, bar=40, halt=True):
 	if halt:
 		print >> sys.stderr, 'press any key to start...', raw_input()	
 
-def help(program, addon=[], exit=1):
+def help(program, args=[], addon=[], exit=1):
 
 	params = {}
 	record = ['p','d','g','s','l'] # record the option of ps_function, ds_function, sig_function, smoothing and limit
@@ -263,11 +263,18 @@ def help(program, addon=[], exit=1):
 		if addon_opt not in opts:
 			opts.append( addon_opt )
 
-	usage = '\nusage: python '+program+'.py [options]\n' + '='*50 + '\n[options]'
+	usage = ['\nusage:']
+	usage += [program+'.py'] 
+	usage += args
+	usage += ['[-, -- options]\n']
+	# usage += []
+	print ' '.join(usage) + '='*50 + '\n[-, -- options]'
+
+	# usage = '\nusage: python '+program+' '.join(args)+' [options]\n'
 	params_str = '\n'.join(['\n'.join(params[opt]) + '\n' for opt in opts])
 
 
-	print >> sys.stderr, usage
+	# print >> sys.stderr, usage
 	print >> sys.stderr, params_str
 
 	if exit: sys.exit(exit)
