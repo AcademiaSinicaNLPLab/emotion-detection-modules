@@ -187,7 +187,7 @@ def generate_train_test_files(str_feature_vectors, dest_paths):
 		# [(31000, '38 0:2 1:6 2:1 3:1'), ...]
 
 		## sort by udocID
-		vectors = sorted(str_feature_vectors[eid], lambda x:x[0])
+		vectors = sorted(str_feature_vectors[eid], key=lambda x:x[0])
 
 		train = vectors[:800]
 		test  = vectors[800:]
@@ -245,12 +245,6 @@ if __name__ == '__main__':
 	add_opts = [
 		('setting_id', ['<setting_id>: specify a setting ID (e.g., 537086fcd4388c7e81676914)', 
 					   '           which can be retrieved from the mongo collection features.settings' ]),
-		# ('--train', ['--train: specify the output filename for training file']),
-		# ('--list', ['--list: only list available setting IDs; no further move']),
-		# ('--fuse', ['--fuse: enter the feature fusion mode']),
-		# ('--test', ['--test: specify the output filename for testing file']),
-		# ('--gold', ['--gold: specify the output filename for gold file']),
-		# ('--root', ['--root: specify the output root directory'])
 	]
 
 	try:
