@@ -20,6 +20,8 @@ from collections import defaultdict
 
 # -------------------------------------------- config --------------------------------------------------- #
 
+cores = 1
+
 setting_id = None
 
 ## <bool> for display all available setting id and corresponding files
@@ -119,7 +121,7 @@ def create_workflow(files, model_params):
 
 	elif not status['output']: # no output
 
-		train_args =  [ os.path.join(libsvm_path, libsvm_program['train']) ]
+		train_args = [ os.path.join(libsvm_path, libsvm_program['train']) ]
 		train_args += params_list
 		train_args += [ abs_pathes['train'], abs_pathes['model'] ]
 
@@ -147,11 +149,12 @@ if __name__ == '__main__':
 		('--setting', 	['--setting: specify a setting ID (e.g., 537086fcd4388c7e81676914)', 
 					   	 '           which can be retrieved from the mongo collection features.settings' ]),
 		('--list', 		['--list: list local available setting IDs and related files']), 
+		('--core', 		['-c, --core: multi-core for svm']), 
 		('--param', 	['--param: parameter string for libsvm (e.g., use "c4b1" or "-c 4 -b 1" to represent the libsvm parameters -c 4 -b 1)'])
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hvol',['help', 'verbose', 'overwrite', 'setting=', 'param=', 'list'])
+		opts, args = getopt.getopt(sys.argv[1:],'hvol',['help', 'verbose', 'overwrite', 'setting=', 'param=', 'list', 'multi='])
 	except getopt.GetoptError:
 		config.help('run_svm', addon=add_opts, exit=2)
 
@@ -161,6 +164,7 @@ if __name__ == '__main__':
 		elif opt in ('--list'): list_availabel_settings = True
 		elif opt in ('--param'): libsvm_params = parse_params( arg.strip() )
 		elif opt in ('--setting'): setting_id = arg.strip()
+		elif opt in ('--multi'): cores = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 		elif opt in ('-o','--overwrite'): config.overwrite = True
 
@@ -212,6 +216,9 @@ if __name__ == '__main__':
 	if ok.lower().startswith('n'):
 		exit(-1)
 	else:
+		multicore = 'export OMP_NUM_THREADS='+str(cores)
+		subprocess.call([], shell=True)
+
 		for cmd in workflow:
 			print >> sys.stderr, color.render('['+cmd[0].split('/')[-1]+']', 'r')
 			print >> sys.stderr, color.render(' start '+'>'*10, 'y' )
