@@ -267,6 +267,7 @@ def run(setting_id, param):
 
 	if config.verbose: print >> sys.stderr, "[info] eval mdoc loaded"
 
+	return eval_mdoc
 	# pprint(eval_mdoc)
 
 if __name__ == '__main__':
@@ -322,7 +323,10 @@ if __name__ == '__main__':
 	
 	for (setting_id, param) in to_do_list:
 		print >> sys.stderr, '[run] processing', color.render(setting_id, 'g'), color.render(param,'y')
-		run(setting_id, param)
+		eval_mdoc = run(setting_id, param)
+
+		if config.verbose:
+			pprint(eval_mdoc)
 
 
 
