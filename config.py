@@ -8,6 +8,18 @@ ev_name = 'evaluation'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
 
+# -------------------------------------------- paths -------------------------------------------- #
+# libsvm abs path
+libsvm_path  = '/tools/libsvm'
+libsvm_program = {
+	'train':'svm-train',
+	'test': 'svm-predict',
+	'check': 'tools/checkdata.py',
+}
+# relative file pathes for train, test, model and out
+svm_file_root = 'tmp'
+
+# -------------------------------------------- mongodb -------------------------------------------- #
 keywordFeat_name = 'keyword_feature'
 keywordEmotionFeat_name = 'keyword_emotion_feature'
 keywordPositionFeat_name = 'keyword_position_feature'
@@ -43,6 +55,7 @@ co_docscore_prefix = 'docscore'
 ## to be setup
 co_patscore_name = ''
 co_docscore_name = ''
+# ------------------------------------------ (end) mongodb ------------------------------------------ #
 
 ## names of functions
 ps_function_name = 'ps_function'
