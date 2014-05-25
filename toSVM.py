@@ -1,12 +1,15 @@
 ## read from mongodb.features.xxx
 ## generate svm feature file
 
-import config, color
+import config
 import pickle
-import pymongo, sys, os, re
+import sys, color
+import pymongo, os, re
 from collections import defaultdict
 from bson.objectid import ObjectId
 
+import logging
+logging.basicConfig(format='[%(levelname)s]\t%(message)s', level=logging.DEBUG)
 #### global
 ## ------------------------------------------------------- ##
 
@@ -54,8 +57,7 @@ def obtain_dest_setting_id(src_setting_ids):
 	return dest_setting_id
 
 def is_dest_files_exist(dest_paths):
-	print [os.path.exists(dest_path) for dest_path in dest_paths]
-	return False if False in [os.path.exists(dest_path) for dest_path in dest_paths] else True
+	return False if False in [os.path.exists(dest_path) for dest_path in dest_paths.values()] else True
 
 def get_dest_paths(dest_setting_id, ext='txt'):
 	# check 
@@ -216,24 +218,25 @@ def run():
 
 	dest_paths = get_dest_paths(dest_setting_id)
 
-	print 'src_setting_ids:', src_setting_ids
-	print 'dest_setting_id:', dest_setting_id
-	print 'dest_paths:', dest_paths
+	## logging
+	logging.debug('src_setting_ids: '+color.render(','.join(src_setting_ids), 'y') )
+	for ftype, fn in sorted(dest_paths.items()):
+		logging.debug( ftype+': '+color.render(fn, 'g') )
+	logging.debug('dest_setting_id: '+color.render(dest_setting_id, 'y') )
 
-	# raw_input()
 
 	# files are all existed
 	if is_dest_files_exist(dest_paths):
-		print 'all files are existed'
+		logging.info('all files are existed')
 	# files are not all existed
 	else:
-		print 'generate feature vectors'
+		logging.info('generate feature vectors')
 		feature_vectors = generate_feature_vectors(src_setting_ids)
 
-		print 'transform to svm format'
+		logging.info('transform to svm format')
 		str_feature_vectors = tranform_to_svm_format(feature_vectors)
 
-		print 'generate train/test files'
+		logging.info('generate train/test files')
 		generate_train_test_files(str_feature_vectors, dest_paths)
 	
 	return True
@@ -256,7 +259,6 @@ if __name__ == '__main__':
 	## read options
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('toSVM',args=['setting_id'], addon=add_opts)
+		if opt in ('-h', '--help'): config.help('toSVM',args=['setting_id'], addon=add_opts)
 		elif opt in ('-v','--verbose'): config.verbose = True
-
-
 	run()
