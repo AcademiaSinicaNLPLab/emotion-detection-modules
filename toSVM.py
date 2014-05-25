@@ -7,17 +7,15 @@ import sys, color
 import pymongo, os, re
 from collections import defaultdict
 from bson.objectid import ObjectId
-
 import logging
-logging.basicConfig(format='[%(levelname)s]\t%(message)s', level=logging.DEBUG)
-#### global
-## ------------------------------------------------------- ##
 
+## ----------------------  global  ----------------------- ##
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 udocID_eid = {}
 co_feature_setting = None
 setting_id_str = ''
 eids = { emotion : i for i, emotion in enumerate(sorted([d['emotion'] for d in db['emotions'].find({'label': 'LJ40K'})])) }
+## ------------------------------------------------------- ##
 
 def parse_src_setting_ids():
 	# support delimiters: [, . ; : white_space]
@@ -250,8 +248,9 @@ if __name__ == '__main__':
 					   '           which can be retrieved from the mongo collection features.settings' ]),
 	]
 
+	arg_idx = 2 if len(sys.argv) > 1 and not sys.argv[1].startswith('-') else 1
 	try:
-		opts, args = getopt.getopt(sys.argv[2:],'hvo',['help', 'verbose', 'overwrite'])
+		opts, args = getopt.getopt(sys.argv[arg_idx:],'hvo',['help', 'verbose', 'overwrite'])
 		setting_id_str = sys.argv[1].strip()
 	except:
 		config.help('toSVM', addon=add_opts, args=['<setting_id>'], exit=2)
@@ -259,6 +258,10 @@ if __name__ == '__main__':
 	## read options
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('toSVM',args=['setting_id'], addon=add_opts)
-		if opt in ('-h', '--help'): config.help('toSVM',args=['setting_id'], addon=add_opts)
 		elif opt in ('-v','--verbose'): config.verbose = True
+
+	## set log level
+	loglevel = logging.DEBUG if config.verbose else logging.INFO
+	logging.basicConfig(format='[%(levelname)s]\t%(message)s', level=loglevel)
+
 	run()

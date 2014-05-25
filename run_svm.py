@@ -146,24 +146,25 @@ if __name__ == '__main__':
 	import getopt
 
 	add_opts = [
-		('--setting', 	['--setting: specify a setting ID (e.g., 537086fcd4388c7e81676914)', 
-					   	 '           which can be retrieved from the mongo collection features.settings' ]),
+		('setting_id', ['<setting_id>: specify a setting ID (e.g., 537086fcd4388c7e81676914)', 
+					   '           which can be retrieved from the mongo collection features.settings' ]),
 		('--list', 		['--list: list local available setting IDs and related files']), 
 		('--core', 		['-c, --core: multi-core for svm']), 
-		('--param', 	['--param: parameter string for libsvm (e.g., use "c4b1" or "-c 4 -b 1" to represent the libsvm parameters -c 4 -b 1)'])
+		('--param', 	['--param: parameter string for libsvm (e.g., use "c4b1" or "-c 4 -b 1" to represent the libsvm parameters -c 4 -b 1)'])		
 	]
 
+	arg_idx = 2 if len(sys.argv) > 1 and not sys.argv[1].startswith('-') else 1
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hvol',['help', 'verbose', 'overwrite', 'setting=', 'param=', 'list', 'multi='])
-	except getopt.GetoptError:
-		config.help('run_svm', addon=add_opts, exit=2)
+		opts, args = getopt.getopt(sys.argv[arg_idx:],'hvo',['help', 'verbose', 'overwrite'])
+		setting_id_str = sys.argv[1].strip()
+	except:
+		config.help('run_svm', addon=add_opts, args=['<setting_id>'], exit=2)
 
 	## read options
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('run_svm', addon=add_opts)
 		elif opt in ('--list'): list_availabel_settings = True
 		elif opt in ('--param'): libsvm_params = parse_params( arg.strip() )
-		elif opt in ('--setting'): setting_id = arg.strip()
 		elif opt in ('--multi'): cores = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 		elif opt in ('-o','--overwrite'): config.overwrite = True
@@ -216,8 +217,9 @@ if __name__ == '__main__':
 	if ok.lower().startswith('n'):
 		exit(-1)
 	else:
-		multicore = 'export OMP_NUM_THREADS='+str(cores)
-		subprocess.call([], shell=True)
+		if cores > 1:
+			multicore = 'export OMP_NUM_THREADS='+str(cores)
+			subprocess.call([multicore], shell=True)
 
 		for cmd in workflow:
 			print >> sys.stderr, color.render('['+cmd[0].split('/')[-1]+']', 'r')
