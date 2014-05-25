@@ -54,6 +54,7 @@ def obtain_dest_setting_id(src_setting_ids):
 	return dest_setting_id
 
 def is_dest_files_exist(dest_paths):
+	print [os.path.exists(dest_path) for dest_path in dest_paths]
 	return False if False in [os.path.exists(dest_path) for dest_path in dest_paths] else True
 
 def get_dest_paths(dest_setting_id, ext='txt'):
