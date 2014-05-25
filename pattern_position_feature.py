@@ -25,6 +25,7 @@ def get_total_count(pattern):
 
 	return cache[pattern]
 
+
 ## input: udocID
 ## output: a dictionary of (pattern: occurrence)
 def get_pattern_feature(udocID):
@@ -57,8 +58,6 @@ def get_pattern_feature(udocID):
 			key = '@'+ position + '_' + pat['pattern']
 			patFeature[ key ] += 1
 
-			print key
-
 	return patFeature
 
 def create_pattern_features():
@@ -81,7 +80,7 @@ def create_pattern_features():
 				"feature": get_pattern_feature(udocID=doc['udocID']).items(),
 				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
-			# co_feature.insert(mdoc)
+			co_feature.insert(mdoc)
 
 	co_feature.create_index("setting")
 
@@ -134,11 +133,10 @@ if __name__ == '__main__':
 	config.print_confirm(setting.items(), bar=40, halt=True)
 	
 	## insert metadata
-	# setting_id = str(co_setting.insert( setting ))
+	setting_id = str(co_setting.insert( setting ))
 
 	## run
 	import time
 	s = time.time()	
 	create_pattern_features()
 	print 'Time total:',time.time() - s,'sec'
-
