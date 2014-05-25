@@ -6,12 +6,12 @@ python run_svm.py 537c6c90d4388c0e27069e7b --param c9r5t1 --quiet	# Accuracy = 5
 python run_svm.py 53744c12d4388c206b2cc881 --param c9r5t1 --quiet	# Accuracy = 7.40946% (536/7234) (classification)
 python run_svm.py 53744d55d4388c49faffe9b5 --param c9r5t1 --quiet	# Accuracy = 8.91895% (712/7983) (classification)
 python run_svm.py 53745053d4388c3fc1579c2a --param c9r5t1 --quiet	# Accuracy = 6.92652% (526/7594) (classification)
-python run_svm.py 537451d1d4388c7843516ba4 --param c9r5t1 --quiet	# 
-python run_svm.py 537d838fd4388c3735dc1916 --param c9r5t1 --quiet	# 
-python run_svm.py 537dad77d4388c409cff30bb --param c9r5t1 --quiet	# 
-python run_svm.py 537ec46bd4388c72b5877f67 --param c9r5t1 --quiet	# 
-python run_svm.py 537dd9afd4388c2a1adf8ca2 --param c9r5t1 --quiet	# 
-python run_svm.py 537ddc3ad4388c4fb8dbe1ae --param c9r5t1 --quiet	# 
+python run_svm.py 537451d1d4388c7843516ba4 --param c9r5t1 --quiet	# Accuracy = 9.00438% (719/7985) (classification)
+python run_svm.py 537d838fd4388c3735dc1916 --param c9r5t1 --quiet	# Accuracy = 37.0149% (2909/7859) (classification)
+python run_svm.py 537dad77d4388c409cff30bb --param c9r5t1 --quiet	# (running) WARNING: reaching max number of iterations
+python run_svm.py 537ec46bd4388c72b5877f67 --param c9r5t1 --quiet	# (running) WARNING: reaching max number of iterations
+python run_svm.py 537dd9afd4388c2a1adf8ca2 --param c9r5t1 --quiet	# Accuracy = 7.10534% (514/7234) (classification)
+python run_svm.py 537ddc3ad4388c4fb8dbe1ae --param c9r5t1 --quiet	# (running) 
 python run_svm.py 5378c702d4388c5df3475bee --param c9r5t1 --quiet	# Accuracy = 3.8331% (305/7957) (classification)
 python run_svm.py 53797af2d4388c23183717b4 --param c9r5t1 --quiet	# Accuracy = 3.45608% (275/7957) (classification)
 python run_svm.py 537992d4d4388c22f1b4adbb --param c9r5t1 --quiet	# Accuracy = 3.53148% (281/7957) (classification)
