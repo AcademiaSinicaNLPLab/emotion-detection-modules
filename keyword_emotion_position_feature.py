@@ -7,20 +7,16 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 lmtzr = WordNetLemmatizer()
 
-cache = {}
+keyword_list = []
 
 ## input: word
 ## output: a dictionary of (emotion: count)
 def get_keyword_count(word):
 
-	global cache
-
-	if word not in cache:
+	if word in keyword_list:
 		mdoc = co_keyword_lexicon.find_one({ 'keyword': word })
-		if mdoc: 
-			cache[word] = mdoc['count']
-		else: 
-			cache[word] = {}
+		if mdoc: return mdoc['count']
+	else: return {}
 
 	return cache[word]
 
@@ -213,6 +209,9 @@ if __name__ == '__main__':
 			co_keyword_lexicon = db['lexicon.keyword.extend.w_lemma']
 		else: 
 			co_keyword_lexicon = db['lexicon.keyword.extend.wo_lemma']
+
+	## create keyword_list
+	keyword_list = [ mdoc['word'] for mdoc in list( co_keywords.find( {'type': config.keyword_type} ) ) ]
 
 	## run
 	import time
