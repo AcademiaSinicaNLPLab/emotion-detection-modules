@@ -224,7 +224,6 @@ def run():
 	# files are all existed
 	if is_dest_files_exist(dest_paths):
 		print 'all files are existed'
-		return True
 	# files are not all existed
 	else:
 		print 'generate feature vectors'
