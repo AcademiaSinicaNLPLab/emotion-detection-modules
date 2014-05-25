@@ -19,7 +19,7 @@ import logging
 ##		output:	predict output (.out)
 
 cores = 1
-
+quiet_mode = False
 
 def check(setting_id):
 	return True if re.findall(r'^([a-z0-9]{24})$', str(setting_id).strip()) else False
@@ -77,6 +77,9 @@ def create_workflow(files, svm_params):
 			logging.info("No model files, train first then test")
 
 			## args for train
+			if quiet_mode:
+				svm_param_args.insert(0, '-q')
+
 			train_args =  [os.path.join(config.libsvm_path, config.libsvm_program['train'])]
 			train_args += svm_param_args
 			train_args += [files['train']['path'], files['model']['path']]
@@ -148,25 +151,25 @@ if __name__ == '__main__':
 	add_opts = [
 		('setting_id', ['<setting_id>: specify a setting ID (e.g., 537086fcd4388c7e81676914)', 
 					   '           which can be retrieved from the mongo collection features.settings' ]),
-		('--list', 		['--list: list local available setting IDs and related files']), 
+		('--quiet', 	['--quiet: run svm in quiet mode']), 
 		('--core', 		['-c, --core: multi-core for svm']), 
 		('--param', 	['--param: parameter string for libsvm (e.g., use "c4b1" or "-c 4 -b 1" to represent the libsvm parameters -c 4 -b 1)'])		
 	]
 
 	arg_idx = 2 if len(sys.argv) > 1 and not sys.argv[1].startswith('-') else 1
 	try:
-		opts, args = getopt.getopt(sys.argv[arg_idx:],'hvop:',['help', 'verbose', 'overwrite', 'list', 'param=','multi='])
+		opts, args = getopt.getopt(sys.argv[arg_idx:],'hvop:q',['help', 'verbose', 'overwrite', 'list', 'param=','multi=', 'quiet'])
 		setting_id = sys.argv[1].strip()
 	except:
 		config.help('run_svm', addon=add_opts, args=['<setting_id>'], exit=2)
+
 
 	svm_params = []
 	## read options
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('run_svm', addon=add_opts)
-		elif opt in ('--list'): list_availabel_settings = True
-		elif opt in ('-p','--param'): 
-			svm_params = parse_params(arg.strip())
+		elif opt in ('-q','--quiet'): quiet_mode = True
+		elif opt in ('-p','--param'): svm_params = parse_params(arg.strip())
 		elif opt in ('--multi'): cores = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True
 		elif opt in ('-o','--overwrite'): config.overwrite = True
