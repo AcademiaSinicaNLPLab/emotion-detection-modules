@@ -104,10 +104,10 @@ def generate_feature_vectors(src_setting_ids):
 		prefix = src_setting_id
 
 		## gathering
-		for mdoc in db[collection_name].find():
+		for mdoc in db[collection_name].find({'setting':src_setting_id}):
 			udocID = mdoc['udocID']
 			emotion = mdoc['emotion']
-
+			
 			## use emotion index as eid
 			eid = eids[emotion]
 
@@ -224,7 +224,7 @@ def run():
 
 
 	# files are all existed
-	if is_dest_files_exist(dest_paths):
+	if is_dest_files_exist(dest_paths) and not config.overwrite:
 		logging.info('all files are existed')
 	# files are not all existed
 	else:
@@ -259,6 +259,7 @@ if __name__ == '__main__':
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('toSVM',args=['setting_id'], addon=add_opts)
 		elif opt in ('-v','--verbose'): config.verbose = True
+		elif opt in ('-o','--overwrite'): config.overwrite = True
 
 	## set log level
 	loglevel = logging.DEBUG if config.verbose else logging.INFO
