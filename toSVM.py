@@ -262,6 +262,6 @@ if __name__ == '__main__':
 
 	## set log level
 	loglevel = logging.DEBUG if config.verbose else logging.INFO
-	logging.basicConfig(format='[%(levelname)s]\t%(message)s', level=loglevel)
+	logging.basicConfig(format='[%(levelname)s] %(message)s', level=loglevel)
 
 	run()
