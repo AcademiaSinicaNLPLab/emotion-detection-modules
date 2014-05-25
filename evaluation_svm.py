@@ -61,7 +61,7 @@ def load_gold_out_from_mongo(setting_id, param):
 
 	# generate <answer - predict> pair
 	if out_mdoc and gold_mdoc:
-		return zip(gold_mdoc['gold'], out_mdoc['out'])
+		return zip(gold_mdoc['gold'], out_mdoc['output'])
 	else:
 		return False
 
@@ -98,7 +98,7 @@ def load_eval_from_mongo(setting_id, param):
 def save_eval_to_mongo(setting_id, param, results):
 	eval_mdoc = {'setting': setting_id, 'param': param}
 	for measure in ['accuracy', 'precision', 'recall', 'f1']:
-		eval_mdoc[measure] = dict(Results[measure])
+		eval_mdoc[measure] = dict(results[measure])
 		eval_mdoc['avg_'+measure] = round(sum(map(lambda x:x[1], results[measure]))/float(len(results[measure])), 4)
 	co_svm_eval.insert(eval_mdoc)
 	co_svm_eval.create_index([('setting', pymongo.ASCENDING), ('param', pymongo.ASCENDING)])
@@ -209,6 +209,12 @@ def average():
 
 	return avg_LJ40K, avg_Mishne05, avg_shared
 
+def find_availale_experiments():
+	# find <sid>.gold.txt
+	# find <sid>.<param>.out
+	exps = [tuple(fn.split('.')[:2]) for fn in os.listdir(root) if fn.endswith('.out')]
+	return exps
+
 # eval_mdoc = {
 #     setting: <str>, 		# setting_id
 #     param: <str>,			# svm parameters
@@ -261,7 +267,9 @@ def run(setting_id, param):
 
 	if config.verbose: print >> sys.stderr, "[info] eval mdoc loaded"
 
-	pprint(eval_mdoc)
+	return eval_mdoc
+	# pprint(eval_mdoc)
+
 if __name__ == '__main__':
 
 	## default parameters
@@ -299,22 +307,26 @@ if __name__ == '__main__':
 	co_svm_out = db[config.co_svm_out_name]
 	co_svm_gold = db[config.co_svm_gold_name]
 
-	## check setting id
-	if not setting_id:
-		print >> sys.stderr, '[error] specify a setting id'
-		exit(-1)
-		# setting_ids = set([fn.split('.')[0] for fn in os.listdir(root) if re.match(r'^[0-9a-z]{24}', fn) ])
-	else:
-		setting_ids = [setting_id]
 
 	## generate to do list
 	if update_all:
-		pass
+		to_do_list = find_availale_experiments()
 	else:
-		to_do_list = [(setting_id, param)]
+		## check setting id
+		if not setting_id:
+			print >> sys.stderr, '[error] specify a setting id'
+			exit(-1)
+		else:
+			setting_ids = [setting_id]
 
+		to_do_list = [(setting_id, param)]
+	
 	for (setting_id, param) in to_do_list:
-		run(setting_id, param)
+		print >> sys.stderr, '[run] processing', color.render(setting_id, 'g'), color.render(param,'y')
+		eval_mdoc = run(setting_id, param)
+
+		if config.verbose:
+			pprint(eval_mdoc)
 
 
 
