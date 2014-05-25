@@ -15,10 +15,9 @@ def get_keyword_count(word):
 
 	if word in keyword_list:
 		mdoc = co_keyword_lexicon.find_one({ 'keyword': word })
-		if mdoc: return mdoc['count']
-	else: return {}
-
-	return cache[word]
+		if mdoc: 
+			return mdoc['count']
+	return {}
 
 ## input: dictionary of (emotion, count)
 ## output: dictionary of (emotion, count)
