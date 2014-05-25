@@ -120,8 +120,6 @@ def get_keyword_feature(udocID):
 				key = '@'+ position + '_' + e
 				keywordFeature[ key ] += 1
 
-		raw_input()
-
 	return keywordFeature
 
 def create_keyword_features():
