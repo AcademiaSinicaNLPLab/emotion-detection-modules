@@ -244,7 +244,7 @@ if __name__ == '__main__':
 	import getopt
 
 	add_opts = [
-		('setting_id', ['<setting_id>: specify a setting ID (e.g., 537086fcd4388c7e81676914)', 
+		('setting_id', ['<setting_id>: specify setting ID(s) (e.g., 537086fcd4388c7e81676914, or 537086fcd4388c7e81676914,537c6c90d4388c0e27069e7b)', 
 					   '           which can be retrieved from the mongo collection features.settings' ]),
 	]
 
