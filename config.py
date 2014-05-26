@@ -27,6 +27,7 @@ keywordEmotionPositionFeat_name = 'keyword_emotion_position_feature'
 
 patternFeat_name = 'pattern_feature'
 patternEmotionFeat_name = 'pattern_emotion_feature'
+patternPositionFeat_name = 'pattern_position_feature'
 patternEmotionPositionFeat_name = 'pattern_emotion_position_feature'
 
 
@@ -107,8 +108,9 @@ opt_fields = {
 	keywordEmotionPositionFeat_name:	['-b','-m','-e','-k','--lemma','-v'],
 
 	patternFeat_name:	['-l','-v'],
-	patternEmotionFeat_name:	['-c','-f','-v'],
-	patternEmotionPositionFeat_name:	['-b','-m','-e','-c','-f','-v'],
+	patternEmotionFeat_name:	['-f','-v'],
+	patternPositionFeat_name:	['-b','-m','-e','-l','-v'],
+	patternEmotionPositionFeat_name:	['-b','-m','-e','-f','-v'],
 
 	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
