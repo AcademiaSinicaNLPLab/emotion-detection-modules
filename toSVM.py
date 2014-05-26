@@ -220,7 +220,8 @@ def run():
 	logging.debug('src_setting_ids: '+color.render(','.join(src_setting_ids), 'y') )
 	for ftype, fn in sorted(dest_paths.items()):
 		logging.debug( ftype+': '+color.render(fn, 'g') )
-	logging.debug('dest_setting_id: '+color.render(dest_setting_id, 'y') )
+	
+	logging.info('dest_setting_id: '+color.render(dest_setting_id, 'y') )
 
 
 	# files are all existed
