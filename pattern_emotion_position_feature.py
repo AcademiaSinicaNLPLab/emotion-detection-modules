@@ -35,8 +35,8 @@ def get_patcount(pattern):
 	projector = { '_id': 0, 'count':1 }
 	# res = co_nestedLexicon.find_one(query, projector)
 	res = co_nestedLexicon_minCount4.find_one(query, projector)
-	if res: return {}
-	else: return res['count']
+	if res: return res['count']
+	else: return {}
 
 
 ## input: dictionary of (emotion, count)
