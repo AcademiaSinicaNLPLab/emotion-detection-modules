@@ -37,7 +37,8 @@ def get_patcount(pattern):
 
 		query = { 'pattern': pattern.lower() }
 		projector = { '_id': 0, 'count':1 }
-		res = co_nestedLexicon.find_one(query, projector)
+		# res = co_nestedLexicon.find_one(query, projector)
+		res = co_nestedLexicon_minCount4.find_one(query, projector)
 
 		if not res:
 			cache[pattern] = {}
@@ -93,12 +94,14 @@ def accumulate_threshold(score, percentage=0.68):
 ## output: a dictionary of (emotion, patfeature) according to different featureValueType 
 def get_patfeature(pattern, udocID):
 	########################################################################################
-	## type 0: pattern scores
-	## type 1: accumulated threshold by 0.68 (1 std) using pattern scores    
-	## type 2: accumulated threshold by 0.68 (1 std) using pattern occurrence
-	## type 3: [type 2] & set min_count=4  
-	## type 4: [type 2] & remove the pattern occurrence counted from oneself (for ldocID 0-799)   
-	## type 5: [type 3] & remove the pattern occurrence counted from oneself (for ldocID 0-799)
+	## (X)type 0: pattern scores
+	## (X)type 1: accumulated threshold by 0.68 (1 std) using pattern score    
+	## (X)type 2: accumulated threshold by 0.68 (1 std) using pattern count
+	## (X)type 3: [type 2] & set min_count=4  
+	## type 4: [type 2] & remove_self_count (for ldocID 0-799)   
+	## type 5: [type 3] & remove_self_count (for ldocID 0-799)
+	## type 6: pattern count & set min_count=4
+	## type 7: pattern count & set min_count=4 & cut
 	########################################################################################
 
 	if config.featureValueType == 0:
@@ -109,25 +112,37 @@ def get_patfeature(pattern, udocID):
 		return accumulate_threshold(score)
 
 	elif config.featureValueType == 2: 
-		score = get_patcount(pattern) # pattern occurrence
+		score = get_patcount(pattern) # pattern count
 		return accumulate_threshold(score)
 
 	elif config.featureValueType == 3: 
-		score = get_patcount(pattern) # pattern occurrence
+		score = get_patcount(pattern) # pattern count
 		if sum( [ score[e] for e in score ] ) < 4: return {}
 		return accumulate_threshold(score)
 
 	elif config.featureValueType == 4:
-		score = get_patcount(pattern) # pattern occurrence
+		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(score, udocID)
 		return accumulate_threshold(score)
 
 	elif config.featureValueType == 5:
-		score = get_patcount(pattern) # pattern occurrence
+		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(score, udocID)
 		if sum( [ score[e] for e in score ] ) < 4: return {}
 		return accumulate_threshold(score)		
 
+	elif config.featureValueType == 6:
+		score = get_patcount(pattern) # pattern count
+		score = remove_self_count(score, udocID)
+		if sum( [ score[e] for e in score ] ) < 4: return {}
+		return score
+
+	elif config.featureValueType == 7:
+		score = get_patcount(pattern) # pattern count
+		score = remove_self_count(score, udocID)
+		if sum( [ score[e] for e in score ] ) < 4: return {}
+		binary_vector = accumulate_threshold(score)
+		return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }	
 
 def get_document_feature(udocID):
 
@@ -181,6 +196,7 @@ if __name__ == '__main__':
 	co_sents = db[config.co_sents_name]
 	co_pats = db[config.co_pats_name]
 	co_nestedLexicon = db['lexicon.nested']
+	co_nestedLexicon_minCount4 = db['lexicon.nested.min_count_4']
 	co_patscore = db['patscore_p2_s0']
 
 	## target mongo collections
@@ -192,12 +208,14 @@ if __name__ == '__main__':
 	
 	add_opts = [
 		('-f', ['-f: feature value computation',
-				'                 0: pattern scores (patscore_p2_s0)', 
-				'                 1: accumulated threshold by 0.68 (1 std) using pattern scores',
-				'              (X)2: accumulated threshold by 0.68 (1 std) using pattern count',
-				'              (X)3: [type 2] & set min_count=4', 
-				'                 4: [type 2] & remove the pattern occurrence counted from oneself (for ldocID 0-799)',   
-				'                 5: [type 3] & remove the pattern occurrence counted from oneself (for ldocID 0-799)'])
+				'             (X) 0: pattern scores (patscore_p2_s0)', 
+				'             (X) 1: accumulated threshold by 0.68 (1 std) using pattern scores',
+				'             (X) 2: accumulated threshold by 0.68 (1 std) using pattern count',
+				'             (X) 3: [type 2] & set min_count=4', 
+				'                 4: [type 2] & remove_self_count (ldocID 0-799)',   
+				'                 5: [type 3] & remove_self_count (ldocID 0-799)',
+				'                 6: pattern count & set min_count=4',
+				'                 7: pattern count & set min_count=4 & cut'],)	
 	]
 
 	try:
