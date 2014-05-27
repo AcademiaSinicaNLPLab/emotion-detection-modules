@@ -5,7 +5,18 @@ from collections import defaultdict, Counter
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 cache = {}
-record = []
+
+# global cache for mongo.LJ40K.docs
+mongo_docs = {}
+
+## load entire mongo.LJ40K.docs into memory
+def load_mongo_docs():
+	global mongo_docs
+	for mdoc in co_docs.find({}, {'_id':0}):
+		udocID = mdoc['udocID']
+		del mdoc['udocID']
+		mongo_docs[udocID] = mdoc
+
 
 ## input: pat
 ## output: a dictionary of (emotion, patscore)
@@ -31,19 +42,30 @@ def get_patscore(pattern):
 ## output: a dictionary of (emotion, occurrence)
 def get_patcount(pattern):
 
-	query = { 'pattern': pattern.lower() }
-	projector = { '_id': 0, 'count':1 }
-	# res = co_nestedLexicon.find_one(query, projector)
-	res = co_nestedLexicon_minCount4.find_one(query, projector)
-	if res: return res['count']
-	else: return {}
+	global cache
+
+	if pattern not in cache:
+
+		query = { 'pattern': pattern.lower() }
+		projector = { '_id': 0, 'count':1 }
+		# res = co_nestedLexicon.find_one(query, projector)
+		res = co_nestedLexicon_minCount4.find_one(query, projector)
+
+		if not res:
+			cache[pattern] = {}
+		else:
+			cache[pattern] = res['count']
+
+	return cache[pattern]
 
 
 ## input: dictionary of (emotion, count)
 ## output: dictionary of (emotion, count)
 def remove_self_count(score_dict, udocID):
 	 
-	mdoc = co_docs.find_one( {'udocID': udocID} )
+	global mongo_docs
+	mdoc = mongo_docs[udocID] # use pre-loaded
+	# mdoc = co_docs.find_one( {'udocID': udocID} )
 	
 	## ldocID: 0-799	
 	if mdoc['ldocID'] < 800: 
@@ -52,8 +74,6 @@ def remove_self_count(score_dict, udocID):
 			score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - 1
 			if score_dict[mdoc['emotion']] == 0 :
 				del score_dict[mdoc['emotion']]
-		else:
-			record.append(udocID)
 	
 	return score_dict
 
@@ -85,33 +105,15 @@ def accumulate_threshold(score, percentage=0.68):
 ## output: a dictionary of (emotion, patfeature) according to different featureValueType 
 def get_patfeature(pattern, udocID):
 	########################################################################################
-	## (X)type 0: pattern scores
-	## (X)type 1: accumulated threshold by 0.68 (1 std) using pattern scores    
-	## (X)type 2: accumulated threshold by 0.68 (1 std) using pattern count
-	## (X)type 3: [type 2] & set min_count=4  
-	## type 4: [type 2] & remove_self_count (ldocID 0-799)   
-	## type 5: [type 3] & remove_self_count (ldocID 0-799)
+	## type 4: binary vector    
+	## type 5: binary vector & set min_count=4
 	## type 6: pattern count & set min_count=4
 	## type 7: pattern count & set min_count=4 & cut
+	## type 8: pattern count & set min_count=10
+	## type 9: pattern count & set min_count=10 & cut
 	########################################################################################
 
-	if config.featureValueType == 0:
-		return get_patscore(pattern) 
-
-	elif config.featureValueType == 1: 
-		score = get_patscore(pattern) # pattern score
-		return accumulate_threshold(score)
-
-	elif config.featureValueType == 2: 
-		score = get_patcount(pattern) # pattern count
-		return accumulate_threshold(score)
-
-	elif config.featureValueType == 3: 
-		score = get_patcount(pattern) # pattern count
-		if sum( [ score[e] for e in score ] ) < 4: return {}
-		return accumulate_threshold(score)
-
-	elif config.featureValueType == 4:
+	if config.featureValueType == 4:
 		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(score, udocID)
 		return accumulate_threshold(score)
@@ -132,6 +134,19 @@ def get_patfeature(pattern, udocID):
 		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(score, udocID)
 		if sum( [ score[e] for e in score ] ) < 4: return {}
+		binary_vector = accumulate_threshold(score)
+		return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }	
+
+	elif config.featureValueType == 8:
+		score = get_patcount(pattern) # pattern count
+		score = remove_self_count(score, udocID)
+		if sum( [ score[e] for e in score ] ) < 10: return {}
+		return score
+
+	elif config.featureValueType == 9:
+		score = get_patcount(pattern) # pattern count
+		score = remove_self_count(score, udocID)
+		if sum( [ score[e] for e in score ] ) < 10: return {}
 		binary_vector = accumulate_threshold(score)
 		return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }	
 
@@ -219,14 +234,12 @@ if __name__ == '__main__':
 		('-m', ['-m: percentage of middle section']),
 		('-e', ['-e: percentage of ending section']),
 		('-f', ['-f: feature value computation',
-				'             (X) 0: pattern scores (patscore_p2_s0)', 
-				'             (X) 1: accumulated threshold by 0.68 (1 std) using pattern scores',
-				'             (X) 2: accumulated threshold by 0.68 (1 std) using pattern count',
-				'             (X) 3: [type 2] & set min_count=4', 
-				'                 4: [type 2] & remove_self_count (ldocID 0-799)',   
-				'                 5: [type 3] & remove_self_count (ldocID 0-799)',
+				'                 4: binary vector',   
+				'                 5: binary vector & set min_count=4',
 				'                 6: pattern count & set min_count=4',
-				'                 7: pattern count & set min_count=4 & cut'])	
+				'                 7: pattern count & set min_count=4 & cut',
+				'                 8: pattern count & set min_count=10',	
+				'                 9: pattern count & set min_count=10 & cut'])		
 	]
 
 	try:
@@ -255,10 +268,7 @@ if __name__ == '__main__':
 	## insert metadata
 	setting_id = str(co_setting.insert( setting ))
 
-	## run
-	import time
-	s = time.time()	
-	create_document_features(setting_id)
-	print 'Time total:',time.time() - s,'sec'
 
-	if record: print record
+	## run
+	load_mongo_docs()
+	create_document_features(setting_id)
