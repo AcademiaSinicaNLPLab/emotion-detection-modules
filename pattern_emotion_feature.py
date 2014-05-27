@@ -4,8 +4,6 @@ from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-record = []
-
 # global cache for pattern
 cache = {}
 
@@ -76,8 +74,6 @@ def remove_self_count(score_dict, udocID):
 			score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - 1
 			if score_dict[mdoc['emotion']] == 0 :
 				del score_dict[mdoc['emotion']]
-		else:
-			record.append(udocID)
 	
 	return score_dict
 
@@ -260,5 +256,3 @@ if __name__ == '__main__':
 	load_mongo_docs()
 
 	create_document_features(setting_id)
-
-	if record: print record

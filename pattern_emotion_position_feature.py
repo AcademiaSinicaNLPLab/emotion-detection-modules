@@ -5,7 +5,6 @@ from collections import defaultdict, Counter
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 cache = {}
-record = []
 
 # global cache for mongo.LJ40K.docs
 mongo_docs = {}
@@ -43,12 +42,21 @@ def get_patscore(pattern):
 ## output: a dictionary of (emotion, occurrence)
 def get_patcount(pattern):
 
-	query = { 'pattern': pattern.lower() }
-	projector = { '_id': 0, 'count':1 }
-	# res = co_nestedLexicon.find_one(query, projector)
-	res = co_nestedLexicon_minCount4.find_one(query, projector)
-	if res: return res['count']
-	else: return {}
+	global cache
+
+	if pattern not in cache:
+
+		query = { 'pattern': pattern.lower() }
+		projector = { '_id': 0, 'count':1 }
+		# res = co_nestedLexicon.find_one(query, projector)
+		res = co_nestedLexicon_minCount4.find_one(query, projector)
+
+		if not res:
+			cache[pattern] = {}
+		else:
+			cache[pattern] = res['count']
+
+	return cache[pattern]
 
 
 ## input: dictionary of (emotion, count)
@@ -66,8 +74,6 @@ def remove_self_count(score_dict, udocID):
 			score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - 1
 			if score_dict[mdoc['emotion']] == 0 :
 				del score_dict[mdoc['emotion']]
-		else:
-			record.append(udocID)
 	
 	return score_dict
 
@@ -273,5 +279,3 @@ if __name__ == '__main__':
 	## run
 	load_mongo_docs()
 	create_document_features(setting_id)
-
-	if record: print record
