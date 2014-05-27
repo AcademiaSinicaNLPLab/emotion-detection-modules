@@ -4,8 +4,21 @@ from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-cache = {}
 record = []
+
+# global cache for pattern
+cache = {}
+
+# global cache for mongo.LJ40K.docs
+mongo_docs = {}
+
+## load entire mongo.LJ40K.docs into memory
+def load_mongo_docs():
+	global mongo_docs
+	for mdoc in co_docs.find({}, {'_id':0}):
+		udocID = mdoc['udocID']
+		del mdoc['udocID']
+		mongo_docs[udocID] = mdoc
 
 ## input: pat
 ## output: a dictionary of (emotion, patscore)
@@ -51,8 +64,10 @@ def get_patcount(pattern):
 ## input: dictionary of (emotion, count)
 ## output: dictionary of (emotion, count)
 def remove_self_count(score_dict, udocID):
-	 
-	mdoc = co_docs.find_one( {'udocID': udocID} )
+
+	global mongo_docs
+	mdoc = mongo_docs[udocID] # use pre-loaded
+	# mdoc = co_docs.find_one( {'udocID': udocID} )
 	
 	## ldocID: 0-799	
 	if mdoc['ldocID'] < 800: 
@@ -241,9 +256,9 @@ if __name__ == '__main__':
 	setting_id = str(co_setting.insert( setting ))
 
 	## run
-	import time
-	s = time.time()	
+
+	load_mongo_docs()
+
 	create_document_features(setting_id)
-	print 'Time total:',time.time() - s,'sec'
 
 	if record: print record
