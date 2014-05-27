@@ -20,6 +20,7 @@ import logging
 
 cores = 1
 quiet_mode = False
+scale_mode = False
 
 def check(setting_id):
 	return True if re.findall(r'^([a-z0-9]{24})$', str(setting_id).strip()) else False
@@ -31,9 +32,13 @@ def parse_params(str_params):
 def get_files_info(setting_id, str_svm_params, svm_file_root='tmp'):
 
 	module_path = os.path.dirname(os.path.abspath(__file__))
+
+	# scale = '' if not scale_mode else 'scale'
+	train_test_ext = 'txt'
+
 	files = {
-		'train'	: {'name': '.'.join([setting_id, 'train', 'txt']) },
-		'test' 	: {'name': '.'.join([setting_id, 'test', 		'txt']) },
+		'train'	: {'name': '.'.join([setting_id, 'train', 		train_test_ext]) },
+		'test' 	: {'name': '.'.join([setting_id, 'test',  		train_test_ext]) },
 		'model'	: {'name': '.'.join([setting_id, str_svm_params, 'm']) },
 		'output': {'name': '.'.join([setting_id, str_svm_params, 'out']) }
 	}
@@ -169,6 +174,7 @@ if __name__ == '__main__':
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('run_svm', addon=add_opts)
 		elif opt in ('-q','--quiet'): quiet_mode = True
+		elif opt in ('-s','--scale'): scale_mode = True
 		elif opt in ('-p','--param'): svm_params = parse_params(arg.strip())
 		elif opt in ('--multi'): cores = int(arg.strip())
 		elif opt in ('-v','--verbose'): config.verbose = True

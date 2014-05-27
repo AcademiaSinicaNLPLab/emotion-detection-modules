@@ -1,23 +1,46 @@
+# pat-bag
 { "_id" : ObjectId("5373115dd4388c6e5d884e49"), "min_count" : 1, "feature_name" : "pattern" }
 { "_id" : ObjectId("5373109ed4388c55dbf8fc51"), "min_count" : 2, "feature_name" : "pattern" }
 { "_id" : ObjectId("53730f67d4388c27cc4c06f1"), "min_count" : 3, "feature_name" : "pattern" }
 { "_id" : ObjectId("537c6be9d4388c5b46f646a6"), "min_count" : 5, "feature_name" : "pattern" }
 { "_id" : ObjectId("537c6c90d4388c0e27069e7b"), "min_count" : 10, "feature_name" : "pattern" }
+	python run_svm.py 5373115dd4388c6e5d884e49 --param c9r5t1 --quiet	# Accuracy = 3.26756% (260/7957) (classification)
+	python run_svm.py 5373109ed4388c55dbf8fc51 --param c9r5t1 --quiet	# Accuracy = 3.63405% (286/7870) (classification)
+	python run_svm.py 53730f67d4388c27cc4c06f1 --param c9r5t1 --quiet	# Accuracy = 4.32273% (337/7796) (classification)
+	python run_svm.py 537c6be9d4388c5b46f646a6 --param c9r5t1 --quiet	# Accuracy = 4.7816% (370/7738) (classification)
+	python run_svm.py 537c6c90d4388c0e27069e7b --param c9r5t1 --quiet	# Accuracy = 5.25834% (402/7645) (classification)
 
+# kw-bag
 { "_id" : ObjectId("53744c12d4388c206b2cc881"), "keyword_type" : "basic", "lemma" : False, "feature_name" : "keyword" }
 { "_id" : ObjectId("53744d55d4388c49faffe9b5"), "keyword_type" : "extend", "lemma" : False, "feature_name" : "keyword" }
 { "_id" : ObjectId("53745053d4388c3fc1579c2a"), "keyword_type" : "basic", "lemma" : True, "feature_name" : "keyword" }
 { "_id" : ObjectId("537451d1d4388c7843516ba4"), "keyword_type" : "extend", "lemma" : True, "feature_name" : "keyword" }
+	python run_svm.py 53744c12d4388c206b2cc881 --param c9r5t1 --quiet	# Accuracy = 7.40946% (536/7234) (classification)
+	python run_svm.py 53744d55d4388c49faffe9b5 --param c9r5t1 --quiet	# Accuracy = 8.91895% (712/7983) (classification)
+	python run_svm.py 53745053d4388c3fc1579c2a --param c9r5t1 --quiet	# Accuracy = 6.92652% (526/7594) (classification)
+	python run_svm.py 537451d1d4388c7843516ba4 --param c9r5t1 --quiet	# Accuracy = 9.00438% (719/7985) (classification)
+
 
 { "_id" : ObjectId("537d838fd4388c3735dc1916"), "counting_unit_type" : 0, "feature_name" : "pattern_emotion", "feature_value_type" : 4 }
 { "_id" : ObjectId("5382fa27d4388c23417ddc53"), "feature_name" : "pattern_emotion", "feature_value_type" : 5 }
+	python run_svm.py 537d838fd4388c3735dc1916 --param c9r5t1 --quiet	# Accuracy = 37.0149% (2909/7859) (classification)
+	python run_svm.py 5382fa27d4388c23417ddc53 --param c9r5t1 --quiet	# Accuracy = 40.4499% (3111/7691) (classification)
+	python run_svm.py 5382fa27d4388c23417ddc53 --quiet					# Accuracy = 25.3803% (1952/7691) (classification)
+
 
 { "_id" : ObjectId("537dad77d4388c409cff30bb"), "keyword_type" : "basic", "lemma" : False, "feature_name" : "keyword_emotion" }
 { "_id" : ObjectId("537ec46bd4388c72b5877f67"), "keyword_type" : "extend", "lemma" : True, "feature_name" : "keyword_emotion" }
+	python run_svm.py 537dad77d4388c409cff30bb --param c9r5t1 --quiet	# WARNING: reaching max number of iterations
+	python run_svm.py 537dad77d4388c409cff30bb --quiet					# Accuracy = 5.3927% (390/7232) (classification)
+	python run_svm.py 537ec46bd4388c72b5877f67 --param c9r5t1 --quiet	# WARNING: reaching max number of iterations
+	python run_svm.py 537ec46bd4388c72b5877f67 --quiet					# Accuracy = 3.05573% (244/7985) (classification)
 
 
 { "_id" : ObjectId("537dd9afd4388c2a1adf8ca2"), "keyword_type" : "basic", "lemma" : False, "section" : "b20_m60_e20", "feature_name" : "keyword_position" }
 { "_id" : ObjectId("537ddc3ad4388c4fb8dbe1ae"), "keyword_type" : "extend", "lemma" : True, "section" : "b20_m60_e20", "feature_name" : "keyword_position" }
+	python run_svm.py 537dd9afd4388c2a1adf8ca2 --param c9r5t1 --quiet	# Accuracy = 7.10534% (514/7234) (classification)
+	python run_svm.py 537ddc3ad4388c4fb8dbe1ae --param c9r5t1 --quiet	# Accuracy = 7.75204% (619/7985) (classification)
+
 
 { "_id" : ObjectId("5378c702d4388c5df3475bee"), "counting_unit_type" : 0, "feature_name" : "pattern_emotion_position", "feature_value_type" : 0, "section" : "b20_m60_e20" }
 { "_id" : ObjectId("53797af2d4388c23183717b4"), "counting_unit_type" : 0, "feature_name" : "pattern_emotion_position", "feature_value_type" : 1, "section" : "b20_m60_e20" }
@@ -26,26 +49,102 @@
 { "_id" : ObjectId("5379d6a5d4388c6a09110bb7"), "counting_unit_type" : 0, "feature_name" : "pattern_emotion_position", "feature_value_type" : 4, "section" : "b20_m60_e20" }
 { "_id" : ObjectId("5379fe4fd4388c110be4cd06"), "counting_unit_type" : 0, "feature_name" : "pattern_emotion_position", "feature_value_type" : 5, "section" : "b20_m60_e20" }
 
+	python run_svm.py 5378c702d4388c5df3475bee --param c9r5t1 --quiet	# Accuracy = 3.8331% (305/7957) (classification)
+	python run_svm.py 53797af2d4388c23183717b4 --param c9r5t1 --quiet	# Accuracy = 3.45608% (275/7957) (classification)
+	python run_svm.py 537992d4d4388c22f1b4adbb --param c9r5t1 --quiet	# Accuracy = 3.53148% (281/7957) (classification)
+	python run_svm.py 53799c1ed4388c6a604e467a --param c9r5t1 --quiet	# Accuracy = 3.74469% (291/7771) (classification)
+	python run_svm.py 5379d6a5d4388c6a09110bb7 --param c9r5t1 --quiet	# Accuracy = 35.577% (2796/7859) (classification)
+	python run_svm.py 5379fe4fd4388c110be4cd06 --param c9r5t1 --quiet	# Accuracy = 40.1118% (3085/7691) (classification)
+
+
 { "_id" : ObjectId("5381edaed4388c4ffaeda288"), "min_count" : 1, "section" : "b20_m60_e20", "feature_name" : "pattern_position" }
 { "_id" : ObjectId("5381ef94d4388c613e7da12f"), "min_count" : 2, "section" : "b20_m60_e20", "feature_name" : "pattern_position" }
 { "_id" : ObjectId("5381f11cd4388c566ff04479"), "min_count" : 3, "section" : "b20_m60_e20", "feature_name" : "pattern_position" }
 { "_id" : ObjectId("5381f244d4388c260d8146ce"), "min_count" : 5, "section" : "b20_m60_e20", "feature_name" : "pattern_position" }
 { "_id" : ObjectId("5381f342d4388c7060e645c1"), "min_count" : 10, "section" : "b20_m60_e20", "feature_name" : "pattern_position" }
+	python run_svm.py 5381edaed4388c4ffaeda288 --param c9r5t1 --quiet	# Accuracy = 2.81513% (224/7957) (classification)
+	python run_svm.py 5381ef94d4388c613e7da12f --param c9r5t1 --quiet	# Accuracy = 2.89708% (228/7870) (classification)
+	python run_svm.py 5381f11cd4388c566ff04479 --param c9r5t1 --quiet	# Accuracy = 3.41201% (266/7796) (classification)
+	python run_svm.py 5381f244d4388c260d8146ce --param c9r5t1 --quiet	# Accuracy = 3.57974% (277/7738) (classification)
+	python run_svm.py 5381f342d4388c7060e645c1 --param c9r5t1 --quiet	# Accuracy = 3.96337% (303/7645) (classification)
+
 
 { "_id" : ObjectId("53820bd2d4388c3907e06819"), "keyword_type" : "extend", "lemma" : True, "section" : "b20_m60_e20", "feature_name" : "keyword_emotion_position" }
+	python run_svm.py 53820bd2d4388c3907e06819 --param c9r5t1 --quiet 	# Accuracy = 4.72135% (377/7985) (classification)
+	python run_svm.py 53820bd2d4388c3907e06819 --quiet 					# Accuracy = 3.6819% (294/7985) (classification)
 
+
+# pat-emo-f
+{ "_id" : ObjectId("5384154bd4388c0b59bd9b58"), "feature_name" : "pattern_emotion", "feature_value_type" : 6 }
+	python run_svm.py 5384154bd4388c0b59bd9b58 --param c9r5t1 --quiet	# Accuracy = 45.1957% (3476/7691) (classification)
+
+
+
+	# (scale10)
+	./svm-train -q -c 9 -r 5 -t 1 5384154bd4388c0b59bd9b58.scale10.train 5384154bd4388c0b59bd9b58.scale10.c9r5t1.m
+	./svm-predict 5384154bd4388c0b59bd9b58.scale10.test 5384154bd4388c0b59bd9b58.scale10.c9r5t1.m 5384154bd4388c0b59bd9b58.scale10.c9r5t1.out
+	# Accuracy = 31.7644% (2443/7691) (classification)
+
+	# (scale1)
+	# ./svm-train -q -c 9 -r 5 -t 1 5384154bd4388c0b59bd9b58.scale1.train 5384154bd4388c0b59bd9b58.scale1.c9r5t1.m
+	# ./svm-predict 5384154bd4388c0b59bd9b58.scale1.test 5384154bd4388c0b59bd9b58.scale1.c9r5t1.m 5384154bd4388c0b59bd9b58.scale1.c9r5t1.out
+	# Accuracy = 21.6487% (1665/7691) (classification)
+
+	python run_svm.py 5384154bd4388c0b59bd9b58 --param c1r5t1 --quiet	# 	
+	python run_svm.py 5384154bd4388c0b59bd9b58 --param t1 --quiet		#  
+	python run_svm.py 5384154bd4388c0b59bd9b58 --quiet					# Accuracy = 2.86049% (220/7691) (classification)
+
+# pat-emo-f-cut
+{ "_id" : ObjectId("538449c8d4388c2e5ded6d45"), "feature_name" : "pattern_emotion", "feature_value_type" : 7 }
+python run_svm.py 538449c8d4388c2e5ded6d45 --param c9r5t1 --quiet	# Accuracy = 50.8256% (3909/7691) (classification)
+python run_svm.py 538449c8d4388c2e5ded6d45 --param c1r5t1 --quiet	# 
+python run_svm.py 538449c8d4388c2e5ded6d45 --param t1 --quiet		# 
+python run_svm.py 538449c8d4388c2e5ded6d45 --quiet					# Accuracy = 2.9645% (228/7691) (classification)
+
+# pat-emo-f-pos
+{ "_id" : ObjectId("5384467dd4388c1ca3785cb1"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 6 }
+# pat-emo-f-pos (min=10)
+{ "_id" : ObjectId("53845f1ad4388c0a6b20f2e2"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 8 }
+python run_svm.py 5384467dd4388c1ca3785cb1 --param c9r5t1 --quiet	# WARNING: reaching max number of iterations
+python run_svm.py 5384467dd4388c1ca3785cb1 --param c1r5t1 --quiet	# 
+python run_svm.py 5384467dd4388c1ca3785cb1 --param t1 --quiet		# 
+python run_svm.py 5384467dd4388c1ca3785cb1 --quiet					# Accuracy = 2.60847% (202/7744) (classification)
+
+# pat-emo-f-pos-cut
+{ "_id" : ObjectId("538448d4d4388c5e9ab2cbb8"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 7 }
+# pat-emo-f-pos-cut (min=10)
+{ "_id" : ObjectId("538461aed4388c4a0663584c"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 9 }
+python run_svm.py 538448d4d4388c5e9ab2cbb8 --param c9r5t1 --quiet 	# Accuracy = 46.6649% (3589/7691) (classification)
+python run_svm.py 538448d4d4388c5e9ab2cbb8 --param c1r5t1 --quiet 	# Accuracy = 46.6909% (3591/7691) (classification)
+python run_svm.py 538448d4d4388c5e9ab2cbb8 --quiet					# Accuracy = 2.9515% (227/7691) (classification)
+
+
+
+
+## ------------------------------------ fusion ------------------------------------
 # keyword + pattern
 # kw-bag + pat-bag
 { "_id" : ObjectId("538302743681df11cd509c77"), "sources" : "537451d1d4388c7843516ba4,537c6c90d4388c0e27069e7b", "feature_name" : "fusion" }
+python run_svm.py 538302743681df11cd509c77 --param c9r5t1 --quiet	# Accuracy = 9.11481% (728/7987) (classification)
 
 # keyword_position + pattern_position
 # kw-bag-pos + pat-bag-pos
 { "_id" : ObjectId("538302893681df167c63717f"), "sources" : "537ddc3ad4388c4fb8dbe1ae,5381f342d4388c7060e645c1", "feature_name" : "fusion" }
+python run_svm.py 538302893681df167c63717f --param c9r5t1 --quiet	# Accuracy = 7.71253% (616/7987) (classification)
 
 # keyword_emotion + pattern_emotion
 # kw-emo-b + pat-emo-b
 { "_id" : ObjectId("538303fed4388c06fea2104c"), "sources" : "537d838fd4388c3735dc1916,537ec46bd4388c72b5877f67", "feature_name" : "fusion" }
+python run_svm.py 538303fed4388c06fea2104c --param c9r5t1 --quiet	# Accuracy = 38.3133% (3062/7992) (classification)
 
 # keyword_emotion_position + pattern_emotion_position
 # kw-emo-b-pos + pat-emo-b-pos
 { "_id" : ObjectId("53840d98d4388c5e8c3468ee"), "sources" : "5379fe4fd4388c110be4cd06,53820bd2d4388c3907e06819", "feature_name" : "fusion" }
+python run_svm.py 53840d98d4388c5e8c3468ee --param c9r5t1 --quiet	# Accuracy = 41.3297% (3301/7987) (classification)
+
+{ "_id" : ObjectId("53842e2ad4388c0d6aed7d48"), "sources" : "537451d1d4388c7843516ba4,5379fe4fd4388c110be4cd06", "feature_name" : "fusion" }
+python run_svm.py 53842e2ad4388c0d6aed7d48 --param c9r5t1 --quiet	# Accuracy = 44.9606% (3591/7987) (classification)
+
+{ "_id" : ObjectId("53842e77d4388c2461796189"), "sources" : "537451d1d4388c7843516ba4,5382fa27d4388c23417ddc53", "feature_name" : "fusion" }
+python run_svm.py 53842e77d4388c2461796189 --param c9r5t1 --quiet	# Accuracy = 46.1625% (3687/7987) (classification)
+
