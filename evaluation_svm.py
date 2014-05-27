@@ -5,8 +5,8 @@ import re
 import pymongo, sys, os
 from collections import Counter, defaultdict
 from itertools import product
-
 from pprint import pprint
+import logging
 
 print >> sys.stderr, '[info] init ...',
 sys.stderr.flush()
@@ -322,6 +322,7 @@ if __name__ == '__main__':
 		to_do_list = [(setting_id, param)]
 	
 	for (setting_id, param) in to_do_list:
+
 		print >> sys.stderr, '[run] processing', color.render(setting_id, 'g'), color.render(param,'y')
 		eval_mdoc = run(setting_id, param)
 

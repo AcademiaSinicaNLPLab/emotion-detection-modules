@@ -1,6 +1,6 @@
 ### 
 
-import os, re
+import os, re, color
 
 from collections import defaultdict
 
@@ -31,13 +31,13 @@ for fn in os.listdir('tmp'):
 for sid in fns:
 
 	if 0 in fns[sid].values():
-		status = 'error'
+		status = 'need to check'
 	elif len(fns[sid]) == 3:
-		status = '3/5'
+		status = color.render('3/5', 'r')
 	elif len(fns[sid]) == 4:
-		status = '4/5'
+		status = color.render('4/5', 'y')
 	elif len(fns[sid]) == 5:
-		status = 'all done'
+		status = color.render('all done', 'g')
 
 	print sid, '(', status ,')'
 
