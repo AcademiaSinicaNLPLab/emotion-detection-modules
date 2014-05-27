@@ -215,7 +215,7 @@ if __name__ == '__main__':
 				'                 4: [type 2] & remove_self_count (ldocID 0-799)',   
 				'                 5: [type 3] & remove_self_count (ldocID 0-799)',
 				'                 6: pattern count & set min_count=4',
-				'                 7: pattern count & set min_count=4 & cut'],)	
+				'                 7: pattern count & set min_count=4 & cut'])	
 	]
 
 	try:
