@@ -39,3 +39,12 @@ python run_svm.py 538303fed4388c06fea2104c --param c9r5t1 --quiet	# Accuracy = 3
 python run_svm.py 538302743681df11cd509c77 --quiet					# Accuracy = 3.20521% (256/7987) (classification)
 python run_svm.py 538302893681df167c63717f --quiet					# Accuracy = 2.65431% (212/7987) (classification)
 python run_svm.py 538303fed4388c06fea2104c --quiet					# Accuracy = 9.70971% (776/7992) (classification)
+
+python run_svm.py 5382fa27d4388c23417ddc53 --param c9r5t1 --quiet	# Accuracy = 40.4499% (3111/7691) (classification)
+python run_svm.py 5382fa27d4388c23417ddc53 --quiet					# Accuracy = 25.3803% (1952/7691) (classification)
+
+python run_svm.py 53840d98d4388c5e8c3468ee --param c9r5t1 --quiet	# Accuracy = 41.3297% (3301/7987) (classification)
+
+
+python run_svm.py 53842e2ad4388c0d6aed7d48 --param c9r5t1 --quiet	# Accuracy = 44.9606% (3591/7987) (classification)
+python run_svm.py 53842e77d4388c2461796189 --param c9r5t1 --quiet	# Accuracy = 46.1625% (3687/7987) (classification)
