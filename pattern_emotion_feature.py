@@ -93,7 +93,7 @@ def remove_self_count(udocID, pattern, score_dict):
 
 ## input: dictionary of (emotion, value)
 ## output: dictionary of (emotion, 1) for emotions passed the threshold
-def accumulate_threshold(score, percentage=config.cutoffPercentage/float(100)):
+def accumulate_threshold(score, percentage):
 	## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
 	temp_dict = defaultdict( list ) 
 	for e in score:
@@ -134,15 +134,18 @@ def get_patfeature(pattern, udocID):
 	score = get_patcount(pattern) # pattern count
 	score = remove_self_count(udocID, pattern, score)
 	if sum( [ score[e] for e in score ] ) < config.minCount: return {}
+	
+	percentage = config.cutoffPercentage/float(100)
+	print '!! ',  percentage
 
 	## binary vector
 	if config.featureValueType == 'b':
-		return accumulate_threshold(score)
+		return accumulate_threshold(score, percentage)
 	
 	## pattern count (frequency)
 	elif config.featureValueType == 'f':
 		if config.cut:
-			binary_vector = accumulate_threshold(score)
+			binary_vector = accumulate_threshold(score, percentage)
 			return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }
 		else:
 			return score
