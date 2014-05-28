@@ -211,7 +211,7 @@ if __name__ == '__main__':
 				'                 b: binary vector',
 				'                 f: pattern count (frequency)',
 				'                 s: pattern score']),
-		('-n', ['-n: min_count']),
+		('-n', ['-n: minimum count']),
 		('--cut', ['--cut: cut off count percentage = 68%'])		
 	]
 
