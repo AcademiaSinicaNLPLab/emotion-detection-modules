@@ -106,10 +106,18 @@ def accumulate_threshold(score, percentage=config.cutoffPercentage/float(100)):
 	th = percentage * sum([score[k] for k in score])
 	current_sum = 0
 	selected_emotions = []
+
+	print 'percentage:', percentage
+	print 'th:', th
+	print temp_list
 	while current_sum < th:
 		top = temp_list.pop(0)
+		print top
 		selected_emotions.extend( top[1] )
+		print selected_emotions
 		current_sum += top[0] * len(top[1])
+		print current_sum
+		raw_input()
 
 	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
 
@@ -183,9 +191,9 @@ def create_document_features(setting_id):
 				"emotion": gold_emotion,
 				"udocID": doc['udocID'],
 				"feature": get_document_feature(udocID=doc['udocID']).items(),
-				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
+				# "setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
-			co_feature.insert(mdoc)
+			# co_feature.insert(mdoc)
 
 	co_feature.create_index("setting")
 
@@ -241,9 +249,12 @@ if __name__ == '__main__':
 	config.print_confirm(setting.items(), bar=40, halt=True)
 	
 	## insert metadata
-	setting_id = str(co_setting.insert( setting ))
+	# setting_id = str(co_setting.insert( setting ))
 
 	## run
+	print 'load_mongo_docs'
 	load_mongo_docs()
+	print 'load_lexicon_pattern_total_count'
 	load_lexicon_pattern_total_count()
+	print 'create_document_features'
 	create_document_features(setting_id)
