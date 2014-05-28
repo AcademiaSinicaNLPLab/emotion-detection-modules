@@ -237,12 +237,11 @@ if __name__ == '__main__':
 		('-m', ['-m: percentage of middle section']),
 		('-e', ['-e: percentage of ending section']),
 		('-f', ['-f: feature value computation',
-				'                 4: binary vector',   
-				'                 5: binary vector & set min_count=4',
-				'                 6: pattern count & set min_count=4',
-				'                 7: pattern count & set min_count=4 & cut',
-				'                 8: pattern count & set min_count=10',	
-				'                 9: pattern count & set min_count=10 & cut'])		
+				'                 0: binary vector & set min_count=4',
+				'                 1: pattern count & set min_count=4',
+				'                 2: pattern count & set min_count=4 & cut',
+				'                 3: pattern count & set min_count=10',	
+				'                 4: pattern count & set min_count=10 & cut'])		
 	]
 
 	try:
