@@ -117,7 +117,7 @@ def accumulate_threshold(score, percentage):
 		print selected_emotions
 		current_sum += top[0] * len(top[1])
 		print current_sum
-		raw_input()
+	raw_input()
 
 	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
 
