@@ -48,8 +48,7 @@ def get_patcount(pattern):
 
 		query = { 'pattern': pattern.lower() }
 		projector = { '_id': 0, 'count':1 }
-		# res = co_nestedLexicon.find_one(query, projector)
-		res = co_nestedLexicon_minCount4.find_one(query, projector)
+		res = co_nestedLexicon.find_one(query, projector)
 
 		if not res:
 			cache[pattern] = {}
@@ -202,8 +201,7 @@ if __name__ == '__main__':
 	co_docs = db[config.co_docs_name]
 	co_sents = db[config.co_sents_name]
 	co_pats = db[config.co_pats_name]
-	co_nestedLexicon = db['lexicon.nested']
-	co_nestedLexicon_minCount4 = db['lexicon.nested.min_count_4']
+	co_nestedLexicon = db['lexicon.nested.min_count_4']
 	co_patscore = db['patscore_p2_s0']
 
 	## target mongo collections
