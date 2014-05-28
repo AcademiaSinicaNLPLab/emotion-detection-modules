@@ -103,21 +103,23 @@ python run_svm.py 538449c8d4388c2e5ded6d45 --quiet					# Accuracy = 2.9645% (228
 
 # pat-emo-f-pos
 { "_id" : ObjectId("5384467dd4388c1ca3785cb1"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 6 }
-# pat-emo-f-pos (min=10)
-{ "_id" : ObjectId("53845f1ad4388c0a6b20f2e2"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 8 }
 python run_svm.py 5384467dd4388c1ca3785cb1 --param c9r5t1 --quiet	# WARNING: reaching max number of iterations
 python run_svm.py 5384467dd4388c1ca3785cb1 --param c1r5t1 --quiet	# 
 python run_svm.py 5384467dd4388c1ca3785cb1 --param t1 --quiet		# 
 python run_svm.py 5384467dd4388c1ca3785cb1 --quiet					# Accuracy = 2.60847% (202/7744) (classification)
+# pat-emo-f-pos (min=10)
+{ "_id" : ObjectId("53845f1ad4388c0a6b20f2e2"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 8 }
+python run_svm.py 53845f1ad4388c0a6b20f2e2 --param c9r5t1 --quiet	# Accuracy = 42.7169% (3220/7538) (classification)
 
 # pat-emo-f-pos-cut
 { "_id" : ObjectId("538448d4d4388c5e9ab2cbb8"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 7 }
-# pat-emo-f-pos-cut (min=10)
-{ "_id" : ObjectId("538461aed4388c4a0663584c"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 9 }
 python run_svm.py 538448d4d4388c5e9ab2cbb8 --param c9r5t1 --quiet 	# Accuracy = 46.6649% (3589/7691) (classification)
 python run_svm.py 538448d4d4388c5e9ab2cbb8 --param c1r5t1 --quiet 	# Accuracy = 46.6909% (3591/7691) (classification)
 python run_svm.py 538448d4d4388c5e9ab2cbb8 --quiet					# Accuracy = 2.9515% (227/7691) (classification)
 
+# pat-emo-f-pos-cut (min=10)
+{ "_id" : ObjectId("538461aed4388c4a0663584c"), "section" : "b20_m60_e20", "feature_name" : "pattern_emotion_position", "feature_value_type" : 9 }
+python run_svm.py 538461aed4388c4a0663584c --param c9r5t1 --quiet	# Accuracy = 46.5906% (3512/7538) (classification)
 
 
 
