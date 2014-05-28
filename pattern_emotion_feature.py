@@ -76,17 +76,19 @@ def remove_self_count(udocID, pattern, score_dict):
 
 	global mongo_docs
 	mdoc = mongo_docs[udocID] # use pre-loaded
-	
-	if score_dict: 
+
+	new_score = dict(score_dict)
+
+	if new_score: 
 
 		## ldocID: 0-799	
 		if mdoc['ldocID'] < 800: 
 
-			score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - PatTC[udocID][pattern]
-			if score_dict[mdoc['emotion']] == 0 :
-				del score_dict[mdoc['emotion']]
+			new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - PatTC[udocID][pattern]
+			if new_score[mdoc['emotion']] == 0 :
+				del new_score[mdoc['emotion']]
 	
-	return score_dict
+	return new_score
 
 
 ## input: dictionary of (emotion, value)
