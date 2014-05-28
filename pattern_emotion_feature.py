@@ -216,7 +216,7 @@ if __name__ == '__main__':
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hf:v',['help', 'featureValueType=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hf:n:v',['help', 'featureValueType=', 'minCount=', 'cut', 'verbose'])
 	except getopt.GetoptError:
 		config.help(config.patternEmotionFeat_name, addon=add_opts, exit=2)
 

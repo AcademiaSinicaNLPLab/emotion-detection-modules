@@ -234,7 +234,7 @@ if __name__ == '__main__':
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:f:v',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'featureValueType=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:f:n:v',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'featureValueType=', 'minCount=', 'cut', 'verbose'])
 	except getopt.GetoptError:
 		config.help(config.patternEmotionPositionFeat_name, addon=add_opts, exit=2)
 
