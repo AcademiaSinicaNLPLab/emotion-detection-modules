@@ -84,10 +84,10 @@ def remove_self_count(udocID, pattern, score_dict):
 		## ldocID: 0-799	
 		if mdoc['ldocID'] < 800: 
 
-			new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - PatTC[udocID][pattern]
+			new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - PatTC[udocID][pattern.lower()]
 			if new_score[mdoc['emotion']] == 0 :
 				del new_score[mdoc['emotion']]
-	
+
 	return new_score
 
 
@@ -124,7 +124,7 @@ def get_patfeature(pattern, udocID):
 	## type 4: pattern count & set min_count=10 & cut
 	########################################################################################
 
-	elif config.featureValueType == 0:
+	if config.featureValueType == 0:
 		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(udocID, pattern, score)
 		if sum( [ score[e] for e in score ] ) < 4: return {}
