@@ -93,7 +93,7 @@ def remove_self_count(udocID, pattern, score_dict):
 
 ## input: dictionary of (emotion, value)
 ## output: dictionary of (emotion, 1) for emotions passed the threshold
-def accumulate_threshold(score, percentage=0.68):
+def accumulate_threshold(score, percentage=config.cutoffPercentage/float(100)):
 	## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
 	temp_dict = defaultdict( list ) 
 	for e in score:
@@ -211,12 +211,14 @@ if __name__ == '__main__':
 				'                 b: binary vector',
 				'                 f: pattern count (frequency)',
 				'                 s: pattern score']),
-		('-n', ['-n: minimum count']),
-		('--cut', ['--cut: cut off at accumulated count percentage = 68%'])		
+		('-n', ['-n: filter out patterns with minimum count',
+			    '                 k: minimum count']),
+		('-c', ['-c: cut off by accumulated count percentage',
+				'                 k: cut at k%'])		
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hf:n:v',['help', 'featureValueType=', 'minCount=', 'cut', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hf:n:c:v',['help', 'featureValueType=', 'minCount=', 'cut', 'verbose'])
 	except getopt.GetoptError:
 		config.help(config.patternEmotionFeat_name, addon=add_opts, exit=2)
 
@@ -224,7 +226,7 @@ if __name__ == '__main__':
 		if opt in ('-h', '--help'): config.help(config.patternEmotionFeat_name, addon=add_opts)
 		elif opt in ('-f'): config.featureValueType = arg.strip()
 		elif opt in ('-n'): config.minCount = int( arg.strip() )
-		elif opt in ('--cut'): config.cut = True
+		elif opt in ('-c'): config.cutoffPercentage = int( arg.strip() )
 		elif opt in ('-v','--verbose'): config.verbose = True
 
 	## insert metadata
@@ -232,7 +234,7 @@ if __name__ == '__main__':
 		"feature_name": "pattern_emotion", 
 		"feature_value_type": config.featureValueType,
 		"min_count": config.minCount,
-		"cut": config.cut
+		"cutoff_percentage": config.cutoffPercentage
 	}
 
 	## print confirm message

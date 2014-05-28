@@ -81,7 +81,7 @@ endPercentage = 20
 countingUnitType = 0
 featureValueType = ''
 minCount = 4
-cut = False
+cutoffPercentage = 100
 ###################################
 ### document feature extraction ###
 keyword_type = 'basic' 
