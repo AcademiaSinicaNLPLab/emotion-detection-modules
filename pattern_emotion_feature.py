@@ -211,8 +211,8 @@ if __name__ == '__main__':
 	co_ptc = db['lexicon.pattern_total_count']
 
 	## target mongo collections
-	co_setting = db['debug.features.settings']
-	co_feature = db['debug.features.pattern_emotion']
+	co_setting = db['features.settings']
+	co_feature = db['features.pattern_emotion']
 
 	## input arguments
 	import getopt
