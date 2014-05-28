@@ -230,7 +230,7 @@ if __name__ == '__main__':
 				'                 f: pattern count (frequency)',
 				'                 s: pattern score']),
 		('-n', ['-n: minimum count']),
-		('--cut', ['--cut: cut off count percentage = 68%'])
+		('--cut', ['--cut: cut off at accumulated count percentage = 68%'])
 	]
 
 	try:
