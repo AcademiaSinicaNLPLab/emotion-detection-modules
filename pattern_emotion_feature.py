@@ -226,7 +226,7 @@ if __name__ == '__main__':
 			    '                 k: minimum count']),
 		('-c', ['-c: cut off by accumulated count percentage',
 				'                 k: cut at k%']),
-		('--remove', ['-remove: remove self count self'])
+		('--remove', ['--remove: remove self count self'])
 	]
 
 	try:

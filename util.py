@@ -2,6 +2,7 @@ import pickle, os
 
 ## load entire mongo.LJ40K.docs into memory
 def load_mongo_docs(co_docs):
+	mongo_docs = {}
 	if not os.path.exists('cache/mongo_docs.pkl'):
 		if not os.path.exists('cache'): os.mkdir('cache')
 		for mdoc in co_docs.find({}, {'_id':0}):
@@ -16,6 +17,7 @@ def load_mongo_docs(co_docs):
 ##  PTC[33680]['i love you']
 #  340 
 def load_lexicon_pattern_total_count(co_ptc):
+	PatTC = {}
 	# co_ptc = db['lexicon.pattern_total_count']
 	if not os.path.exists('PTC.lexicon.pkl'):
 		if not os.path.exists('cache'): os.mkdir('cache')
