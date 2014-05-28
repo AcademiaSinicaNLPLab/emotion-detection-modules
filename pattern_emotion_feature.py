@@ -3,6 +3,8 @@ import sys, pymongo, color, os, pickle
 from collections import defaultdict, Counter
 from pprint import pprint
 
+from util import load_mongo_docs, load_lexicon_pattern_total_count
+
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 # global cache for pattern
@@ -14,33 +16,7 @@ mongo_docs = {}
 # global cache for mongo.LJ40K.lexicon.pattern_total_count
 PatTC = {}
 
-## load entire mongo.LJ40K.docs into memory
-def load_mongo_docs():
-	if not os.path.exists('cache/mongo_docs.pkl'):
-		if not os.path.exists('cache'): os.mkdir('cache')
-		for mdoc in co_docs.find({}, {'_id':0}):
-			udocID = mdoc['udocID']
-			del mdoc['udocID']
-			mongo_docs[udocID] = mdoc
-		pickle.dump(mongo_docs, open('cache/mongo_docs.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
-	else:
-		mongo_docs = pickle.load(open('cache/mongo_docs.pkl','rb'))
-	return mongo_docs
-
-
-
-##  PTC[33680]['i love you']
-#  340 
-def load_lexicon_pattern_total_count():
-	global PatTC
-	exists = os.path.exists('PTC.lexicon.pkl')
-	if not exists:
-		for mdoc in db['lexicon.pattern_total_count'].find():
-			PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
-		pickle.dump(PatTC, open('PTC.lexicon.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
-	else:
-		PatTC = pickle.load(open('PTC.lexicon.pkl','rb'), protocol=pickle.HIGHEST_PROTOCOL)
-
+remove_self_count_mode = False
 
 ## input: pattern
 ## output: a dictionary of (emotion, patscore)
@@ -149,7 +125,9 @@ def get_patfeature(pattern, udocID):
 
 	if not score: return {}
 
-	# score = remove_self_count(udocID, pattern, score)
+	## remove self count using --remove argument
+	if remove_self_count_mode:
+		score = remove_self_count(udocID, pattern, score)
 
 	# check if total patcount < min_count
 	if sum( score.values() ) < config.minCount: return {}
@@ -230,6 +208,8 @@ if __name__ == '__main__':
 	co_nestedLexicon = db['lexicon.nested.pruned']
 	co_patscore = db['patscore_p2_s0']
 
+	co_ptc = db['lexicon.pattern_total_count']
+
 	## target mongo collections
 	co_setting = db['debug.features.settings']
 	co_feature = db['debug.features.pattern_emotion']
@@ -245,11 +225,12 @@ if __name__ == '__main__':
 		('-n', ['-n: filter out patterns with minimum count',
 			    '                 k: minimum count']),
 		('-c', ['-c: cut off by accumulated count percentage',
-				'                 k: cut at k%'])		
+				'                 k: cut at k%']),
+		('--remove', ['-remove: remove self count self'])
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hf:n:c:v',['help', 'featureValueType=', 'minCount=', 'cut', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hf:n:c:v',['help', 'featureValueType=', 'minCount=', 'cut', 'verbose', 'remove'])
 	except getopt.GetoptError:
 		config.help(config.patternEmotionFeat_name, addon=add_opts, exit=2)
 
@@ -259,13 +240,15 @@ if __name__ == '__main__':
 		elif opt in ('-n'): config.minCount = int( arg.strip() )
 		elif opt in ('-c'): config.cutoffPercentage = int( arg.strip() )
 		elif opt in ('-v','--verbose'): config.verbose = True
+		elif opt in ('--remove'): remove_self_count_mode = True
 
 	## insert metadata
 	setting = { 
 		"feature_name": "pattern_emotion", 
 		"feature_value_type": config.featureValueType,
 		"min_count": config.minCount,
-		"cutoff_percentage": config.cutoffPercentage
+		"cutoff_percentage": config.cutoffPercentage,
+		"remove": remove_self_count_mode
 	}
 
 	## print confirm message
@@ -276,8 +259,11 @@ if __name__ == '__main__':
 
 	## run
 	print 'load_mongo_docs'
-	mongo_docs = load_mongo_docs()
-	# print 'load_lexicon_pattern_total_count'
-	# load_lexicon_pattern_total_count()
+	mongo_docs = load_mongo_docs(co_docs)
+
+	if remove_self_count_mode:
+		print 'load_lexicon_pattern_total_count'
+		PatTC = load_lexicon_pattern_total_count(co_ptc)
+
 	print 'create_document_features'
 	create_document_features()
