@@ -1,6 +1,7 @@
 import config
-import sys, pymongo, color
+import sys, pymongo, color, os, pickle
 from collections import defaultdict, Counter
+from pprint import pprint
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
@@ -15,19 +16,30 @@ PatTC = {}
 
 ## load entire mongo.LJ40K.docs into memory
 def load_mongo_docs():
-	global mongo_docs
-	for mdoc in co_docs.find({}, {'_id':0}):
-		udocID = mdoc['udocID']
-		del mdoc['udocID']
-		mongo_docs[udocID] = mdoc
+	if not os.path.exists('cache/mongo_docs.pkl'):
+		if not os.path.exists('cache'): os.mkdir('cache')
+		for mdoc in co_docs.find({}, {'_id':0}):
+			udocID = mdoc['udocID']
+			del mdoc['udocID']
+			mongo_docs[udocID] = mdoc
+		pickle.dump(mongo_docs, open('cache/mongo_docs.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
+	else:
+		mongo_docs = pickle.load(open('cache/mongo_docs.pkl','rb'))
+	return mongo_docs
+
 
 
 ##  PTC[33680]['i love you']
-	#  340 
+#  340 
 def load_lexicon_pattern_total_count():
 	global PatTC
-	for mdoc in db['lexicon.pattern_total_count'].find():
-		PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
+	exists = os.path.exists('PTC.lexicon.pkl')
+	if not exists:
+		for mdoc in db['lexicon.pattern_total_count'].find():
+			PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
+		pickle.dump(PatTC, open('PTC.lexicon.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
+	else:
+		PatTC = pickle.load(open('PTC.lexicon.pkl','rb'), protocol=pickle.HIGHEST_PROTOCOL)
 
 
 ## input: pattern
@@ -84,7 +96,8 @@ def remove_self_count(udocID, pattern, score_dict):
 		## ldocID: 0-799	
 		if mdoc['ldocID'] < 800: 
 
-			new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - PatTC[udocID][pattern.lower()]
+			# new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - PatTC[udocID][pattern.lower()]
+			# new_score[mdoc['emotion']] = new_score[mdoc['emotion']]
 			if new_score[mdoc['emotion']] == 0 :
 				del new_score[mdoc['emotion']]
 
@@ -95,15 +108,17 @@ def remove_self_count(udocID, pattern, score_dict):
 ## output: dictionary of (emotion, 1) for emotions passed the threshold
 def accumulate_threshold(score, percentage):
 	## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
+	## (count)	    { 2:   ['bouncy', 'sleepy', 'hungry', 'creative'], 3: ['cheerful']}
 	temp_dict = defaultdict( list ) 
 	for e in score:
 		temp_dict[score[e]].append(e)
-
+	
 	## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ] ((sorted))
+	## (count)	    [ (3, ['cheerful']), (2,   ['bouncy', 'sleepy', 'hungry', 'creative'])]
 	temp_list = temp_dict.items()
 	temp_list.sort(reverse=True)
 
-	th = percentage * sum([score[k] for k in score])
+	th = percentage * sum( score.values() )
 	current_sum = 0
 	selected_emotions = []
 
@@ -124,9 +139,20 @@ def get_patfeature(pattern, udocID):
 	## 		config.cut
 	########################################################################################
 
+	# score <dict> emotion --> patcount
+	# {
+	#	'aggravated': 3,
+	#  	'amused': 2,
+	#  	'anxious': 3, ...
+	# }
 	score = get_patcount(pattern) # pattern count
-	score = remove_self_count(udocID, pattern, score)
-	if sum( [ score[e] for e in score ] ) < config.minCount: return {}
+
+	if not score: return {}
+
+	# score = remove_self_count(udocID, pattern, score)
+
+	# check if total patcount < min_count
+	if sum( score.values() ) < config.minCount: return {}
 	
 	percentage = config.cutoffPercentage/float(100)
 
@@ -145,6 +171,9 @@ def get_patfeature(pattern, udocID):
 	## pattern score
 	elif config.featureValueType == 's':
 		'''TODO'''
+		return None
+	else:
+		return False
 	
 
 
@@ -198,12 +227,12 @@ if __name__ == '__main__':
 	co_docs = db[config.co_docs_name]
 	co_sents = db[config.co_sents_name]
 	co_pats = db[config.co_pats_name]
-	co_nestedLexicon = db['lexicon.nested.min_count_4']
+	co_nestedLexicon = db['lexicon.nested.pruned']
 	co_patscore = db['patscore_p2_s0']
 
 	## target mongo collections
-	co_setting = db['features.settings']
-	co_feature = db['features.pattern_emotion']
+	co_setting = db['debug.features.settings']
+	co_feature = db['debug.features.pattern_emotion']
 
 	## input arguments
 	import getopt
@@ -247,8 +276,8 @@ if __name__ == '__main__':
 
 	## run
 	print 'load_mongo_docs'
-	load_mongo_docs()
-	print 'load_lexicon_pattern_total_count'
-	load_lexicon_pattern_total_count()
+	mongo_docs = load_mongo_docs()
+	# print 'load_lexicon_pattern_total_count'
+	# load_lexicon_pattern_total_count()
 	print 'create_document_features'
 	create_document_features()
