@@ -115,50 +115,44 @@ def accumulate_threshold(score, percentage=0.68):
 ## output: a dictionary of (emotion, patfeature) according to different featureValueType 
 def get_patfeature(pattern, udocID):
 	########################################################################################
-	## type 4: binary vector    
-	## type 5: binary vector & set min_count=4
-	## type 6: pattern count & set min_count=4
-	## type 7: pattern count & set min_count=4 & cut
-	## type 8: pattern count & set min_count=10
-	## type 9: pattern count & set min_count=10 & cut
+	## type 0: binary vector & set min_count=4
+	## type 1: pattern count & set min_count=4
+	## type 2: pattern count & set min_count=4 & cut
+	## type 3: pattern count & set min_count=10
+	## type 4: pattern count & set min_count=10 & cut
 	########################################################################################
 
-	if config.featureValueType == 4:
-		score = get_patcount(pattern) # pattern count
-		score = remove_self_count(udocID, pattern, score)
-		return accumulate_threshold(score)
-
-	elif config.featureValueType == 5:
+	elif config.featureValueType == 0:
 		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(udocID, pattern, score)
 		if sum( [ score[e] for e in score ] ) < 4: return {}
 		return accumulate_threshold(score)		
 
-	elif config.featureValueType == 6:
+	elif config.featureValueType == 1:
 		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(udocID, pattern, score)
 		if sum( [ score[e] for e in score ] ) < 4: return {}
 		return score
 
-	elif config.featureValueType == 7:
+	elif config.featureValueType == 2:
 		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(udocID, pattern, score)
 		if sum( [ score[e] for e in score ] ) < 4: return {}
 		binary_vector = accumulate_threshold(score)
 		return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }	
 
-	elif config.featureValueType == 8:
+	elif config.featureValueType == 3:
 		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(udocID, pattern, score)
 		if sum( [ score[e] for e in score ] ) < 10: return {}
 		return score
 
-	elif config.featureValueType == 9:
+	elif config.featureValueType == 4:
 		score = get_patcount(pattern) # pattern count
 		score = remove_self_count(udocID, pattern, score)
 		if sum( [ score[e] for e in score ] ) < 10: return {}
 		binary_vector = accumulate_threshold(score)
-		return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }	
+		return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }		
 
 
 def get_document_feature(udocID):
