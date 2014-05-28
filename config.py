@@ -79,7 +79,9 @@ begPercentage = 20
 midPercentage = 60
 endPercentage = 20
 countingUnitType = 0
-featureValueType = 0
+featureValueType = ''
+minCount = 4
+cut = False
 ###################################
 ### document feature extraction ###
 keyword_type = 'basic' 

@@ -117,44 +117,32 @@ def accumulate_threshold(score, percentage=0.68):
 ## output: a dictionary of (emotion, patfeature) according to different featureValueType 
 def get_patfeature(pattern, udocID):
 	########################################################################################
-	## type 0: binary vector & set min_count=4
-	## type 1: pattern count & set min_count=4
-	## type 2: pattern count & set min_count=4 & cut
-	## type 3: pattern count & set min_count=10
-	## type 4: pattern count & set min_count=10 & cut
+	## [Options]
+	## 		config.minCount
+	## 		config.featureValueType
+	## 		config.cut
 	########################################################################################
 
-	if config.featureValueType == 0:
-		score = get_patcount(pattern) # pattern count
-		score = remove_self_count(udocID, pattern, score)
-		if sum( [ score[e] for e in score ] ) < 4: return {}
-		return accumulate_threshold(score)		
+	score = get_patcount(pattern) # pattern count
+	score = remove_self_count(udocID, pattern, score)
+	if sum( [ score[e] for e in score ] ) < config.minCount: return {}
 
-	elif config.featureValueType == 1:
-		score = get_patcount(pattern) # pattern count
-		score = remove_self_count(udocID, pattern, score)
-		if sum( [ score[e] for e in score ] ) < 4: return {}
-		return score
+	## binary vector
+	if config.featureValueType == 'b':
+		return accumulate_threshold(score)
+	
+	## pattern count (frequency)
+	elif config.featureValueType == 'f':
+		if config.cut:
+			binary_vector = accumulate_threshold(score)
+			return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }
+		else:
+			return score
 
-	elif config.featureValueType == 2:
-		score = get_patcount(pattern) # pattern count
-		score = remove_self_count(udocID, pattern, score)
-		if sum( [ score[e] for e in score ] ) < 4: return {}
-		binary_vector = accumulate_threshold(score)
-		return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }	
-
-	elif config.featureValueType == 3:
-		score = get_patcount(pattern) # pattern count
-		score = remove_self_count(udocID, pattern, score)
-		if sum( [ score[e] for e in score ] ) < 10: return {}
-		return score
-
-	elif config.featureValueType == 4:
-		score = get_patcount(pattern) # pattern count
-		score = remove_self_count(udocID, pattern, score)
-		if sum( [ score[e] for e in score ] ) < 10: return {}
-		binary_vector = accumulate_threshold(score)
-		return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }	
+	## pattern score
+	elif config.featureValueType == 's':
+		'''TODO'''
+	
 
 
 def get_document_feature(udocID):
@@ -219,12 +207,12 @@ if __name__ == '__main__':
 	import getopt
 	
 	add_opts = [
-		('-f', ['-f: feature value computation',
-				'                 0: binary vector & set min_count=4',
-				'                 1: pattern count & set min_count=4',
-				'                 2: pattern count & set min_count=4 & cut',
-				'                 3: pattern count & set min_count=10',	
-				'                 4: pattern count & set min_count=10 & cut'])			
+		('-f', ['-f: feature value type',
+				'                 b: binary vector',
+				'                 f: pattern count (frequency)',
+				'                 s: pattern score']),
+		('-n', ['-n: min_count']),
+		('--cut', ['--cut: cut off count percentage = 68%'])		
 	]
 
 	try:
@@ -234,13 +222,17 @@ if __name__ == '__main__':
 
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help(config.patternEmotionFeat_name, addon=add_opts)
-		elif opt in ('-f'): config.featureValueType = int(arg.strip())
+		elif opt in ('-f'): config.featureValueType = arg.strip()
+		elif opt in ('-n'): config.minCount = int( arg.strip() )
+		elif opt in ('--cut'): config.cut = True
 		elif opt in ('-v','--verbose'): config.verbose = True
 
 	## insert metadata
 	setting = { 
 		"feature_name": "pattern_emotion", 
-		"feature_value_type": config.featureValueType 
+		"feature_value_type": config.featureValueType,
+		"min_count": config.minCount,
+		"cut": config.cut
 	}
 
 	## print confirm message
