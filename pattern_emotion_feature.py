@@ -107,17 +107,10 @@ def accumulate_threshold(score, percentage):
 	current_sum = 0
 	selected_emotions = []
 
-	print 'percentage:', percentage
-	print 'th:', th
-	print temp_list
 	while current_sum < th:
 		top = temp_list.pop(0)
-		print top
 		selected_emotions.extend( top[1] )
-		print selected_emotions
 		current_sum += top[0] * len(top[1])
-		print current_sum
-		raw_input()
 
 	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
 
@@ -136,7 +129,6 @@ def get_patfeature(pattern, udocID):
 	if sum( [ score[e] for e in score ] ) < config.minCount: return {}
 	
 	percentage = config.cutoffPercentage/float(100)
-	print '!! ',  percentage
 
 	## binary vector
 	if config.featureValueType == 'b':
@@ -194,9 +186,9 @@ def create_document_features():
 				"emotion": gold_emotion,
 				"udocID": doc['udocID'],
 				"feature": get_document_feature(udocID=doc['udocID']).items(),
-				# "setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
+				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
-			# co_feature.insert(mdoc)
+			co_feature.insert(mdoc)
 
 	co_feature.create_index("setting")
 
@@ -252,7 +244,7 @@ if __name__ == '__main__':
 	config.print_confirm(setting.items(), bar=40, halt=True)
 	
 	## insert metadata
-	# setting_id = str(co_setting.insert( setting ))
+	setting_id = str(co_setting.insert( setting ))
 
 	## run
 	print 'load_mongo_docs'
