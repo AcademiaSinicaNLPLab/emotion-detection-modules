@@ -59,9 +59,7 @@ def get_patcount(pattern):
 		else:
 			cache[pattern] = res['count']
 
-	if pat['pattern'] == 'dont remember':
-		print 'get_patcount >>', pattern, '\tcount:',cache[pattern]
-		raw_input()
+
 	# print 
 	# if pat['pattern'] != 'dont remember': continue
 	return cache[pattern]
@@ -174,10 +172,21 @@ def get_patfeature(pattern, udocID):
 		score = get_patcount(pattern) # pattern count
 		_patcount_score = dict(score)
 
+		ldocID = mongo_docs[udocID]['ldocID']
+
+		if pattern == 'dont remember':
+			print '(',ldocID,')','get_patcount >>', pattern, '\tcount:',score
+			
 		score = remove_self_count(score, udocID)
 		_remove_score = dict(score)
 
+		if pattern == 'dont remember':
+			print '(',ldocID,')','remove_self_count >>', pattern, '\tcount:',score
+			raw_input()
+
 		if sum( [ score[e] for e in score ] ) < 4: return {}
+
+
 
 		# print '--> get_patcount'
 		# print 'pattern:',pattern
@@ -228,7 +237,7 @@ def get_document_feature(udocID):
 		patfeature = get_patfeature(pat['pattern'], udocID)
 
 		for e in patfeature: 
-			
+
 			docfeature[e] += patfeature[e]
 
 	# if 
@@ -252,6 +261,7 @@ def create_document_features(setting_id):
 		print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
 		for doc in docs[::-1]:
+
 			mdoc = {
 				"emotion": gold_emotion,
 				"udocID": doc['udocID'],
