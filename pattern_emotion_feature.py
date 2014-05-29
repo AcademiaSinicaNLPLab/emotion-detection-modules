@@ -247,7 +247,7 @@ if __name__ == '__main__':
 	co_sents = db[config.co_sents_name]
 	co_pats = db[config.co_pats_name]
 	# co_nestedLexicon = db['lexicon.nested.pruned']
-	co_nestedLexicon = db[co_lexicon_name]
+	co_nestedLexicon = db['lexicon.nested.min_count_4']
 
 	co_ptc = db['lexicon.pattern_total_count']
 
