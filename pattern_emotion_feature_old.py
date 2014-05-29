@@ -66,7 +66,7 @@ def get_patcount(pattern):
 
 ## input: dictionary of (emotion, count)
 ## output: dictionary of (emotion, count)
-def remove_self_count(score_dict, udocID):
+def remove_self_count_normal(score_dict, udocID):
 
 	global mongo_docs
 	mdoc = mongo_docs[udocID] # use pre-loaded
@@ -86,6 +86,27 @@ def remove_self_count(score_dict, udocID):
 	
 	return new_score
 
+
+## input: dictionary of (emotion, count)
+## output: dictionary of (emotion, count)
+def remove_self_count(score_dict, udocID):
+
+	global mongo_docs
+	mdoc = mongo_docs[udocID] # use pre-loaded
+	# mdoc = co_docs.find_one( {'udocID': udocID} )
+	
+
+	## ldocID: 0-799	
+	if mdoc['ldocID'] < 800: 
+
+		if mdoc['emotion'] in score_dict:
+			score_dict[mdoc['emotion']] = score_dict[mdoc['emotion']] - 1
+			if score_dict[mdoc['emotion']] == 0 :
+				del score_dict[mdoc['emotion']]
+		# else:
+		# 	record.append(udocID)
+	
+	return score_dict
 
 ## input: dictionary of (emotion, value)
 ## output: dictionary of (emotion, 1) for emotions passed the threshold
@@ -220,8 +241,8 @@ def create_document_features(setting_id):
 		## get all document with emotions <gold_emotion> (ldocID: 0-799 for training, 800-999 for testing)
 		docs = list( co_docs.find( { 'emotion': gold_emotion } ) )
 
-		if config.verbose:
-			print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
+		# if config.verbose:
+		print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
 		for doc in docs[::-1]:
 			mdoc = {
@@ -246,8 +267,8 @@ if __name__ == '__main__':
 	co_patscore = db['patscore_p2_s0']
 
 	## target mongo collections
-	co_setting = db['debug.features.settings']
-	co_feature = db['debug.features.pattern_emotion']
+	co_setting = db['features.settings']
+	co_feature = db['features.pattern_emotion']
 
 	## input arguments
 	import getopt
