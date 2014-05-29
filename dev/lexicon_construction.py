@@ -37,9 +37,3 @@ def build_lexicon(patCount):
 if __name__ == '__main__':
 
 	count_patterns()
-
-
-
-	count_patterns()
-
-	build_lexicon(patCount)
