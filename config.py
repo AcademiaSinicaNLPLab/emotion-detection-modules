@@ -91,7 +91,7 @@ lemma = False
 
 overwrite = False
 verbose = False
-
+debug = False
 topk = 1
 
 

@@ -16,7 +16,7 @@ mongo_docs = {}
 # global cache for mongo.LJ40K.lexicon.pattern_total_count
 PatTC = {}
 
-remove_self_count_mode = False
+remove_type = '0'
 
 ## input: pattern
 ## output: a dictionary of (emotion, patscore)
@@ -72,8 +72,13 @@ def remove_self_count(udocID, pattern, score_dict):
 		## ldocID: 0-799	
 		if mdoc['ldocID'] < 800: 
 
-			# new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - PatTC[udocID][pattern.lower()]
-			new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - 1
+			if remove_type == '0':
+				pass
+			elif remove_type == '1':
+				new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - 1
+			elif remove_type == 'f':
+				new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - PatTC[udocID][pattern.lower()]
+
 			# new_score[mdoc['emotion']] = new_score[mdoc['emotion']]
 			if new_score[mdoc['emotion']] == 0 :
 				del new_score[mdoc['emotion']]
@@ -127,8 +132,7 @@ def get_patfeature(pattern, udocID):
 	if not score: return {}
 
 	## remove self count using --remove argument
-	if remove_self_count_mode:
-		score = remove_self_count(udocID, pattern, score)
+	score = remove_self_count(udocID, pattern, score)
 
 	# check if total patcount < min_count
 	if sum( score.values() ) < config.minCount: return {}
@@ -201,21 +205,6 @@ def create_document_features():
 
 if __name__ == '__main__':
 
-	## select mongo collections
-	co_emotions = db[config.co_emotions_name]
-	co_docs = db[config.co_docs_name]
-	co_sents = db[config.co_sents_name]
-	co_pats = db[config.co_pats_name]
-	# co_nestedLexicon = db['lexicon.nested.pruned']
-	co_nestedLexicon = db['lexicon.nested']
-	co_patscore = db['patscore_p2_s0']
-
-	co_ptc = db['lexicon.pattern_total_count']
-
-	## target mongo collections
-	co_setting = db['features.settings']
-	co_feature = db['features.pattern_emotion']
-
 	## input arguments
 	import getopt
 	
@@ -228,11 +217,15 @@ if __name__ == '__main__':
 			    '                 k: minimum count']),
 		('-c', ['-c: cut off by accumulated count percentage',
 				'                 k: cut at k%']),
-		('--remove', ['--remove: remove self count self'])
+		('-r', ['-r: remove self count',
+				"                 0: dont't remove anything",
+				'                 1: minus-one',
+				'                 f: minus-frequency']),
+		('--debug', ['--debug: run in debug mode'])
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hf:n:c:v',['help', 'featureValueType=', 'minCount=', 'cut', 'verbose', 'remove'])
+		opts, args = getopt.getopt(sys.argv[1:],'hf:n:c:vr:',['help', 'featureValueType=', 'minCount=', 'cut', 'verbose', 'debug'])
 	except getopt.GetoptError:
 		config.help(config.patternEmotionFeat_name, addon=add_opts, exit=2)
 
@@ -242,7 +235,28 @@ if __name__ == '__main__':
 		elif opt in ('-n'): config.minCount = int( arg.strip() )
 		elif opt in ('-c'): config.cutoffPercentage = int( arg.strip() )
 		elif opt in ('-v','--verbose'): config.verbose = True
-		elif opt in ('--remove'): remove_self_count_mode = True
+		elif opt in ('-r'): remove_type = arg.strip()
+		elif opt in ('--debug'): config.debug = True
+
+	## select mongo collections
+	co_emotions = db[config.co_emotions_name]
+	co_docs = db[config.co_docs_name]
+	co_sents = db[config.co_sents_name]
+	co_pats = db[config.co_pats_name]
+	# co_nestedLexicon = db['lexicon.nested.pruned']
+	co_nestedLexicon = db['lexicon.nested']
+	co_patscore = db['patscore_p2_s0']
+
+	co_ptc = db['lexicon.pattern_total_count']
+
+	## target mongo collections
+	if config.debug: # insert to a debug collection
+		co_setting = db['debug.features.settings']
+		co_feature = db['debug.features.pattern_emotion']
+	else:
+		co_setting = db['features.settings']
+		co_feature = db['features.pattern_emotion']		
+
 
 	## insert metadata
 	setting = { 
@@ -250,7 +264,7 @@ if __name__ == '__main__':
 		"feature_value_type": config.featureValueType,
 		"min_count": config.minCount,
 		"cutoff_percentage": config.cutoffPercentage,
-		"remove": remove_self_count_mode
+		"remove": remove_type
 	}
 
 	## print confirm message
@@ -263,7 +277,7 @@ if __name__ == '__main__':
 	print 'load_mongo_docs'
 	mongo_docs = load_mongo_docs(co_docs)
 
-	if remove_self_count_mode:
+	if remove_type == 'f':
 		print 'load_lexicon_pattern_total_count'
 		PatTC = load_lexicon_pattern_total_count(co_ptc)
 
