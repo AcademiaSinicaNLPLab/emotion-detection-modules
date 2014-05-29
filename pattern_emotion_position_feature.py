@@ -151,29 +151,23 @@ def get_patfeature(pattern, udocID):
 	if sum( count.values() ) < config.minCount: return {}
 	
 	percentage = config.cutoffPercentage/float(100)
+	binary_vector = accumulate_threshold(count, percentage)
 
 	## binary vector
 	if config.featureValueType == 'b':
-		return accumulate_threshold(count, percentage)
+		return binary_vector
 	
 	## pattern count (frequency)
-	elif config.featureValueType == 'f':
-		if config.cut:
-			binary_vector = accumulate_threshold(count, percentage)
-			return { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
-		else:
-			return count
+	elif config.featureValueType == 'f':	
+		return { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
 
 	## pattern score
 	elif config.featureValueType == 's':
 		pattern_score = pattern_scoring(count)
-		if config.cut:
-			binary_vector = accumulate_threshold(count, percentage)
-			return { e: pattern_score[e] for e in binary_vector if binary_vector[e] == 1 }
-		else:
-			return pattern_score
+		return { e: pattern_score[e] for e in binary_vector if binary_vector[e] == 1 }
+
 	else:
-		return False	
+		return False
 
 
 def get_document_feature(udocID):
