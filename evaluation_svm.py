@@ -19,6 +19,8 @@ print >> sys.stderr, 'ok'
 # setting_id = '537af6923681dff466c19e38'
 # root = 'tmp'
 
+intersection = False
+
 def accuracy(res, ratio=1):
 	TP = res['TP']
 	TN = res['TN']/float(ratio)
@@ -270,6 +272,27 @@ def run(setting_id, param):
 	return eval_mdoc
 	# pprint(eval_mdoc)
 
+def find_intersection(eval_mdoc):
+
+	LJ40K = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}) ])
+	Mishne05 = sorted([x['emotion'] for x in db['emotions'].find({'label':'Mishne05'}) ])
+
+	inter = []
+	for e in set(LJ40K+Mishne05):
+		if e in LJ40K and e in Mishne05: inter.append(e)
+		
+	inter_accuracy = {}
+	for e in eval_mdoc['accuracy']:
+		if e in inter:
+			inter_accuracy[e] = eval_mdoc['accuracy'][e]
+
+	pprint(inter_accuracy)
+	print eval_mdoc['avg_accuracy']
+	print sum(inter_accuracy.values())/float(len(inter_accuracy.values()))
+
+	# pprint(eval_mdoc)
+
+
 if __name__ == '__main__':
 
 	## default parameters
@@ -285,11 +308,12 @@ if __name__ == '__main__':
 					   	 '           which can be retrieved from the mongo collection features.settings' ]),
 		('--all', 		['-a, --all: evaluate and update all current experiments, default: '+str(update_all)+' )']), 
 		('--param', 	['--param: parameter string for libsvm (e.g., use "b1c4", default: '+param+' )']),
-		('--path', 		['-p, --path: path to local files (default: '+root+' )'])
+		('--path', 		['-p, --path: path to local files (default: '+root+' )']),
+		('--inter', 	['-i, --inter: intersection with 2005 Mishne05'])
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hva',['help', 'verbose', 'setting=', 'param=', 'all'])
+		opts, args = getopt.getopt(sys.argv[1:],'hvai',['help', 'verbose', 'setting=', 'param=', 'all', 'inter'])
 	except getopt.GetoptError:
 		config.help('run_svm', addon=add_opts, exit=2)
 
@@ -297,6 +321,7 @@ if __name__ == '__main__':
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help('run_svm', addon=add_opts)
 		elif opt in ('-a','--all'): update_all = True
+		elif opt in ('-i','--inter'): intersection = True
 		elif opt in ('--param'): param = arg.strip()
 		elif opt in ('-p','--path'): root = arg.strip()
 		elif opt in ('--setting'): setting_id = arg.strip()
@@ -325,6 +350,9 @@ if __name__ == '__main__':
 
 		print >> sys.stderr, '[run] processing', color.render(setting_id, 'g'), color.render(param,'y')
 		eval_mdoc = run(setting_id, param)
+
+		if intersection:
+			find_intersection(eval_mdoc)
 
 		if config.verbose:
 			pprint(eval_mdoc)
