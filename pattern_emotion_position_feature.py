@@ -182,7 +182,7 @@ def get_document_feature(udocID):
 	return docfeature
 
 
-def create_document_features(setting_id):
+def create_document_features():
 
 	## list of emotions
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
