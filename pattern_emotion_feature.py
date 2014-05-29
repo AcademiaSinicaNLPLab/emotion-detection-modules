@@ -73,6 +73,7 @@ def remove_self_count(udocID, pattern, score_dict):
 		if mdoc['ldocID'] < 800: 
 
 			# new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - PatTC[udocID][pattern.lower()]
+			new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - 1
 			# new_score[mdoc['emotion']] = new_score[mdoc['emotion']]
 			if new_score[mdoc['emotion']] == 0 :
 				del new_score[mdoc['emotion']]
@@ -205,7 +206,8 @@ if __name__ == '__main__':
 	co_docs = db[config.co_docs_name]
 	co_sents = db[config.co_sents_name]
 	co_pats = db[config.co_pats_name]
-	co_nestedLexicon = db['lexicon.nested.pruned']
+	# co_nestedLexicon = db['lexicon.nested.pruned']
+	co_nestedLexicon = db['lexicon.nested']
 	co_patscore = db['patscore_p2_s0']
 
 	co_ptc = db['lexicon.pattern_total_count']
