@@ -15,22 +15,6 @@ mongo_docs = {}
 # global cache for mongo.LJ40K.lexicon.pattern_total_count
 PatTC = {}
 
-## load entire mongo.LJ40K.docs into memory
-def load_mongo_docs():
-	global mongo_docs
-	for mdoc in co_docs.find({}, {'_id':0}):
-		udocID = mdoc['udocID']
-		del mdoc['udocID']
-		mongo_docs[udocID] = mdoc
-
-
-##  PTC[33680]['i love you']
-	#  340 
-def load_lexicon_pattern_total_count():
-	global PatTC
-	for mdoc in db['lexicon.pattern_total_count'].find():
-		PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
-
 
 ## input: pattern
 ## output: a dictionary of (emotion, occurrence)
@@ -231,18 +215,6 @@ def create_document_features():
 
 if __name__ == '__main__':
 
-	## select mongo collections
-	co_emotions = db[config.co_emotions_name]
-	co_docs = db[config.co_docs_name]
-	co_sents = db[config.co_sents_name]
-	co_pats = db[config.co_pats_name]
-	co_nestedLexicon = db['lexicon.nested.min_count_4']
-	co_patscore = db['patscore_p2_s0']
-
-	## target mongo collections
-	co_setting = db['features.settings']
-	co_feature = db['features.pattern_emotion_position']
-
 	## input arguments
 	import getopt
 	
@@ -279,6 +251,21 @@ if __name__ == '__main__':
 		elif opt in ('-c'): config.cutoffPercentage = int( arg.strip() )
 		elif opt in ('-r'): remove_type = arg.strip()
 		elif opt in ('-v','--verbose'): config.verbose = True
+
+
+	## select mongo collections
+	co_emotions = db[config.co_emotions_name]
+	co_docs = db[config.co_docs_name]
+	co_sents = db[config.co_sents_name]
+	co_pats = db[config.co_pats_name]
+	co_nestedLexicon = db['lexicon.nested.min_count_4']
+
+	co_ptc = db['lexicon.pattern_total_count']
+
+	## target mongo collections
+	co_setting = db['features.settings']
+	co_feature = db['features.pattern_emotion_position']
+
 
 	## insert metadata
 	setting = { 
