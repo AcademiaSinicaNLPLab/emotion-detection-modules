@@ -59,8 +59,11 @@ def get_patcount(pattern):
 		else:
 			cache[pattern] = res['count']
 
-	# print 'get_patcount >>', pattern, '\tcount:',cache[pattern]
-
+	if pat['pattern'] == 'dont remember':
+		print 'get_patcount >>', pattern, '\tcount:',cache[pattern]
+		raw_input()
+	# print 
+	# if pat['pattern'] != 'dont remember': continue
 	return cache[pattern]
 
 
@@ -218,13 +221,17 @@ def get_document_feature(udocID):
 	if config.verbose:
 		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
 
+
+
 	for pat in pats:
-		# if pat['pattern'] != 'I m': continue
+
 		patfeature = get_patfeature(pat['pattern'], udocID)
 
 		for e in patfeature: 
+			
 			docfeature[e] += patfeature[e]
 
+	# if 
 	# pprint(dict(docfeature))
 	# raw_input()
 
