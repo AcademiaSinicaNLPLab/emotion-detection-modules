@@ -18,25 +18,6 @@ PatTC = {}
 
 remove_type = '0'
 
-## input: pattern
-## output: a dictionary of (emotion, patscore)
-def get_patscore(pattern):
-
-	global cache
-
-	if pattern not in cache:
-		
-		query = { 'pattern': pattern.lower() }
-		projector = { '_id': 0, 'scores':1 }
-		res = co_patscore.find_one(query, projector)
-		
-		if not res:
-			cache[pattern] = {}
-		else:
-			cache[pattern] = res['scores']
-
-	return cache[pattern]
-
 
 ## input: pattern
 ## output: a dictionary of (emotion, occurrence)
@@ -60,14 +41,14 @@ def get_patcount(pattern):
 
 ## input: dictionary of (emotion, count)
 ## output: dictionary of (emotion, count)
-def remove_self_count(udocID, pattern, score_dict):
+def remove_self_count(udocID, pattern, count_dict):
 
 	global mongo_docs
 	mdoc = mongo_docs[udocID] # use pre-loaded
 
-	new_score = dict(score_dict)
+	new_count = dict(count_dict)
 
-	if new_score: 
+	if new_count: 
 
 		## ldocID: 0-799	
 		if mdoc['ldocID'] < 800: 
@@ -75,32 +56,32 @@ def remove_self_count(udocID, pattern, score_dict):
 			if remove_type == '0':
 				pass
 			elif remove_type == '1':
-				new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - 1
+				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - 1
 			elif remove_type == 'f':
-				new_score[mdoc['emotion']] = new_score[mdoc['emotion']] - PatTC[udocID][pattern.lower()]
+				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - PatTC[udocID][pattern.lower()]
 
-			# new_score[mdoc['emotion']] = new_score[mdoc['emotion']]
-			if new_score[mdoc['emotion']] == 0 :
-				del new_score[mdoc['emotion']]
+			# new_count[mdoc['emotion']] = new_count[mdoc['emotion']]
+			if new_count[mdoc['emotion']] == 0 :
+				del new_count[mdoc['emotion']]
 
-	return new_score
+	return new_count
 
 
 ## input: dictionary of (emotion, value)
 ## output: dictionary of (emotion, 1) for emotions passed the threshold
-def accumulate_threshold(score, percentage):
+def accumulate_threshold(count, percentage):
 	## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
 	## (count)	    { 2:   ['bouncy', 'sleepy', 'hungry', 'creative'], 3: ['cheerful']}
 	temp_dict = defaultdict( list ) 
-	for e in score:
-		temp_dict[score[e]].append(e)
+	for e in count:
+		temp_dict[count[e]].append(e)
 	
 	## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ] ((sorted))
 	## (count)	    [ (3, ['cheerful']), (2,   ['bouncy', 'sleepy', 'hungry', 'creative'])]
 	temp_list = temp_dict.items()
 	temp_list.sort(reverse=True)
 
-	th = percentage * sum( score.values() )
+	th = percentage * sum( count.values() )
 	current_sum = 0
 	selected_emotions = []
 
@@ -112,6 +93,24 @@ def accumulate_threshold(score, percentage):
 	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
 
 
+## input: count <dict> emotion --> count
+## output: patscore <dict> emotion --> score
+def pattern_scoring(count):
+
+	score = {}
+
+	for emo in count:
+
+		SUM = float( sum( [ count[key] for key in count if key != emo ] ) )
+		SUMSQ = float( sum( [ (count[key] ** 2) for key in count if key != emo ] ) )
+		
+		emo_value = float( count[emo] )
+		not_emo_value = float( SUMSQ/( SUM + 0.9 ** SUM ) )
+		
+		score[emo] = emo_value / (emo_value + not_emo_value)
+
+	return score
+
 ## output: a dictionary of (emotion, patfeature) according to different featureValueType 
 def get_patfeature(pattern, udocID):
 	########################################################################################
@@ -121,40 +120,44 @@ def get_patfeature(pattern, udocID):
 	## 		config.cut
 	########################################################################################
 
-	# score <dict> emotion --> patcount
+	# count <dict> emotion --> patcount
 	# {
 	#	'aggravated': 3,
 	#  	'amused': 2,
 	#  	'anxious': 3, ...
 	# }
-	score = get_patcount(pattern) # pattern count
+	count = get_patcount(pattern) # pattern count
 
-	if not score: return {}
+	if not count: return {}
 
 	## remove self count using --remove argument
-	score = remove_self_count(udocID, pattern, score)
+	count = remove_self_count(udocID, pattern, count)
 
 	# check if total patcount < min_count
-	if sum( score.values() ) < config.minCount: return {}
+	if sum( count.values() ) < config.minCount: return {}
 	
 	percentage = config.cutoffPercentage/float(100)
 
 	## binary vector
 	if config.featureValueType == 'b':
-		return accumulate_threshold(score, percentage)
+		return accumulate_threshold(count, percentage)
 	
 	## pattern count (frequency)
 	elif config.featureValueType == 'f':
 		if config.cut:
-			binary_vector = accumulate_threshold(score, percentage)
-			return { e: score[e] for e in binary_vector if binary_vector[e] == 1 }
+			binary_vector = accumulate_threshold(count, percentage)
+			return { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
 		else:
-			return score
+			return count
 
 	## pattern score
 	elif config.featureValueType == 's':
-		'''TODO'''
-		return None
+		pattern_score = pattern_scoring(count)
+		if config.cut:
+			binary_vector = accumulate_threshold(count, percentage)
+			return { e: pattern_score[e] for e in binary_vector if binary_vector[e] == 1 }
+		else:
+			return pattern_score
 	else:
 		return False
 	
@@ -245,7 +248,6 @@ if __name__ == '__main__':
 	co_pats = db[config.co_pats_name]
 	# co_nestedLexicon = db['lexicon.nested.pruned']
 	co_nestedLexicon = db[co_lexicon_name]
-	co_patscore = db['patscore_p2_s0']
 
 	co_ptc = db['lexicon.pattern_total_count']
 
