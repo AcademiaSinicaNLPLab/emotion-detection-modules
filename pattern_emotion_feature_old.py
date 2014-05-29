@@ -223,9 +223,7 @@ def create_document_features(setting_id):
 		if config.verbose:
 			print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
-		for doc in docs:
-			# if doc['udocID'] != 38004:
-				# continue			
+		for doc in docs[::-1]:
 			mdoc = {
 				"emotion": gold_emotion,
 				"udocID": doc['udocID'],
@@ -248,8 +246,8 @@ if __name__ == '__main__':
 	co_patscore = db['patscore_p2_s0']
 
 	## target mongo collections
-	co_setting = db['features.settings']
-	co_feature = db['features.pattern_emotion']
+	co_setting = db['debug.features.settings']
+	co_feature = db['debug.features.pattern_emotion']
 
 	## input arguments
 	import getopt
@@ -279,7 +277,8 @@ if __name__ == '__main__':
 	## insert metadata
 	setting = { 
 		"feature_name": "pattern_emotion", 
-		"feature_value_type": config.featureValueType 
+		"feature_value_type": config.featureValueType ,
+		'reverse': True
 	}
 
 	## print confirm message
