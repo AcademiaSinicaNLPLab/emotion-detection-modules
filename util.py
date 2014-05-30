@@ -15,7 +15,7 @@ def load_mongo_docs(co_docs):
 	return mongo_docs
 
 ##  PTC[33680]['i love you']
-#  340 
+##  340 
 def load_lexicon_pattern_total_count(co_ptc):
 	PatTC = {}
 	# co_ptc = db['lexicon.pattern_total_count']
@@ -27,3 +27,13 @@ def load_lexicon_pattern_total_count(co_ptc):
 	else:
 		PatTC = pickle.load(open('PTC.lexicon.pkl','rb'))
 	return PatTC
+
+
+## KwTC[0]['bad']
+## 1
+def load_lexicon_keyword_total_count(co_ktc):
+	KwTC = {}
+	# co_ktc = db['lexicon.keyword_total_count']
+	for mdoc in co_ktc.find():
+		KwTC[mdoc['udocID']] = {kw: count for kw, count in mdoc['keywords']}
+	return KwTC
