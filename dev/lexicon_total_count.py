@@ -28,7 +28,7 @@ def create_lexicon_keyword_total_count(wordType='extend', lemma=True):
 
 	lmtzr = WordNetLemmatizer()
 	emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}, {'_id':0, 'emotion':1})])
-	keyword_list = set( [ x['word'] for x in list( co_keywords.find({ 'type': wordType }) ) ] )
+	keyword_list = set( [ x['word'].lower() for x in list( co_keywords.find({ 'type': wordType }) ) ] )
 
 	for sent_mdoc in co_sents.find():
 		# extract words, pos tags
@@ -38,6 +38,9 @@ def create_lexicon_keyword_total_count(wordType='extend', lemma=True):
 		udocID = sent_mdoc['udocID']
 		
 		for word, pos in word_pos:
+
+			word = word.lower()
+
 			if lemma:
 				if pos.startswith('N'): pos = 'n'
 				elif pos.startswith('V'): pos = 'v'
@@ -90,4 +93,9 @@ def load_lexicon_keyword_total_count():
 	for mdoc in db['lexicon.keyword_total_count'].find():
 		KwTC[mdoc['udocID']] = {kw: count for kw, count in mdoc['keywords']}
 	return KwTC
+
+if __name__ == '__main__':
+
+	create_lexicon_keyword_total_count()
+
 
