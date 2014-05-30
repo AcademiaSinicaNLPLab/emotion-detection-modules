@@ -170,7 +170,8 @@ def get_document_feature(udocID):
 	## find all pats in the document <udocID>
 	pats = list( co_pats.find( {'udocID': udocID} ) )
 
-	print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
+	if config.verbose:
+		print >> sys.stderr, '\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats))
 
 	for pat in pats:
 		## find pattern position ( beginning/middle/end )
