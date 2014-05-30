@@ -151,7 +151,7 @@ def create_keyword_features():
 	## list of emotions
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
-	for (ie, gold_emotion) in enumerate(['blah']):
+	for (ie, gold_emotion) in enumerate([emotions]):
 
 		## get all document with emotions <gold_emotion> (ldocID: 0-799 for training, 800-999 for testing)
 		docs = list( co_docs.find( { 'emotion': gold_emotion } ) )
