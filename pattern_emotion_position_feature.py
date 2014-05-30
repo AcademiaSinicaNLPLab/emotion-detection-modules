@@ -200,8 +200,7 @@ def create_document_features():
 		## get all document with emotions <gold_emotion> (ldocID: 0-799 for training, 800-999 for testing)
 		docs = list( co_docs.find( { 'emotion': gold_emotion } ) )
 
-		if config.verbose:
-			print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
+		print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
 		for doc in docs:
 			mdoc = {
