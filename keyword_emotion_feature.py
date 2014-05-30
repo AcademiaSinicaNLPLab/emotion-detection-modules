@@ -96,7 +96,7 @@ def accumulate_threshold(count, percentage):
 ## output: a dictionary of (word: occurrence)
 def get_keyword_feature(udocID):
 
-	keywordFeature = Count()
+	keywordFeature = Counter()
 
 	## find all words in the document <udocID>
 	words = []
