@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import config
+sys.path.append('../')
+
 import pymongo
 from collections import Counter
 
