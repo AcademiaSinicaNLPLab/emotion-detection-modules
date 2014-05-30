@@ -201,6 +201,8 @@ if __name__ == '__main__':
 	co_setting = db['features.settings']
 	co_feature = db['features.keyword_emotion_position']
 
+	co_ktc = db['lexicon.keyword_total_count']
+
 	## input arguments
 	import getopt
 
@@ -281,7 +283,7 @@ if __name__ == '__main__':
 
 	if remove_type == 'f':
 		print 'load_lexicon_keyword_total_count'
-		KwTC = load_lexicon_keyword_total_count(co_ptc)
+		KwTC = load_lexicon_keyword_total_count(co_ktc)
 
 	print 'create_keyword_features'
 	create_keyword_features()
