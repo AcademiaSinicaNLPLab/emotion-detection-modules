@@ -131,11 +131,14 @@ def get_keyword_feature(udocID):
 
 		if config.lemma: 
 			POS = POSs[idx].split('/').pop()
-			if POS.startswith('J'): pos = 'a'
+			if POS.startswith('N'): pos = 'n'
 			elif POS.startswith('V'): pos = 'v'
+			elif POS.startswith('J'): pos = 'a'
 			elif POS.startswith('R'): pos = 'r'
-			else: pos = 'n'
-			word = lmtzr.lemmatize(word, pos)
+			else: pos = None
+			if pos: # only lemmatize certain pos types
+				word = lmtzr.lemmatize(word, pos)
+
 
 		if wordIDs[idx] <= th1: position = 'beginning'
 		elif wordIDs[idx] <= th2: position = 'middle'
