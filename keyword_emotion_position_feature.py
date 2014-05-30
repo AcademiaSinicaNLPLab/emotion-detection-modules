@@ -145,7 +145,7 @@ def get_keyword_feature(udocID):
 
 		count = get_keyword_count(word)
 		if not count: return {}
-		count = remove_self_count( count, word, udocID )
+		count = remove_self_count( udocID, word, count )
 
 		percentage = config.cutoffPercentage/float(100)
 		binary_vector = accumulate_threshold(count, percentage)
