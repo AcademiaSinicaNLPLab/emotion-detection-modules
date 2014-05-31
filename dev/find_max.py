@@ -1,4 +1,4 @@
-
+import sys
 import os
 from collections import Counter
 
@@ -16,7 +16,9 @@ if __name__ == '__main__':
 	## pat-emo-b (old)
 	# sids = ['537d838fd4388c3735dc1916','5382fa27d4388c23417ddc53']
 
-	sids = ['538302743681df11cd509c77']
+	sids = sys.argv[1:]
+
+	#sids = ['538302743681df11cd509c77']
 
 	root='../tmp'
 
