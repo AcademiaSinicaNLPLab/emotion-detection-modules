@@ -19,7 +19,7 @@ mongo_docs = {}
 KwTC = {}
 
 ## remove_type = '0', '1', 'f'
-remove_type = '0'
+remove_type = 'f'
 
 
 ## input: word
@@ -96,8 +96,6 @@ def accumulate_threshold(count, percentage):
 ## output: a dictionary of (word: occurrence)
 def get_keyword_feature(udocID):
 
-	keywordFeature = Counter()
-
 	## find all words in the document <udocID>
 	words = []
 	POSs = []
@@ -113,6 +111,8 @@ def get_keyword_feature(udocID):
 	if config.verbose:
 		print >> sys.stderr, '\t%s (%d words)\t' % (  color.render('#' + str(udocID), 'y'), len(words))
 
+	## create keyword features
+	keywordFeature = Counter()
 	for idx, word in enumerate(words):
 		word = word.lower()
 
@@ -127,21 +127,23 @@ def get_keyword_feature(udocID):
 				word = lmtzr.lemmatize(word, pos)
 
 		count = get_keyword_count(word)
-		if not count: return {}
-		count = remove_self_count( udocID, word, count )
+		if not count: 
+			continue # if not count, skip this word
+		else:	
+			count = remove_self_count( udocID, word, count )
 
-		percentage = config.cutoffPercentage/float(100)
-		binary_vector = accumulate_threshold(count, percentage)
+			percentage = config.cutoffPercentage/float(100)
+			binary_vector = accumulate_threshold(count, percentage)
+				
+			if config.featureValueType == 'b':
+				for emo in binary_vector:
+					keywordFeature[emo] += binary_vector[emo] 
 			
-		if config.featureValueType == 'b':
-			for emo in binary_vector:
-				keywordFeature[emo] += binary_vector[emo] 
-		
-		## pattern count (frequency)
-		elif config.featureValueType == 'f':	
-			count_vector =  { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
-			for emo in count_vector:
-				keywordFeature[emo] += count_vector[emo] 
+			## pattern count (frequency)
+			elif config.featureValueType == 'f':	
+				count_vector =  { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
+				for emo in count_vector:
+					keywordFeature[emo] += count_vector[emo] 
 				
 	return keywordFeature
 
@@ -159,10 +161,12 @@ def create_keyword_features():
 		print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
 		for doc in docs:
+			udocID = doc['udocID']
+			kw_feature = get_keyword_feature(udocID)
 			mdoc = {
 				"emotion": gold_emotion,
 				"udocID": doc['udocID'],
-				"feature": get_keyword_feature(udocID=doc['udocID']).items(),
+				"feature": kw_feature.items(),
 				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
 			co_feature.insert(mdoc)
