@@ -104,6 +104,11 @@ def generate_feature_vectors(src_setting_ids):
 		prefix = src_setting_id
 
 		## gathering
+		number = db[collection_name].find({'setting':src_setting_id}).count()
+		if number == 0: 
+			logging.error("can't find any instances with id "+ color.render(src_setting_id, 'y') + ' in ' + color.render(collection_name,'g'))
+			return False
+
 		for mdoc in db[collection_name].find({'setting':src_setting_id}):
 			udocID = mdoc['udocID']
 			emotion = mdoc['emotion']
@@ -231,6 +236,8 @@ def run():
 	else:
 		logging.info('generate feature vectors')
 		feature_vectors = generate_feature_vectors(src_setting_ids)
+
+		if not feature_vectors:	exit(-1)
 
 		logging.info('transform to svm format')
 		str_feature_vectors = tranform_to_svm_format(feature_vectors)
