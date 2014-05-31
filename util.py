@@ -19,13 +19,13 @@ def load_mongo_docs(co_docs):
 def load_lexicon_pattern_total_count(co_ptc):
 	PatTC = {}
 	# co_ptc = db['lexicon.pattern_total_count']
-	if not os.path.exists('PTC.lexicon.pkl'):
-		if not os.path.exists('cache'): os.mkdir('cache')
+	if not os.path.exists('cache/PTC.lexicon.pkl'):
 		for mdoc in co_ptc.find():
 			PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
-		pickle.dump(PatTC, open('PTC.lexicon.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
+		if not os.path.exists('cache'): os.mkdir('cache')
+		pickle.dump(PatTC, open('cache/PTC.lexicon.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
 	else:
-		PatTC = pickle.load(open('PTC.lexicon.pkl','rb'))
+		PatTC = pickle.load(open('cache/PTC.lexicon.pkl','rb'))
 	return PatTC
 
 
@@ -34,6 +34,11 @@ def load_lexicon_pattern_total_count(co_ptc):
 def load_lexicon_keyword_total_count(co_ktc):
 	KwTC = {}
 	# co_ktc = db['lexicon.keyword_total_count']
-	for mdoc in co_ktc.find():
-		KwTC[mdoc['udocID']] = {kw: count for kw, count in mdoc['keywords']}
+	if not os.path.exists('cache/KwTC.lexicon.pkl'):
+		for mdoc in co_ktc.find():
+			KwTC[mdoc['udocID']] = {kw: count for kw, count in mdoc['keywords']}
+		if not os.path.exists('cache'): os.mkdir('cache')
+		pickle.dump(KwTC, open('cache/KwTC.lexicon.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
+	else:
+		KwTC = pickle.load(open('cache/KwTC.lexicon.pkl','rb'))
 	return KwTC
