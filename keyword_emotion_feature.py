@@ -35,6 +35,9 @@ def get_keyword_count(word):
 		else: 
 			cache[word] = {}
 
+	# if cache[word]:
+		# print word, 'in lexicon'
+
 	return cache[word]
 
 
@@ -122,7 +125,7 @@ def get_keyword_feature(udocID):
 	POSs = []
 	sent_mdocs = list( co_sents.find( {'udocID': udocID} ) )
 	for sent_mdoc in sent_mdocs:
-		
+
 		## words: list of 'happy'
 		words.extend( sent_mdoc['sent'].split(' ') ) 
 
@@ -145,13 +148,18 @@ def get_keyword_feature(udocID):
 			if pos: # only lemmatize certain pos types
 				word = lmtzr.lemmatize(word, pos)
 
+		# print 'POS:', POS, '\npos:', pos, '\nword:', word
+
 		count = get_keyword_count(word)
-		if not count: return {}
+		if not count: 
+			return {}
 		count = remove_self_count( udocID, word, count )
 
 		percentage = config.cutoffPercentage/float(100)
+
 		binary_vector = accumulate_threshold(count, percentage)
 			
+
 		if config.featureValueType == 'b':
 			for emo in binary_vector:
 				keywordFeature[emo] += binary_vector[emo] 
@@ -169,7 +177,9 @@ def get_keyword_feature(udocID):
 			for emo in score_vector:
 				keywordFeature[emo] += score_vector[emo] 
 
-				
+		else:
+			return False
+
 	return keywordFeature
 
 
@@ -274,6 +284,7 @@ if __name__ == '__main__':
 			co_keyword_lexicon = db['lexicon.keyword.extend.w_lemma']
 		else: 
 			co_keyword_lexicon = db['lexicon.keyword.extend.wo_lemma']
+
 
 	## run
 	print 'load_mongo_docs'
