@@ -92,6 +92,25 @@ def accumulate_threshold(count, percentage):
 	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
 
 
+## input: count <dict> emotion --> count
+## output: patscore <dict> emotion --> score
+def scoring(count):
+
+	score = {}
+
+	for emo in count:
+
+		SUM = float( sum( [ count[key] for key in count if key != emo ] ) )
+		SUMSQ = float( sum( [ (count[key] ** 2) for key in count if key != emo ] ) )
+		
+		emo_value = float( count[emo] )
+		not_emo_value = float( SUMSQ/( SUM + 0.9 ** SUM ) )
+		
+		score[emo] = emo_value / (emo_value + not_emo_value)
+
+	return score
+
+
 ## input: udocID
 ## output: a dictionary of (word: occurrence)
 def get_keyword_feature(udocID):
@@ -142,6 +161,14 @@ def get_keyword_feature(udocID):
 			count_vector =  { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
 			for emo in count_vector:
 				keywordFeature[emo] += count_vector[emo] 
+
+		## keyword score
+		elif config.featureValueType == 's':
+			keyword_score = scoring(count)
+			score_vector = { e: keyword_score[e] for e in binary_vector if binary_vector[e] == 1 }
+			for emo in score_vector:
+				keywordFeature[emo] += score_vector[emo] 
+
 				
 	return keywordFeature
 
@@ -194,7 +221,8 @@ if __name__ == '__main__':
 		('--lemma', ['--lemma: use word lemma when looking for keywords']),
 		('-f', ['-f: feature value type',
 				'                 b: binary vector',
-				'                 f: keyword count (frequency)']),
+				'                 f: keyword count (frequency)',
+				'                 s: keyword score']),
 		('-c', ['-c: cut off by accumulated count percentage',
 				'                 k: cut at k%']),
 		('-r', ['-r: remove self count',
