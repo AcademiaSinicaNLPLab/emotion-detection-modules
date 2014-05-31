@@ -44,11 +44,14 @@ def build_lexicon():
 					word = word.lower()
 
 					if lemma:
-						pos = 'n'						
-						if POSs[idx].startswith('J'): pos = 'a'
+										
+						if POSs[idx].startswith('N'): pos = 'n'
 						elif POSs[idx].startswith('V'): pos = 'v'
+						elif POSs[idx].startswith('J'): pos = 'a'
 						elif POSs[idx].startswith('R'): pos = 'r'
-						word = lmtzr.lemmatize(word, pos)
+						else: pos = None	
+						if pos:
+							word = lmtzr.lemmatize(word, pos)
 
 					if word in keyword_list:
 						keywordCount[word][e] += 1
@@ -63,26 +66,52 @@ def build_lexicon():
 
 if __name__ == '__main__':
 
-	## setting 1
-	wordType = 'basic'
-	lemma = False	
-	co_keyword_lexicon = db['lexicon.keyword.basic.wo_lemma']
-	build_lexicon()
+	## usage: python construct_keyword_lexicon.py [basic/extend] [wo_lemma/w_lemma]
 
-	## setting 2
-	wordType = 'basic'
-	lemma = True	
-	co_keyword_lexicon = db['lexicon.keyword.basic.w_lemma']
-	build_lexicon()
+	if len(sys.argv) < 3:
+		print 'construct all lexicon? [y/N]'
+		yn = raw_input().strip()
+		if yn.lower() == 'y':
 
-	## setting 3
-	wordType = 'extend'
-	lemma = False	
-	co_keyword_lexicon = db['lexicon.keyword.extend.wo_lemma']
-	build_lexicon()
+			## setting 1
+			wordType = 'basic'
+			lemma = False	
+			co_keyword_lexicon = db['lexicon.keyword.basic.wo_lemma']
+			build_lexicon()
 
-	## setting 4
-	wordType = 'extend'
-	lemma = True	
-	co_keyword_lexicon = db['lexicon.keyword.extend.w_lemma']
-	build_lexicon()
+			## setting 2
+			wordType = 'basic'
+			lemma = True	
+			co_keyword_lexicon = db['lexicon.keyword.basic.w_lemma']
+			build_lexicon()
+
+			## setting 3
+			wordType = 'extend'
+			lemma = False	
+			co_keyword_lexicon = db['lexicon.keyword.extend.wo_lemma']
+			build_lexicon()
+
+			## setting 4
+			wordType = 'extend'
+			lemma = True	
+			co_keyword_lexicon = db['lexicon.keyword.extend.w_lemma']
+			build_lexicon()
+		else:
+			print 'usage: python construct_keyword_lexicon.py [basic/extend] [wo_lemma/w_lemma]'
+			exit(0)
+	else:
+		basic_extend = sys.argv[1].strip()
+		wo_lemma_w_lemma = sys.argv[2].strip()
+
+		if not basic_extend in ['basic', 'extend'] or not wo_lemma_w_lemma in ['wo_lemma', 'w_lemma']:
+			print 'invalid arguments'
+			print 'usage: python construct_keyword_lexicon.py [basic/extend] [wo_lemma/w_lemma]'
+			exit(0)
+
+		wordType = basic_extend
+		lemma = False if wo_lemma_w_lemma.startswith('wo') else True
+		co_keyword_lexicon = db['lexicon.keyword.'+wordType+'.'+wo_lemma_w_lemma]
+		
+
+
+
