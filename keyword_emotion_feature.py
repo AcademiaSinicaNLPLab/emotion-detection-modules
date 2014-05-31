@@ -19,7 +19,7 @@ mongo_docs = {}
 KwTC = {}
 
 ## remove_type = '0', '1', 'f'
-remove_type = '0'
+remove_type = 'f'
 
 
 ## input: word
@@ -34,6 +34,9 @@ def get_keyword_count(word):
 			cache[word] = mdoc['count']
 		else: 
 			cache[word] = {}
+
+	# if cache[word]:
+		# print word, 'in lexicon'
 
 	return cache[word]
 
@@ -115,14 +118,12 @@ def scoring(count):
 ## output: a dictionary of (word: occurrence)
 def get_keyword_feature(udocID):
 
-	keywordFeature = Counter()
-
 	## find all words in the document <udocID>
 	words = []
 	POSs = []
 	sent_mdocs = list( co_sents.find( {'udocID': udocID} ) )
 	for sent_mdoc in sent_mdocs:
-		
+
 		## words: list of 'happy'
 		words.extend( sent_mdoc['sent'].split(' ') ) 
 
@@ -132,6 +133,8 @@ def get_keyword_feature(udocID):
 	if config.verbose:
 		print >> sys.stderr, '\t%s (%d words)\t' % (  color.render('#' + str(udocID), 'y'), len(words))
 
+	## create keyword features
+	keywordFeature = Counter()
 	for idx, word in enumerate(words):
 		word = word.lower()
 
@@ -145,31 +148,38 @@ def get_keyword_feature(udocID):
 			if pos: # only lemmatize certain pos types
 				word = lmtzr.lemmatize(word, pos)
 
-		count = get_keyword_count(word)
-		if not count: return {}
-		count = remove_self_count( udocID, word, count )
-
-		percentage = config.cutoffPercentage/float(100)
-		binary_vector = accumulate_threshold(count, percentage)
-			
-		if config.featureValueType == 'b':
-			for emo in binary_vector:
-				keywordFeature[emo] += binary_vector[emo] 
 		
-		## pattern count (frequency)
-		elif config.featureValueType == 'f':	
-			count_vector =  { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
-			for emo in count_vector:
-				keywordFeature[emo] += count_vector[emo] 
+		count = get_keyword_count(word)
 
-		## keyword score
-		elif config.featureValueType == 's':
-			keyword_score = scoring(count)
-			score_vector = { e: keyword_score[e] for e in binary_vector if binary_vector[e] == 1 }
-			for emo in score_vector:
-				keywordFeature[emo] += score_vector[emo] 
+		if not count:
+			continue # if not count, skip this word
+		else:	
+			count = remove_self_count( udocID, word, count )
 
-				
+			percentage = config.cutoffPercentage/float(100)
+			binary_vector = accumulate_threshold(count, percentage)
+			
+			## binary
+			if config.featureValueType == 'b':
+				for emo in binary_vector:
+					keywordFeature[emo] += binary_vector[emo] 
+			
+			## pattern count (frequency)
+			elif config.featureValueType == 'f':	
+				count_vector =  { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
+				for emo in count_vector:
+					keywordFeature[emo] += count_vector[emo] 
+
+			## keyword score
+			elif config.featureValueType == 's':
+				keyword_score = scoring(count)
+				score_vector = { e: keyword_score[e] for e in binary_vector if binary_vector[e] == 1 }
+				for emo in score_vector:
+					keywordFeature[emo] += score_vector[emo] 
+
+			else:
+				return False # wtf feature type?
+
 	return keywordFeature
 
 
@@ -186,10 +196,12 @@ def create_keyword_features():
 		print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
 		for doc in docs:
+			udocID = doc['udocID']
+			kw_feature = get_keyword_feature(udocID)
 			mdoc = {
 				"emotion": gold_emotion,
 				"udocID": doc['udocID'],
-				"feature": get_keyword_feature(udocID=doc['udocID']).items(),
+				"feature": kw_feature.items(),
 				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
 			co_feature.insert(mdoc)
@@ -274,6 +286,7 @@ if __name__ == '__main__':
 			co_keyword_lexicon = db['lexicon.keyword.extend.w_lemma']
 		else: 
 			co_keyword_lexicon = db['lexicon.keyword.extend.wo_lemma']
+
 
 	## run
 	print 'load_mongo_docs'
