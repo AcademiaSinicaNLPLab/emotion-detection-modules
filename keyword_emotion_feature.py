@@ -118,12 +118,13 @@ def get_keyword_feature(udocID):
 
 		if config.lemma: 
 			POS = POSs[idx].split('/').pop()
-			if POS.startswith('J'): pos = 'a'
+			if POS.startswith('N'): pos = 'n'
 			elif POS.startswith('V'): pos = 'v'
+			elif POS.startswith('J'): pos = 'a'
 			elif POS.startswith('R'): pos = 'r'
-			else: pos = 'n'
-			word = lmtzr.lemmatize(word, pos)
-
+			else: pos = None
+			if pos: # only lemmatize certain pos types
+				word = lmtzr.lemmatize(word, pos)
 
 		count = get_keyword_count(word)
 		if not count: return {}
@@ -150,7 +151,7 @@ def create_keyword_features():
 	## list of emotions
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
 
-	for (ie, gold_emotion) in enumerate(emotions):
+	for (ie, gold_emotion) in enumerate([emotions]):
 
 		## get all document with emotions <gold_emotion> (ldocID: 0-799 for training, 800-999 for testing)
 		docs = list( co_docs.find( { 'emotion': gold_emotion } ) )
