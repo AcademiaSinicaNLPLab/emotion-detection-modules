@@ -35,6 +35,9 @@ def get_keyword_count(word):
 		else: 
 			cache[word] = {}
 
+	# if cache[word]:
+		# print word, 'in lexicon'
+
 	return cache[word]
 
 
@@ -92,6 +95,25 @@ def accumulate_threshold(count, percentage):
 	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
 
 
+## input: count <dict> emotion --> count
+## output: patscore <dict> emotion --> score
+def scoring(count):
+
+	score = {}
+
+	for emo in count:
+
+		SUM = float( sum( [ count[key] for key in count if key != emo ] ) )
+		SUMSQ = float( sum( [ (count[key] ** 2) for key in count if key != emo ] ) )
+		
+		emo_value = float( count[emo] )
+		not_emo_value = float( SUMSQ/( SUM + 0.9 ** SUM ) )
+		
+		score[emo] = emo_value / (emo_value + not_emo_value)
+
+	return score
+
+
 ## input: udocID
 ## output: a dictionary of (word: occurrence)
 def get_keyword_feature(udocID):
@@ -101,7 +123,7 @@ def get_keyword_feature(udocID):
 	POSs = []
 	sent_mdocs = list( co_sents.find( {'udocID': udocID} ) )
 	for sent_mdoc in sent_mdocs:
-		
+
 		## words: list of 'happy'
 		words.extend( sent_mdoc['sent'].split(' ') ) 
 
@@ -126,15 +148,18 @@ def get_keyword_feature(udocID):
 			if pos: # only lemmatize certain pos types
 				word = lmtzr.lemmatize(word, pos)
 
+		
 		count = get_keyword_count(word)
-		if not count: 
+
+		if not count:
 			continue # if not count, skip this word
 		else:	
 			count = remove_self_count( udocID, word, count )
 
 			percentage = config.cutoffPercentage/float(100)
 			binary_vector = accumulate_threshold(count, percentage)
-				
+			
+			## binary
 			if config.featureValueType == 'b':
 				for emo in binary_vector:
 					keywordFeature[emo] += binary_vector[emo] 
@@ -144,7 +169,17 @@ def get_keyword_feature(udocID):
 				count_vector =  { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
 				for emo in count_vector:
 					keywordFeature[emo] += count_vector[emo] 
-				
+
+			## keyword score
+			elif config.featureValueType == 's':
+				keyword_score = scoring(count)
+				score_vector = { e: keyword_score[e] for e in binary_vector if binary_vector[e] == 1 }
+				for emo in score_vector:
+					keywordFeature[emo] += score_vector[emo] 
+
+			else:
+				return False # wtf feature type?
+
 	return keywordFeature
 
 
@@ -198,7 +233,8 @@ if __name__ == '__main__':
 		('--lemma', ['--lemma: use word lemma when looking for keywords']),
 		('-f', ['-f: feature value type',
 				'                 b: binary vector',
-				'                 f: keyword count (frequency)']),
+				'                 f: keyword count (frequency)',
+				'                 s: keyword score']),
 		('-c', ['-c: cut off by accumulated count percentage',
 				'                 k: cut at k%']),
 		('-r', ['-r: remove self count',
@@ -250,6 +286,7 @@ if __name__ == '__main__':
 			co_keyword_lexicon = db['lexicon.keyword.extend.w_lemma']
 		else: 
 			co_keyword_lexicon = db['lexicon.keyword.extend.wo_lemma']
+
 
 	## run
 	print 'load_mongo_docs'
