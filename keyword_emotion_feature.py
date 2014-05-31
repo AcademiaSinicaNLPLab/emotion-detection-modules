@@ -65,8 +65,22 @@ def remove_self_count(udocID, keyword, count_dict):
 
 				kw_total_count_in_this_article = KwTC[udocID][keyword]
 
+				try:
+					new_count[mdoc['emotion']]
+				except KeyError:
+
+					print 'udocID:', udocID
+					print 'keyword:', keyword					
+					print 'cache[keyword]:',cache[keyword]
+					mdoc = co_keyword_lexicon.find_one({ 'keyword': keyword })
+					print 'in lexicon:',mdoc
+					print 'new_count:', new_count
+					print 'kw_total_count_in_this_article:',kw_total_count_in_this_article
+					exit(0)
+
 				if config.debug:
 					print 'kw_total_count_in_this_article:',kw_total_count_in_this_article
+
 					print 'new_count['+mdoc['emotion']+']:', new_count[mdoc['emotion']]
 					
 				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - kw_total_count_in_this_article
