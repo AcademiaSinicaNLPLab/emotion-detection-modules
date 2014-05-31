@@ -54,6 +54,15 @@ def to_binary(data, anchor):
 
 	return binary_data
 
+def dest_files_exist(sid, root):
+	for ftype in ['train', 'test', 'gold']:
+		for anchor in range(40):
+			dest_fn = '.'.join([str(anchor), 'b', ftype])
+			dest_path = os.path.join(root, dest_fn)
+			if not os.path.exists(dest_path):
+				return False
+	return True
+
 def run(sid):
 	c = Counter()
 	root = os.path.join('tmp', sid)
@@ -63,7 +72,14 @@ def run(sid):
 	for ftype in ('train', 'test', 'gold'):
 		src_fn = '.'.join([sid,ftype,'txt'])
 		src_path = os.path.join('tmp', src_fn)
+		if not os.path.exists(src_path):
+			print 'missing', src_path, 'run toSVM.py before transforming to binary'
+			exit(-1)
+
 		src_paths[ftype] = src_path
+
+	if dest_files_exist(sid, root):
+		exit(0)
 
 	## load source files
 	data = load_src_files(src_paths)
