@@ -54,25 +54,43 @@ def counting():
 			else: 
 				position = 'end'
 
-			pat_counts[position][emotion][pat['pattern'].lower()] += 1
+			pat_counts[position][pat['pattern'].lower()][emotion] += 1
+		break
 	return pat_counts
 
 def build(pat_counts):
 	for position in pat_counts:
-		for emotion in pat_counts[position]:
-			for pat in pat_counts[position][emotion]:
-				mdoc = {
-					'pattern': pat,
-					'emotion': emotion,
-					'count': pat_counts[position][emotion][pat],
-					'position': position
-				}
-				co_lexicon.insert(mdoc)
+		for pat in pat_counts[position]:
+			mdoc = {
+				'pattern': pat,
+				'count': pat_counts[position][pat],
+				'position': position
+			}
+			co_lexicon.insert(mdoc)
 
 	co_lexicon.create_index([('pattern', pymongo.ASCENDING), ('position', pymongo.ASCENDING)])
 
 
+def check(drop):
+	lexicon_size = co_lexicon.count()
+	if lexicon_size > 0 and drop:
+		print 'drop current lexicon with size', lexicon_size, '? [y/N]',
+		yn = raw_input().strip()
+		if yn.lower() == 'y':
+			co_lexicon.drop()
+		else:
+			print "use python build_position_lexicon.py [drop/flush] to flush old lexicon"
+			exit(0)
+	else:
+		print "use python build_position_lexicon.py [drop/flush] to flush old lexicon"
+		exit(0)
+
 if __name__ == '__main__':
+
+	drop = False
+	if len(sys.argv) > 1: drop = True if sys.argv[1].strip().replace('-','') in ['drop', 'flush','force','f'] else False
+
+	check(drop)
 
 	print 'counting patterns'
 	pat_counts = counting()
