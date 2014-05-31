@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+import sys
+sys.path.append('../')
+
 import config
-import sys, pymongo, color
+import pymongo, color
 from collections import defaultdict, Counter
 from nltk.stem.wordnet import WordNetLemmatizer
 
@@ -111,7 +114,7 @@ if __name__ == '__main__':
 		wordType = basic_extend
 		lemma = False if wo_lemma_w_lemma.startswith('wo') else True
 		co_keyword_lexicon = db['lexicon.keyword.'+wordType+'.'+wo_lemma_w_lemma]
-		
+		build_lexicon()
 
 
 
