@@ -55,7 +55,6 @@ def counting():
 				position = 'end'
 
 			pat_counts[position][pat['pattern'].lower()][emotion] += 1
-		break
 	return pat_counts
 
 def build(pat_counts):
