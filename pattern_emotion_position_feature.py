@@ -153,7 +153,10 @@ def get_patfeature(udocID, position, pattern):
 	#  	'amused': 2,
 	#  	'anxious': 3, ...
 	# }
-	count = get_patcount(pattern) # pattern count
+	if using_position_lexicon:
+		count = get_patposcount(pattern, position)
+	else:
+		count = get_patcount(pattern) # pattern count
 
 	if not count: return {}
 
