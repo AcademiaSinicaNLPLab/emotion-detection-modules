@@ -75,22 +75,25 @@ def remove_self_count(udocID, position, pattern, count_dict):
 		## ldocID: 0-799	
 		if mdoc['ldocID'] < 800: 
 
+			if using_position_lexicon:
+				key1 = '#' + mdoc['emotion'] + '@' + position
+				key2 = '#' + pattern.lower() + '@' + position
+			else: 
+				key1 = mdoc['emotion']
+				key2 = pattern.lower()
+
+
 			if remove_type == '0':
 				pass
 			elif remove_type == '1':
 				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - 1
 			elif remove_type == 'f':
-				if using_position_lexicon:
-					key1 = '#' + mdoc['emotion'] + '@' + position
-					key2 = '#' + pattern.lower() + '@' + position
-				else: 
-					key1 = mdoc['emotion']
-					key2 = pattern.lower()
 				new_count[key1] = new_count[key1] - PatTC[udocID][key2]
 
+
 			# new_count[mdoc['emotion']] = new_count[mdoc['emotion']]
-			if new_count[mdoc['emotion']] == 0 :
-				del new_count[mdoc['emotion']]
+			if new_count[key1] == 0 :
+				del new_count[key1]
 
 	return new_count
 
