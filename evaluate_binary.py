@@ -104,15 +104,18 @@ def evaluate_binary_svm(pairs):
 
 		really_is_positive, really_is_negative = 0, 0
 		res = Counter()
-
+		label_cnt = []
+		
 		for gold_label, binary_predict in pairs:
 
 			predict = [str(i) for i, p in enumerate(binary_predict) if int(p) > 0]
 
-			print gold_label
+			#print gold_label
 			# predict = binary_predict
-			print predict
-			raw_input()
+			#print predict
+			#raw_input()
+
+			label_cnt.append(len(predict))
 
 			really_is = Positive if target_eid == gold_label else Negative
 			classified_as = Positive if target_eid in predict else Negative
@@ -129,7 +132,9 @@ def evaluate_binary_svm(pairs):
 			res['TN'] += 1 if TN else 0
 			res['FP'] += 1 if FP else 0
 			res['FN'] += 1 if FN else 0
-
+	
+		print 'avg label:', sum(label_cnt)/float(len(label_cnt))
+		raw_input()
 		r = really_is_negative/float(really_is_positive)
 		A = accuracy(res, ratio=r)
 		P = precision(res, ratio=r)

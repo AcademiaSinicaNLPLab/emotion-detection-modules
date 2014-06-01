@@ -22,9 +22,10 @@ params = [
 ]
 
 sids = [
-	'538aeb10d4388c12a30803d9', # pat-emo-f-pos
-	'538ae979d4388c54633cf587', # pat-emo-b-pos
-	'538aec90d4388c49cb5c2705', # pat-emo-s-pos
+	'538b290cd4388c1eb95c3f7b',   # kw-bag + pat-emo-s + kw-emo-s + pat-emo-s-pos
+	# '538aeb10d4388c12a30803d9', # pat-emo-f-pos
+	# '538ae979d4388c54633cf587', # pat-emo-b-pos
+	# '538aec90d4388c49cb5c2705', # pat-emo-s-pos
 	# "538a9256d4388c7d9203e92c", # pat-emo-s + kw-emo-s (538a9256d4388c7d9203e92c)
 	# "538a9245d4388c7a1a54c294", # kw-bag + pat-emo-s + kw-emo-s (538a9245d4388c7a1a54c294)
 	# '538a08a5d4388c142389a032',
