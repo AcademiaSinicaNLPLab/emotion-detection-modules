@@ -91,6 +91,7 @@ def evaluate_binary_svm(pairs):
 	## target_eids: ['0', '1', ..., '39']
 	target_eids = sorted( list(set([x[0] for x in pairs])) , key=lambda a:int(a))
 
+
 	Results = defaultdict(list)
 
 	for target_eid in target_eids:
@@ -108,8 +109,10 @@ def evaluate_binary_svm(pairs):
 
 			predict = [str(i) for i, p in enumerate(binary_predict) if int(p) > 0]
 
-			# print gold_label
+			print gold_label
 			# predict = binary_predict
+			print predict
+			raw_input()
 
 			really_is = Positive if target_eid == gold_label else Negative
 			classified_as = Positive if target_eid in predict else Negative
@@ -166,12 +169,14 @@ def find_intersection(eval_mdoc):
 
 def run(sid, param):
 
-	eval_mdoc = load_eval_from_mongo(sid, param)
-	# eval_mdoc = None
+	# eval_mdoc = load_eval_from_mongo(sid, param)
+	eval_mdoc = None
 	if not eval_mdoc:
 		prediction_results = load(sid, param)
+
 		Eval = evaluate_binary_svm(prediction_results)
-		eval_mdoc = save_eval_to_mongo(sid, param, results=Eval)
+		raw_input()
+		# eval_mdoc = save_eval_to_mongo(sid, param, results=Eval)
 		if not eval_mdoc: 
 			print >> sys.stderr, "[error] failed to save eval mdoc to mongo"
 			exit(-1)
