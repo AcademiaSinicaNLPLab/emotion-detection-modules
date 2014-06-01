@@ -9,6 +9,9 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 # global cache for pattern
 cache = {}
 
+# global cache for pattern_position (key: #pattern@position)
+position_cache = {}
+
 # global cache for mongo.LJ40K.docs
 mongo_docs = {}
 
@@ -34,6 +37,28 @@ def get_patcount(pattern):
 			cache[pattern] = res['count']
 
 	return cache[pattern]
+
+
+## input: pattern, position
+## output: a dictionary of (emotion, occurrence)
+def get_patposcount(pattern, position):
+
+	global position_cache
+
+	key = '#' + pattern.lower() + '@' + position
+
+	if key not in cache:
+
+		query = { 'pattern': pattern.lower(), 'position': position }
+		projector = { '_id': 0, 'count':1 }
+		res = co_nestedLexicon.find_one(query, projector)
+
+		if not res:
+			cache[key] = {}
+		else:
+			cache[key] = res['count']
+
+	return cache[key]
 
 
 ## input: dictionary of (emotion, count)
@@ -233,11 +258,12 @@ if __name__ == '__main__':
 		('-r', ['-r: remove self count',
 				"                 0: dont't remove anything",
 				'                 1: minus-one',
-				'                 f: minus-frequency'])
+				'                 f: minus-frequency']),
+		('-p', ['-p: use position lexicon'])
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:f:n:c:r:v',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'featureValueType=', 'minCount=', 'cut', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hb:m:e:f:n:c:r:pv',['help','begPercentage=', 'midPercentage=', 'endPercentage=', 'featureValueType=', 'minCount=', 'cut', 'verbose'])
 	except getopt.GetoptError:
 		config.help(config.patternEmotionPositionFeat_name, addon=add_opts, exit=2)
 
@@ -250,6 +276,7 @@ if __name__ == '__main__':
 		elif opt in ('-n'): config.minCount = int( arg.strip() )
 		elif opt in ('-c'): config.cutoffPercentage = int( arg.strip() )
 		elif opt in ('-r'): remove_type = arg.strip()
+		elif opt in ('-p'): using_position_lexicon = True
 		elif opt in ('-v','--verbose'): config.verbose = True
 
 
@@ -258,9 +285,15 @@ if __name__ == '__main__':
 	co_docs = db[config.co_docs_name]
 	co_sents = db[config.co_sents_name]
 	co_pats = db[config.co_pats_name]
-	co_nestedLexicon = db['lexicon.nested.min_count_4']
 
-	co_ptc = db['lexicon.pattern_total_count']
+
+	if using_position_lexicon:
+		co_nestedLexicon = db['lexicon.nested.position']
+		co_ptc = db['lexicon.pattern_position_total_count']
+	else:
+		co_nestedLexicon = db['lexicon.nested.min_count_4']
+		co_ptc = db['lexicon.pattern_total_count']		
+
 
 	## target mongo collections
 	co_setting = db['features.settings']
@@ -274,7 +307,8 @@ if __name__ == '__main__':
 		"feature_value_type": config.featureValueType,
 		"min_count": config.minCount,
 		"cutoff_percentage": config.cutoffPercentage,
-		"remove": remove_type
+		"remove": remove_type,
+		"position_lexicon": using_position_lexicon
 	}
 
 	## print confirm message
@@ -288,8 +322,8 @@ if __name__ == '__main__':
 	mongo_docs = load_mongo_docs(co_docs)
 
 	if remove_type == 'f':
-		print 'load_lexicon_pattern_total_count'
-		PatTC = load_lexicon_pattern_total_count(co_ptc)
+			print 'load_total_count'
+			PatTC = load_lexicon_pattern_total_count(co_ptc)
 
 	print 'create_document_features'
 	create_document_features()
