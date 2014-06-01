@@ -17,6 +17,40 @@ def create_lexicon_pattern_total_count():
 		co.insert(mdoc)
 	co.create_index('udocID')
 
+def create_lexicon_pattern_position_total_count():
+	
+	PatTC = defaultdict(Counter)
+
+	udocIDs = [ x['udocID'] for x in list( db['docs'].find() ) ]
+
+	for udocID in udocIDs:
+
+		sents = { x['usentID']:x['sent_length'] for x in list( db['sents'].find( {'udocID': udocID} ) ) }
+		usentID_offset = min(sents)
+		total_words = sum([sents[x] for x in sents])
+
+		th1 = total_words * 0.2
+		th2 = total_words * 0.8
+
+		pats = list( db['pats'].find( {'udocID': udocID} ) )
+		
+		for pat in pats:
+			
+			lanchorID = sum([sents[usentID_offset+i] for i in range(pat['usentID'] - usentID_offset)]) + pat['anchor_idx']
+			if lanchorID <= th1: position = 'beginning'
+			elif lanchorID <= th2: position = 'middle'
+			else: position = 'end'
+
+			key = '#' +  pat['pattern'].lower() + '@' + position
+			PatTC[udocID][key] += 1
+
+	co = db['lexicon.pattern_position_total_count']
+	for udocID in PatTC:
+		mdoc = { 'udocID': udocID, 'pats': PatTC[udocID].items() }
+		co.insert(mdoc)
+	co.create_index('udocID')
+
+
 def create_lexicon_keyword_total_count(wordType='extend', lemma=True):
 
 	from nltk.stem.wordnet import WordNetLemmatizer
@@ -77,7 +111,6 @@ def load_lexicon_pattern_total_count():
 		PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
 	return PatTC
 
- 
 # KwTC[0]
 # {u'bad': 1,
 #  u'below': 1,
@@ -96,6 +129,6 @@ def load_lexicon_keyword_total_count():
 
 if __name__ == '__main__':
 
-	create_lexicon_keyword_total_count()
+	create_lexicon_pattern_position_total_count()
 
 
