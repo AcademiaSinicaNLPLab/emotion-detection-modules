@@ -326,7 +326,7 @@ if __name__ == '__main__':
 
 	if remove_type == 'f':
 			print 'load_total_count'
-			PatTC = load_lexicon_pattern_total_count(co_ptc)
+			PatTC = load_lexicon_pattern_total_count(co_ptc, lexicon_type='lexicon_position')
 
 	print 'create_document_features'
 	create_document_features()
