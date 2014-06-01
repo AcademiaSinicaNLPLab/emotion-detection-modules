@@ -288,7 +288,7 @@ if __name__ == '__main__':
 
 
 	if using_position_lexicon:
-		co_nestedLexicon = db[]
+		co_nestedLexicon = db['lexicon.nested.position']
 		co_ptc = db['lexicon.pattern_position_total_count']
 	else:
 		co_nestedLexicon = db['lexicon.nested.min_count_4']
@@ -322,8 +322,8 @@ if __name__ == '__main__':
 	mongo_docs = load_mongo_docs(co_docs)
 
 	if remove_type == 'f':
-		print 'load_lexicon_pattern_total_count'
-		PatTC = load_lexicon_pattern_total_count(co_ptc)
+			print 'load_total_count'
+			PatTC = load_lexicon_pattern_total_count(co_ptc)
 
 	print 'create_document_features'
 	create_document_features()
