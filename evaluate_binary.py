@@ -156,9 +156,10 @@ def find_intersection(eval_mdoc):
 		if e in inter:
 			inter_accuracy[e] = eval_mdoc['accuracy'][e]
 
-	pprint(inter_accuracy)
-	print 'avg accuracy in overall\t\t', color.render( str(eval_mdoc['avg_accuracy']), 'g')
-	print 'avg accuracy in intersection\t', color.render( str(round( sum(inter_accuracy.values())/float(len(inter_accuracy.values())), 4)), 'y')
+	pprint(eval_mdoc['accuracy'])
+
+	print >> sys.stderr, 'avg accuracy in overall\t\t', color.render( str(eval_mdoc['avg_accuracy']), 'g')
+	print >> sys.stderr, 'avg accuracy in intersection\t', color.render( str(round( sum(inter_accuracy.values())/float(len(inter_accuracy.values())), 4)), 'y')
 
 	# pprint(eval_mdoc)
 
