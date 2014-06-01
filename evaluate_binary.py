@@ -80,7 +80,6 @@ def load(sid, param):
 	return prediction_results
 	# for gold_label, predict in zip(gold_labels, predict_labels):
 
-
 def evaluate_binary_svm(pairs):
 	# ('0',	('-1', '1', '1', '-1', '1', '-1', '-1', '1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '1', '1', '1', '1', '-1', '1', '1', '1', '-1', '-1', '-1', '-1', '1', '-1', '-1', '-1', '-1', '1', '-1', '1', '1', '1', '-1', '-1', '-1'))
 	# ('39',('1', '-1', '-1', '1', '-1', '1', '-1', '-1', '1', '1', '-1', '1', '1', '1', '1', '-1', '-1', '1', '-1', '1', '1', '-1', '-1', '-1', '1', '1', '1', '-1', '-1', '-1', '-1', '1', '-1', '-1', '1', '1', '-1', '-1', '1', '1'))
@@ -96,7 +95,6 @@ def evaluate_binary_svm(pairs):
 
 	for target_eid in target_eids:
 
-		# print 'evaluate',target_eid
 		emotion = eid_to_emotion[target_eid]
 
 		# if config.verbose: 
@@ -104,18 +102,10 @@ def evaluate_binary_svm(pairs):
 
 		really_is_positive, really_is_negative = 0, 0
 		res = Counter()
-		label_cnt = []
 		
 		for gold_label, binary_predict in pairs:
 
 			predict = [str(i) for i, p in enumerate(binary_predict) if int(p) > 0]
-
-			#print gold_label
-			# predict = binary_predict
-			#print predict
-			#raw_input()
-
-			label_cnt.append(len(predict))
 
 			really_is = Positive if target_eid == gold_label else Negative
 			classified_as = Positive if target_eid in predict else Negative
@@ -132,9 +122,7 @@ def evaluate_binary_svm(pairs):
 			res['TN'] += 1 if TN else 0
 			res['FP'] += 1 if FP else 0
 			res['FN'] += 1 if FN else 0
-	
-		print 'avg label:', sum(label_cnt)/float(len(label_cnt))
-		raw_input()
+
 		r = really_is_negative/float(really_is_positive)
 		A = accuracy(res, ratio=r)
 		P = precision(res, ratio=r)
@@ -169,19 +157,13 @@ def find_intersection(eval_mdoc):
 	print >> sys.stderr, 'avg accuracy in overall\t\t', color.render( str(eval_mdoc['avg_accuracy']), 'g')
 	print >> sys.stderr, 'avg accuracy in intersection\t', color.render( str(round( sum(inter_accuracy.values())/float(len(inter_accuracy.values())), 4)), 'y')
 
-	# pprint(eval_mdoc)
-
 
 def run(sid, param):
 
-	# eval_mdoc = load_eval_from_mongo(sid, param)
 	eval_mdoc = None
 	if not eval_mdoc:
 		prediction_results = load(sid, param)
-
 		Eval = evaluate_binary_svm(prediction_results)
-		raw_input()
-		# eval_mdoc = save_eval_to_mongo(sid, param, results=Eval)
 		if not eval_mdoc: 
 			print >> sys.stderr, "[error] failed to save eval mdoc to mongo"
 			exit(-1)
@@ -198,10 +180,7 @@ if __name__ == '__main__':
 
 	co_svm_eval = db['svm.binary.eval']
 
-
 	eval_mdoc = run(sid, param)
-	
-	# pprint(eval_mdoc)
 	find_intersection(eval_mdoc)
 	
 
