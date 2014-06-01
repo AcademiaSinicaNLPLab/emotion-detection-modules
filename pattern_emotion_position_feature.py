@@ -81,10 +81,12 @@ def remove_self_count(udocID, position, pattern, count_dict):
 				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - 1
 			elif remove_type == 'f':
 				if using_position_lexicon:
-					key = '#' + pattern.lower() + '@' + position
+					key1 = '#' + mdoc['emotion'] + '@' + position
+					key2 = '#' + pattern.lower() + '@' + position
 				else: 
-					key = pattern.lower()
-				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - PatTC[udocID][key]
+					key1 = mdoc['emotion']
+					key2 = pattern.lower()
+				new_count[key1] = new_count[key1] - PatTC[udocID][key2]
 
 			# new_count[mdoc['emotion']] = new_count[mdoc['emotion']]
 			if new_count[mdoc['emotion']] == 0 :
@@ -153,7 +155,10 @@ def get_patfeature(udocID, position, pattern):
 	#  	'amused': 2,
 	#  	'anxious': 3, ...
 	# }
-	count = get_patcount(pattern) # pattern count
+	if using_position_lexicon:
+		count = get_patposcount(pattern, position)
+	else:
+		count = get_patcount(pattern) # pattern count
 
 	if not count: return {}
 
@@ -211,8 +216,12 @@ def get_document_feature(udocID):
 
 		patfeature = get_patfeature(udocID, position, pat['pattern'])
 
+
 		for e in patfeature: 
-			key = '#position'+ '@'+ position + '_' + e
+			if using_position_lexicon:
+				key = 3
+			else:
+				key = '#position'+ '@'+ position + '_' + e
 			docfeature[key] += patfeature[e]
 
 	return docfeature
