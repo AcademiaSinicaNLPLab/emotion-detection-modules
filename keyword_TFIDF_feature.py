@@ -30,10 +30,6 @@ def create_keyword_TFIDF_features(setting_id, TFIDF):
 				"feature": dict(TFIDF[doc['udocID']]).items(),
 				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
-			print mdoc
-			raw_input()
-
-			print 'insert to', co_feature
 			co_feature.insert(mdoc)
 
 	co_feature.create_index("setting")
@@ -112,7 +108,7 @@ if __name__ == '__main__':
 	TF3IDF2 = pickle.load(open(fn, 'rb'))
 
 	print 'organizing TFIDF dict'
-	TF3IDF2 = inverse_key(TF3IDF2)
+	TF3IDF2 = tfidf.inverse_key(TF3IDF2)
 
 	print 'creating features'
 	create_keyword_TFIDF_features(setting_id, TF3IDF2) # 538ba2bfd4388c4012348f0f
