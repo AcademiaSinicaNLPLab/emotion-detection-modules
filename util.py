@@ -20,7 +20,7 @@ def load_lexicon_pattern_total_count(co_ptc, lexicon_type='lexicon'):
 	PatTC = {}
 	# co_ptc = db['lexicon.pattern_total_count']
 	pkl_path = 'cache/PTC.'+lexicon_type+'.pkl'
-	if not os.path.exists():
+	if not os.path.exists(pkl_path):
 		for mdoc in co_ptc.find():
 			PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
 		if not os.path.exists('cache'): os.mkdir('cache')
