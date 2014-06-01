@@ -105,9 +105,9 @@ def create_lexicon_keyword_total_count(wordType='extend', lemma=True):
 	# ...}
 ##  PTC[33680]['i love you']
 	#  340 
-def load_lexicon_pattern_total_count(co_ptc):
+def load_lexicon_pattern_total_count():
 	PatTC = {}
-	for mdoc in co_ptc.find():
+	for mdoc in db['lexicon.pattern_total_count'].find():
 		PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
 	return PatTC
 
