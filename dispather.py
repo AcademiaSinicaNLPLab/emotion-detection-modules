@@ -1,3 +1,5 @@
+import sys
+import subprocess
 from itertools import product
 
 core = 4
@@ -5,9 +7,11 @@ core = 4
 params = [
 	'default',
 	'c9r5t1',
-	'c9t2',
+	
 	'c2t2',
 	'c4t2',
+	'c9t2',
+
 	'c2g0.001t2', 
 	'c2g0.01t2', 
 	'c9g0.01t2',
@@ -58,33 +62,48 @@ def dispatcher(sids, params, core):
 
 	return dispatch
 
+def show(sids, params, grouop_by):
+	
+	if grouop_by == 'row':
+		sids_params = list(product(sids, params))
+	elif grouop_by == 'col':
+		sids_params = [(sid,param) for (param,sid) in list(product(params, sids))]
+	else:
+		return False
+	
+	for sid, param in sids_params:
+		print sid, '\t', param
+		subprocess.Popen(['python','evaluate_binary.py',sid,param], stdout=subprocess.PIPE)
+		raw_input()
+
 if __name__ == '__main__':
 
-	import subprocess
-	# sids, params = list(set(sids)), list(set(params))
+	if len(sys.argv) > 1:
+		if sys.argv[1].strip() in ('row', 'col'): 
+			grouop_by = sys.argv[1].strip()
+			show(sids, params, grouop_by)
+		else:
+			print 'invalid argument, usage: python dispatcher.py [row/col]'
+			exit(-1)
 
-	dispatch = dispatcher(sids, params, core)
-	used_sid_to_check_binary = set()
+	else:
+		dispatch = dispatcher(sids, params, core)
+		used_sid_to_check_binary = set()		
+		for fidx, sids_params in enumerate(dispatch):
 
-	for fidx, sids_params in enumerate(dispatch):
+			fn = str(fidx)+'.sh'
+			with open(fn, 'w') as fw:
 
+				for sid, param in sids_params:
+					if sid not in used_sid_to_check_binary:
+						used_sid_to_check_binary.add(sid)
+						fw.write(' '.join(['python','to_binary.py',sid]) + '\n')
 
-		fn = str(fidx)+'.sh'
-		with open(fn, 'w') as fw:
+					fw.write(' '.join(['python','run_binary_svm.py',sid,param]) + '\n')
 
-			for sid, param in sids_params:		
-				if sid not in used_sid_to_check_binary:
-					used_sid_to_check_binary.add(sid)
-					fw.write(' '.join(['python','to_binary.py',sid]) + '\n')
+				for sid, param in sids_params:
+					fw.write(' '.join(['python','evaluate_binary.py',sid,param]) + '\n')
+			
+			print 'save',fn
 
-				fw.write(' '.join(['python','run_binary_svm.py',sid,param]) + '\n')
-
-			for sid, param in sids_params:
-				fw.write(' '.join(['python','evaluate_binary.py',sid,param]) + '\n')
-				# subprocess.call(['python','evaluate_binary.py',sid,param])
-				# print sid, param
-				# raw_input()
-		
-		print 'save',fn
-
-		subprocess.call(['chmod','+x',fn])
+			subprocess.call(['chmod','+x',fn])
