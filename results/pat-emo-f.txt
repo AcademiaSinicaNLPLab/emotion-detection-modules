@@ -11,12 +11,15 @@
  u'busy': 0.4967,
  u'calm': 0.4948,
  u'cheerful': 0.5086,
+ u'chipper': 0.5166,
  u'cold': 0.4954,
  u'confused': 0.5321,
  u'contemplative': 0.5357,
  u'content': 0.495,
+ u'crappy': 0.5051,
  u'crazy': 0.5249,
  u'creative': 0.5293,
+ u'crushed': 0.5322,
  u'depressed': 0.5542,
  u'drained': 0.5314,
  u'ecstatic': 0.5229,
@@ -27,10 +30,11 @@
  u'happy': 0.5171,
  u'hopeful': 0.5168,
  u'hungry': 0.5128,
+ u'lonely': 0.522,
  u'loved': 0.5064,
  u'okay': 0.4809,
+ u'pissed off': 0.5121,
  u'sad': 0.5172,
  u'sick': 0.5321,
- u'sleepy': 0.5206}
-avg accuracy in overall		[0;32;32m0.5164[m
-avg accuracy in intersection	[1;33m0.5158[m
+ u'sleepy': 0.5206,
+ u'tired': 0.528}
