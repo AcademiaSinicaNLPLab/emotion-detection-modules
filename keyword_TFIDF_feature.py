@@ -27,10 +27,13 @@ def create_keyword_TFIDF_features(setting_id, TFIDF):
 			mdoc = {
 				"emotion": gold_emotion,
 				"udocID": doc['udocID'],
-				# "feature": get_keyword_feature(udocID=doc['udocID']).items(),
 				"feature": dict(TFIDF[doc['udocID']]).items(),
 				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
+			print mdoc
+			raw_input()
+
+			print 'insert to', co_feature
 			co_feature.insert(mdoc)
 
 	co_feature.create_index("setting")
@@ -45,8 +48,8 @@ if __name__ == '__main__':
 	co_sents = db[config.co_sents_name]
 	co_keywords = db['resource.WordNetAffect']
 
-	config.keyword_type = 'extend'
-	config.lemma = True
+	# config.keyword_type = 'extend'
+	# config.lemma = True
 
 	## input arguments
 	import getopt
@@ -74,7 +77,7 @@ if __name__ == '__main__':
 
 	## target mongo collections
 	co_setting = db['features.settings'] if not config.debug else db['debug.features.settings']
-	co_feature = db['features.keyword'] if not config.debug else db['debug.features.keyword']
+	co_feature = db['features.keyword_TFIDF'] if not config.debug else db['debug.features.keyword_TFIDF']
 
 	## insert metadata
 	setting = { 
@@ -84,11 +87,16 @@ if __name__ == '__main__':
 		"TFIDF_type": 'TF3IDF2'
 	}
 
+	# print co_setting
+	# print co_feature
+
 	## print confirm message
 	config.print_confirm(setting.items(), bar=40, halt=True)
 	
 	## insert metadata
 	setting_id = str(co_setting.insert( setting ))
+
+
 
 	## create keyword_list
 	keyword_list = [ mdoc['word'] for mdoc in list( co_keywords.find( {'type': config.keyword_type} ) ) ]
@@ -103,7 +111,10 @@ if __name__ == '__main__':
 		fn = 'cache/TF3IDF2.pkl'
 	TF3IDF2 = pickle.load(open(fn, 'rb'))
 
+	print 'organizing TFIDF dict'
+	TF3IDF2 = inverse_key(TF3IDF2)
+
 	print 'creating features'
-	create_keyword_TFIDF_features(setting_id, TFIDF=TF3IDF2)
+	create_keyword_TFIDF_features(setting_id, TF3IDF2) # 538ba2bfd4388c4012348f0f
 	# print 'Time total:',time.time() - s,'sec'
 
