@@ -16,16 +16,17 @@ def load_mongo_docs(co_docs):
 
 ##  PTC[33680]['i love you']
 ##  340 
-def load_lexicon_pattern_total_count(co_ptc):
+def load_lexicon_pattern_total_count(co_ptc, lexicon_type='lexicon'):
 	PatTC = {}
 	# co_ptc = db['lexicon.pattern_total_count']
-	if not os.path.exists('cache/PTC.lexicon.pkl'):
+	pkl_path = 'cache/PTC.'+lexicon_type+'.pkl'
+	if not os.path.exists(pkl_path):
 		for mdoc in co_ptc.find():
 			PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
 		if not os.path.exists('cache'): os.mkdir('cache')
-		pickle.dump(PatTC, open('cache/PTC.lexicon.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
+		pickle.dump(PatTC, open(pkl_path,'wb'), protocol=pickle.HIGHEST_PROTOCOL)
 	else:
-		PatTC = pickle.load(open('cache/PTC.lexicon.pkl','rb'))
+		PatTC = pickle.load(open(pkl_path,'rb'))
 	return PatTC
 
 

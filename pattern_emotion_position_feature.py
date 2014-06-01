@@ -63,7 +63,7 @@ def get_patposcount(pattern, position):
 
 ## input: dictionary of (emotion, count)
 ## output: dictionary of (emotion, count)
-def remove_self_count(udocID, pattern, count_dict):
+def remove_self_count(udocID, position, pattern, count_dict):
 
 	global mongo_docs
 	mdoc = mongo_docs[udocID] # use pre-loaded
@@ -80,7 +80,11 @@ def remove_self_count(udocID, pattern, count_dict):
 			elif remove_type == '1':
 				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - 1
 			elif remove_type == 'f':
-				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - PatTC[udocID][pattern.lower()]
+				if using_position_lexicon:
+					key = '#' + pattern.lower() + '@' + position
+				else: 
+					key = pattern.lower()
+				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - PatTC[udocID][key]
 
 			# new_count[mdoc['emotion']] = new_count[mdoc['emotion']]
 			if new_count[mdoc['emotion']] == 0 :
@@ -135,7 +139,7 @@ def pattern_scoring(count):
 
 
 ## output: a dictionary of (emotion, patfeature) according to different featureValueType 
-def get_patfeature(pattern, udocID):
+def get_patfeature(udocID, position, pattern):
 	########################################################################################
 	## [Options]
 	## 		config.minCount
@@ -154,7 +158,7 @@ def get_patfeature(pattern, udocID):
 	if not count: return {}
 
 	## remove self count using --remove argument
-	count = remove_self_count(udocID, pattern, count)
+	count = remove_self_count(udocID, position, pattern, count)
 
 	# check if total patcount < min_count
 	if sum( count.values() ) < config.minCount: return {}
@@ -169,7 +173,6 @@ def get_patfeature(pattern, udocID):
 	## pattern count (frequency)
 	elif config.featureValueType == 'f':	
 		return { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
-
 	## pattern score
 	elif config.featureValueType == 's':
 		pattern_score = pattern_scoring(count)
@@ -206,7 +209,7 @@ def get_document_feature(udocID):
 		else: position = 'end'
 		# print '='*30, '\n', pat['pattern'], '\n', 'lanchorID = ', lanchorID, '\n', 'position = ', position
 
-		patfeature = get_patfeature(pat['pattern'], udocID)
+		patfeature = get_patfeature(udocID, position, pat['pattern'])
 
 		for e in patfeature: 
 			key = '#position'+ '@'+ position + '_' + e
@@ -323,7 +326,7 @@ if __name__ == '__main__':
 
 	if remove_type == 'f':
 			print 'load_total_count'
-			PatTC = load_lexicon_pattern_total_count(co_ptc)
+			PatTC = load_lexicon_pattern_total_count(co_ptc, lexicon_type='lexicon_position')
 
 	print 'create_document_features'
 	create_document_features()
