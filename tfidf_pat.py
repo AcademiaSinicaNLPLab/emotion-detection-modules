@@ -207,8 +207,8 @@ if __name__ == '__main__':
 	N = build_nt(PWC, training_udocIDs)
 
 	print 'create training'
-	training_TFIDF = create_training(PWC, D, training_udocIDs, tf_type, idf_type)
+	training_TFIDF = create_training(PWC, D, training_udocIDs, tf_type, idf_type, min_count, min_df)
 
 	print 'create testing'
-	testing_TFIDF  = create_testing(PWC, D,  testing_udocIDs,  tf_type, idf_type)
+	testing_TFIDF  = create_testing(PWC, D,  testing_udocIDs,  tf_type, idf_type, min_count, min_df)
 
