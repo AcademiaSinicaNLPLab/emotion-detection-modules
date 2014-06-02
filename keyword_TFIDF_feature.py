@@ -30,12 +30,14 @@ def create_keyword_TFIDF_features(setting_id, training_TFIDF, testing_TFIDF):
 
 			if ldocID < 800: # training
 				if udocID in training_TFIDF:
-					feature = dict(training_TFIDF[udocID]).items()
+					# feature = dict(training_TFIDF[udocID]).items() ## no specified keyword list
+					feature = [(t, training_TFIDF[udocID][t]) for t in training_TFIDF[udocID] if t.lower() in keyword_list] ## use specified keyword list
 				else:
 					feature = []
 			else:
 				if udocID in testing_TFIDF:
-					feature = dict(testing_TFIDF[udocID]).items()
+					# feature = dict(testing_TFIDF[udocID]).items()
+					feature = [(t, testing_TFIDF[udocID][t]) for t in testing_TFIDF[udocID] if t.lower() in keyword_list] ## use specified keyword list
 				else:
 					feature = []
 
@@ -116,7 +118,7 @@ if __name__ == '__main__':
 
 
 	## create keyword_list
-	keyword_list = [ mdoc['word'] for mdoc in list( co_keywords.find( {'type': config.keyword_type} ) ) ]
+	keyword_list = set([ mdoc['word'] for mdoc in list( co_keywords.find( {'type': config.keyword_type} ) ) ])
 
 	# TF3xIDF2.train.lemma.pkl
 	# TF3xIDF2.test.lemma.pkl
