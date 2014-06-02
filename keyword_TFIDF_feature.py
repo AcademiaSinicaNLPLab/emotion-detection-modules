@@ -29,9 +29,15 @@ def create_keyword_TFIDF_features(setting_id, training_TFIDF, testing_TFIDF):
 			ldocID = doc['ldocID']
 
 			if ldocID < 800: # training
-				feature = dict(training_TFIDF[udocID]).items()
+				if udocID in training_TFIDF:
+					feature = dict(training_TFIDF[udocID]).items()
+				else:
+					feature = []
 			else:
-				feature = dict(testing_TFIDF[udocID]).items()
+				if udocID in testing_TFIDF:
+					feature = dict(testing_TFIDF[udocID]).items()
+				else:
+					feature = []
 
 			mdoc = {
 				"emotion": gold_emotion,
@@ -116,9 +122,11 @@ if __name__ == '__main__':
 	# TF3xIDF2.test.lemma.pkl
 
 	print 'loading TFxIDF pickles'
-	ext = '.lemma.pkl' if config.lemma else '.pkl'
-	training_TFIDF = pickle.load(open('cache/'+TFIDF_type+'.train'+ext))
-	testing_TFIDF  = pickle.load(open('cache/'+TFIDF_type+'.test'+ext))
+	# ext = '.lemma.pkl' if config.lemma else '.pkl'
+	
+
+	training_TFIDF = pickle.load(open('cache/'+TFIDF_type+'.lemma.stop.10.train.pkl'))
+	testing_TFIDF  = pickle.load(open('cache/'+TFIDF_type+'.lemma.stop.10.test.pkl'))
 
 	# u2l  = pickle.load(open('cache/u2l.pkl'))
 
