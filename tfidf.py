@@ -274,7 +274,7 @@ if __name__ == '__main__':
 	lemmatize = True if '--lemma' in sys.argv else False
 	stop = True if '--stop' in sys.argv else False
 	overwrite = True if '--overwrite' in sys.argv else False
-
+	min_count = 10
 	stoplist = [] if not stop else set(map(lambda x:x.lower(), nltk.corpus.stopwords.words('english')))
 
 	print 'lemmatize:', lemmatize
