@@ -22,7 +22,8 @@ params = [
 ]
 
 sids = [
-	'538b290cd4388c1eb95c3f7b',   # kw-bag + pat-emo-s + kw-emo-s + pat-emo-s-pos
+	'538ba5ead4388c5e593b7d34', # TF3xIDF2 
+	# '538b290cd4388c1eb95c3f7b', # kw-bag + pat-emo-s + kw-emo-s + pat-emo-s-pos
 	# '538aeb10d4388c12a30803d9', # pat-emo-f-pos
 	# '538ae979d4388c54633cf587', # pat-emo-b-pos
 	# '538aec90d4388c49cb5c2705', # pat-emo-s-pos
