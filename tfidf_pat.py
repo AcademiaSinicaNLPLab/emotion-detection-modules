@@ -5,33 +5,20 @@ import mathutil
 import config
 import pymongo, color
 from collections import defaultdict, Counter
-import nltk
-from nltk.stem.wordnet import WordNetLemmatizer
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 keyword_list = []
-lmtzr = WordNetLemmatizer()
 D = 32000
 
 overwrite = False
 
-def word_counter(udocID, lemmatize):
-	wc = Counter()
-	for mdoc in db['sents'].find({'udocID':udocID}):
-		for word_pos in mdoc['sent_pos'].split(' '):
-			word_pos = word_pos.split('/')
-			t, POS = '/'.join(word_pos[:-1]).lower(), word_pos[-1]
-			if lemmatize:
-				if POS.startswith('N'): pos = 'n'
-				elif POS.startswith('J'): pos = 'a'
-				elif POS.startswith('V'): pos = 'v'
-				elif POS.startswith('R'): pos = 'r'
-				else: pos = None
-				if pos:
-					t = lmtzr.lemmatize(t, pos)
-			wc[t] += 1
-	return wc
+def word_counter(udocID):
+	ptc = Counter()
+	for mdoc in db['pats'].find({'udocID':udocID}):
+		pat = mdoc['pattern']
+		ptc[pat] += 1
+	return ptc
 
 ## udocID --> ldocID
 def build_u2l():
@@ -44,64 +31,44 @@ def build_u2l():
 	return u2l
 
 ## total word count
-## word (lower) --> udocID --> wordcount
-def build_TWC(lemmatize, min_count, stop, training_udocIDs):
+## pat (lower) --> udocID --> patcount
+def build_PWC(min_count, training_udocIDs):
 
-	# fn = ['cache/TWC']
-	# if lemmatize: fn.append('w_lemma')
-	# else: fn.append('wo_lemma')
-
-	# if stop: fn.append('stop')
-	# else: fn.append('full')
-
-	# if min_count > 0: fn.append(str(min_count))
-	# else: fn.append('no_limit')
-
-	# fn.append('pkl')
-	# fn = '.'.join(fn)
-
-	fn = 'cache/TWC.lemma.stop.10.pkl'
-
-	# fn = 'cache/TWC.pkl' if not lemmatize else 'cache/TWC.lemma.pkl'
+	fn = 'cache/PWC.'+str(min_count)+'.pkl'
 
 	if not os.path.exists(fn) or overwrite:
-		TWC = defaultdict(Counter)
+		PWC = defaultdict(Counter)
 		for udocID in range(40000):
-			wc = word_counter(udocID, lemmatize)
-			for t in wc:
-				## stop word
-				if t in stop: continue
-
-				TWC[t][udocID] += 1
+			ptc = word_counter(udocID)
+			for p in ptc:
+				PWC[p][udocID] += 1
 
 		## pruning
 		pruned = {}
-		for t in TWC:
+		for p in PWC:
 			## min count
-			if sum([TWC[t][uid] for uid in TWC[t] if uid in training_udocIDs]) <= min_count: continue
+			if sum([PWC[p][uid] for uid in PWC[p] if uid in training_udocIDs]) < min_count: continue
 			else:
-				pruned[t] = dict(TWC[t])
-			
-
+				pruned[p] = dict(PWC[p])
 		pickle.dump(pruned, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
 	else:
-		TWC = pickle.load(open(fn, 'rb'))
-	return TWC
+		PWC = pickle.load(open(fn, 'rb'))
+	return PWC
 
-def build_nt(TWC, training_udocIDs, lemmatize=True):
-	fn = 'cache/N.pkl' if not lemmatize else 'cache/N.lemma.pkl'
+def build_nt(PWC, training_udocIDs):
+	fn = 'cache/PatN.pkl'
 	if not os.path.exists(fn):
 		N = {}
-		for t in TWC:
-			count_sequence_of_t_in_training_set = [TWC[t][uid] for uid in TWC[t] if uid in training_udocIDs]
-			N[t] = mathutil.entropy(count_sequence_of_t_in_training_set)
+		for p in PWC:
+			count_sequence_of_t_in_training_set = [PWC[p][uid] for uid in PWC[p] if uid in training_udocIDs]
+			N[p] = mathutil.entropy(count_sequence_of_t_in_training_set)
 		pickle.dump(N, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
 	else:
 		N = pickle.load(open(fn, 'rb'))
 	return N
 
-def build_K(lemmatize=True): # cardinality of |d|, i.e., K|d|
-	fn = 'cache/K.pkl' if not lemmatize else 'cache/K.lemma.pkl'
+def build_K(): # cardinality of |d|, i.e., K|d|
+	fn = 'cache/PatK.pkl'
 	if not os.path.exists(fn):
 		K = {} # udocID --> K|d|: length of document d
 		for udocID in range(40000):
@@ -111,14 +78,10 @@ def build_K(lemmatize=True): # cardinality of |d|, i.e., K|d|
 		K = pickle.load(open(fn, 'rb'))
 	return K
 
-def create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True):
+def create_training(PWC, D, training_udocIDs, tf_type, idf_type):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
 
-	fn = fn + '.lemma.stop.10.train.pkl'
-
-	# fn = fn + '.train.pkl' if not lemmatize else fn + '.train.lemma.pkl'
-
-	# fn = 'cache/TWC.lemma.stop.10.pkl'
+	fn = fn + '.pat.5.train.pkl'
 
 	K_values_in_training = [K[uid] for uid in K if uid in training_udocIDs]
 	delta_d = float(sum(K_values_in_training)/float(len(K_values_in_training))) # average document length, ignore testing docs
@@ -128,15 +91,15 @@ def create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
 		training_TFIDF = defaultdict(Counter)
 		for udocID in training_udocIDs:
 			## training data
-			wc = word_counter(udocID, lemmatize)
-			for t in wc:
+			ptc = word_counter(udocID, lemmatize)
+			for p in ptc:
 
-				if t not in TWC: continue
+				if p not in PWC: continue
 
 				if tf_type == '1':
-					tf = 1+math.log(wc[t],2)  # tf1
+					tf = 1+math.log(ptc[p],2)  # tf1
 				elif tf_type == '3':
-					tf = wc[t]/float( wc[t] + K[udocID]/delta_d )
+					tf = ptc[p]/float( ptc[p] + K[udocID]/delta_d )
 				else:
 					tf = False
 					print 'invalid tf_type'
@@ -144,27 +107,24 @@ def create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
 
 				if idf_type == '1':
 					# idf1
-					Ft = len([uid for uid in TWC[t] if uid in training_udocIDs]) # only count documents in training
+					Ft = len([uid for uid in PWC[p] if uid in training_udocIDs]) # only count documents in training
 					idf = D/float(Ft) 
 				elif idf_type == '2':
-					idf = max_nt - N[t]
+					idf = max_nt - N[p]
 				else:
 					idf = False
 					print 'invalid idf_type'
 					exit(0)
 
 				tfidf = tf*idf
-				training_TFIDF[t][udocID] = tfidf
+				training_TFIDF[p][udocID] = tfidf
 
 		pickle.dump(training_TFIDF, open( fn, 'wb'), pickle.HIGHEST_PROTOCOL)
-	# else:
-	# 	training_TFIDF = pickle.load(open(fn, 'rb'))
-	# return training_TFIDF
 
-def create_testing(TWC, D, testing_udocIDs, tf_type, idf_type, lemmatize=True):
+def create_testing(PWC, D, testing_udocIDs, tf_type, idf_type):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
 	# fn = fn + '.test.pkl' if not lemmatize else fn + '.test.lemma.pkl'
-	fn = fn + '.lemma.stop.10.test.pkl'
+	fn = fn + '.pat.5.test.pkl'
 
 
 	K_values_in_training = [K[uid] for uid in K if uid not in testing_udocIDs]
@@ -175,148 +135,77 @@ def create_testing(TWC, D, testing_udocIDs, tf_type, idf_type, lemmatize=True):
 		testing_TFIDF = defaultdict(Counter)
 		for udocID in testing_udocIDs:
 			## training data
-			wc = word_counter(udocID, lemmatize)
-			for t in wc:
+			ptc = word_counter(udocID, lemmatize)
+			for p in ptc:
 				if tf_type == '1':
-					tf = 1+math.log(wc[t],2) # tf1
+					tf = 1+math.log(ptc[p],2) # tf1
 				elif tf_type == '3':
-					tf = wc[t]/float( wc[t] + K[udocID]/delta_d )
+					tf = ptc[p]/float( ptc[p] + K[udocID]/delta_d )
 				else:
 					tf = False
 					print 'invalid tf_type'
 					exit(0)
 
 				if idf_type == '1': # idf1
-					if t in TWC:
-						Ft = len([uid for uid in TWC[t] if uid in training_udocIDs])
+					if p in PWC:
+						Ft = len([uid for uid in PWC[p] if uid in training_udocIDs])
 						idf = D/float(Ft) 						
 					else:
 						idf = 1/D # idf1
 				elif idf_type == '2': # idf2
-					idf = max_nt - N[t]
+					idf = max_nt - N[p]
 				else:
 					idf = False
 					print 'invalid idf_type'
 					exit(0)
 
 				tfidf = tf*idf
-				testing_TFIDF[t][udocID] = tfidf
+				testing_TFIDF[p][udocID] = tfidf
 		pickle.dump(testing_TFIDF, open( fn, 'wb'), pickle.HIGHEST_PROTOCOL)
-
-
-def TF1_IDF1(TWC, D, lemmatize=True):
-	fn = 'cache/TF1IDF1.pkl' if not lemmatize else 'cache/TF1IDF1.lemma.pkl'
-	if not os.path.exists(fn):
-		TF1IDF1 = defaultdict(Counter)
-		for t in TWC:
-			Ft = len(TWC[t])
-			idf1 = D/float(Ft)
-			for udocID in TWC[t]:
-				wc = TWC[t][udocID]
-				tf1 = 1+math.log(wc,2)
-				TF1IDF1[t][udocID] = tf1 * idf1
-		pickle.dump(TF1IDF1, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
-	else:
-		TF1IDF1 = pickle.load(open(fn, 'rb'))
-	return TF1IDF1
-
-def TF1_IDF2(TWC, D, N, lemmatize=True):
-	fn = 'cache/TF1IDF2.pkl' if not lemmatize else 'cache/TF1IDF2.lemma.pkl'
-	if not os.path.exists(fn):
-		max_nt = max(N.values())
-		TF1IDF2 = defaultdict(Counter)
-		for t in TWC:
-			idf2 = max_nt - N[t]
-			for udocID in TWC[t]:
-				wc = TWC[t][udocID]
-				tf1 = 1+math.log(wc,2)
-				TF1IDF2[t][udocID] = tf1 * idf2
-		pickle.dump(TF1IDF2, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
-	else:
-		TF1IDF2 = pickle.load(open(fn, 'rb'))
-	return TF1IDF2
-
-def TF3_IDF2(TWC, D, N, K, lemmatize=True):
-	fn = 'cache/TF3IDF2.pkl' if not lemmatize else 'cache/TF3IDF2.lemma.pkl'
-	if not os.path.exists(fn):	
-		TF3IDF2 = defaultdict(Counter)
-		delta_d = float(sum(K.values())/float(len(K)))
-		max_nt = max(N.values())
-
-		for t in TWC:
-			idf2 = max_nt - N[t]
-			for udocID in TWC[t]:
-				wc = TWC[t][udocID]
-				tf3 = wc/float( wc + K[udocID]/delta_d )
-				TF3IDF2[t][udocID] = tf3 * idf2
-		pickle.dump(TF3IDF2, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
-	else:
-		TF3IDF2 = pickle.load(open(fn, 'rb'))
-	return TF3IDF2
 
 ## change  word --> udocID --> wc
 ##     to  udocID --> word --> wc
 def inverse_key(TFIDF):
 	inversed = defaultdict(dict)
-	for t in TFIDF:
-		for udocID in TFIDF[t]:
-			tfidf = TFIDF[t][udocID]
-			inversed[udocID][t] = tfidf
+	for p in TFIDF:
+		for udocID in TFIDF[p]:
+			tfidf = TFIDF[p][udocID]
+			inversed[udocID][p] = tfidf
 	return inversed
 
 if __name__ == '__main__':
 
-	# extbasic = 'extend' if len(sys.argv) >= 5 and sys.argv[4] == 'extend' else 'basic'
-	# lemmatize = True if len(sys.argv) == 4 and sys.argv[3] == 'lemma' else False
 	tf_type = sys.argv[1]
 	idf_type = sys.argv[2]
 	
-	lemmatize = True if '--lemma' in sys.argv else False
-	stop = True if '--stop' in sys.argv else False
 	overwrite = True if '--overwrite' in sys.argv else False
+	min_count = 5
 
-	stoplist = [] if not stop else set(map(lambda x:x.lower(), nltk.corpus.stopwords.words('english')))
-
-	print 'lemmatize:', lemmatize
-	print 'stop:', stop
 	print 'overwrite:', overwrite
-	# print 'extend or basic:', extbasic
 	print 'tf:', tf_type
 	print 'idf:', idf_type
 	print '='*100
 	raw_input()
 
-	print 'build u2l'
+	print 'build u2l and get testing/training udocID'
 	u2l = build_u2l()
 	testing_udocIDs  = set([x for x in u2l if u2l[x] >= 800])
 	training_udocIDs = set([x for x in u2l if u2l[x] < 800])
 
-
-	print 'build TWC'
-	TWC = build_TWC(lemmatize, min_count, stoplist, training_udocIDs)
-	# TWC = build_TWC(lemmatize)
+	print 'build PWC'
+	PWC = build_PWC(min_count, training_udocIDs)
 
 	print 'build K'
-	K = build_K(lemmatize)
+	K = build_K()
 
 
 	
 	print 'build N'
-	N = build_nt(TWC, training_udocIDs, lemmatize)
+	N = build_nt(PWC, training_udocIDs)
 
 	print 'create training'
-	training_TFIDF = create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
+	training_TFIDF = create_training(PWC, D, training_udocIDs, tf_type, idf_type)
 
 	print 'create testing'
-	testing_TFIDF  = create_testing(TWC, D,  testing_udocIDs,  tf_type, idf_type, lemmatize=True)
-
-
-	# print 'calculating TF1_IDF1'
-	# TF1_IDF1(TWC, D, lemmatize)
-
-	# print 'calculating TF1_IDF2'
-	# TF1_IDF2(TWC, D, N, lemmatize)
-
-	# print 'calculating TF3_IDF2'
-	# TF3_IDF2(TWC, D, N, K, lemmatize)
+	testing_TFIDF  = create_testing(PWC, D,  testing_udocIDs,  tf_type, idf_type)
 
