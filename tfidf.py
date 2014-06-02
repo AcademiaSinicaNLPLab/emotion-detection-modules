@@ -5,6 +5,7 @@ import mathutil
 import config
 import pymongo, color
 from collections import defaultdict, Counter
+import nltk
 from nltk.stem.wordnet import WordNetLemmatizer
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
@@ -12,6 +13,8 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 keyword_list = []
 lmtzr = WordNetLemmatizer()
 D = 32000
+
+overwrite = False
 
 def word_counter(udocID, lemmatize):
 	wc = Counter()
@@ -42,15 +45,45 @@ def build_u2l():
 
 ## total word count
 ## word (lower) --> udocID --> wordcount
-def build_TWC(lemmatize=True):
-	fn = 'cache/TWC.pkl' if not lemmatize else 'cache/TWC.lemma.pkl'
-	if not os.path.exists(fn):
+def build_TWC(lemmatize, min_count, stop, training_udocIDs):
+
+	# fn = ['cache/TWC']
+	# if lemmatize: fn.append('w_lemma')
+	# else: fn.append('wo_lemma')
+
+	# if stop: fn.append('stop')
+	# else: fn.append('full')
+
+	# if min_count > 0: fn.append(str(min_count))
+	# else: fn.append('no_limit')
+
+	# fn.append('pkl')
+	# fn = '.'.join(fn)
+
+	fn = 'cache/TWC.lemma.stop.10.pkl'
+
+	# fn = 'cache/TWC.pkl' if not lemmatize else 'cache/TWC.lemma.pkl'
+
+	if not os.path.exists(fn) or overwrite:
 		TWC = defaultdict(Counter)
 		for udocID in range(40000):
 			wc = word_counter(udocID, lemmatize)
 			for t in wc:
+				## stop word
+				if t in stop: continue
+
 				TWC[t][udocID] += 1
-		pickle.dump(TWC, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
+
+		## pruning
+		pruned = {}
+		for t in TWC:
+			## min count
+			if sum([TWC[t][uid] for uid in TWC[t] if uid in training_udocIDs]) <= min_count: continue
+			else:
+				pruned[t] = dict(TWC[t])
+			
+
+		pickle.dump(pruned, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
 	else:
 		TWC = pickle.load(open(fn, 'rb'))
 	return TWC
@@ -80,7 +113,12 @@ def build_K(lemmatize=True): # cardinality of |d|, i.e., K|d|
 
 def create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
-	fn = fn + '.train.pkl' if not lemmatize else fn + '.train.lemma.pkl'
+
+	fn = fn + '.lemma.stop.10.train.pkl'
+
+	# fn = fn + '.train.pkl' if not lemmatize else fn + '.train.lemma.pkl'
+
+	# fn = 'cache/TWC.lemma.stop.10.pkl'
 
 	K_values_in_training = [K[uid] for uid in K if uid in training_udocIDs]
 	delta_d = float(sum(K_values_in_training)/float(len(K_values_in_training))) # average document length, ignore testing docs
@@ -92,6 +130,9 @@ def create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
 			## training data
 			wc = word_counter(udocID, lemmatize)
 			for t in wc:
+
+				if t not in TWC: continue
+
 				if tf_type == '1':
 					tf = 1+math.log(wc[t],2)  # tf1
 				elif tf_type == '3':
@@ -103,7 +144,7 @@ def create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
 
 				if idf_type == '1':
 					# idf1
-					Ft = len(TWC[t])
+					Ft = len([uid for uid in TWC[t] if uid in training_udocIDs]) # only count documents in training
 					idf = D/float(Ft) 
 				elif idf_type == '2':
 					idf = max_nt - N[t]
@@ -122,7 +163,9 @@ def create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
 
 def create_testing(TWC, D, testing_udocIDs, tf_type, idf_type, lemmatize=True):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
-	fn = fn + '.test.pkl' if not lemmatize else fn + '.test.lemma.pkl'
+	# fn = fn + '.test.pkl' if not lemmatize else fn + '.test.lemma.pkl'
+	fn = fn + '.lemma.stop.10.test.pkl'
+
 
 	K_values_in_training = [K[uid] for uid in K if uid not in testing_udocIDs]
 	delta_d = float(sum(K_values_in_training)/float(len(K_values_in_training))) # average document length, ignore testing docs
@@ -145,7 +188,7 @@ def create_testing(TWC, D, testing_udocIDs, tf_type, idf_type, lemmatize=True):
 
 				if idf_type == '1': # idf1
 					if t in TWC:
-						Ft = len(TWC[t])
+						Ft = len([uid for uid in TWC[t] if uid in training_udocIDs])
 						idf = D/float(Ft) 						
 					else:
 						idf = 1/D # idf1
@@ -224,11 +267,19 @@ def inverse_key(TFIDF):
 if __name__ == '__main__':
 
 	# extbasic = 'extend' if len(sys.argv) >= 5 and sys.argv[4] == 'extend' else 'basic'
-	lemmatize = True if len(sys.argv) == 4 and sys.argv[3] == 'lemma' else False
+	# lemmatize = True if len(sys.argv) == 4 and sys.argv[3] == 'lemma' else False
 	tf_type = sys.argv[1]
 	idf_type = sys.argv[2]
+	
+	lemmatize = True if '--lemma' in sys.argv else False
+	stop = True if '--stop' in sys.argv else False
+	overwrite = True if '--overwrite' in sys.argv else False
+
+	stoplist = [] if not stop else set(map(lambda x:x.lower(), nltk.corpus.stopwords.words('english')))
 
 	print 'lemmatize:', lemmatize
+	print 'stop:', stop
+	print 'overwrite:', overwrite
 	# print 'extend or basic:', extbasic
 	print 'tf:', tf_type
 	print 'idf:', idf_type
@@ -237,15 +288,18 @@ if __name__ == '__main__':
 
 	print 'build u2l'
 	u2l = build_u2l()
+	testing_udocIDs  = set([x for x in u2l if u2l[x] >= 800])
+	training_udocIDs = set([x for x in u2l if u2l[x] < 800])
+
 
 	print 'build TWC'
-	TWC = build_TWC(lemmatize)
+	TWC = build_TWC(lemmatize, min_count, stoplist, training_udocIDs)
+	# TWC = build_TWC(lemmatize)
 
 	print 'build K'
 	K = build_K(lemmatize)
 
-	testing_udocIDs  = set([x for x in u2l if u2l[x] >= 800])
-	training_udocIDs = set([x for x in u2l if u2l[x] < 800])
+
 	
 	print 'build N'
 	N = build_nt(TWC, training_udocIDs, lemmatize)
