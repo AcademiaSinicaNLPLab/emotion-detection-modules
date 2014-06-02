@@ -32,9 +32,9 @@ def build_u2l():
 
 ## total word count
 ## pat (lower) --> udocID --> patcount
-def build_PWC(min_count, training_udocIDs):
+def build_PWC(min_count, min_df, training_udocIDs):
 
-	fn = 'cache/PWC.'+str(min_count)+'.pkl'
+	fn = 'cache/PWC.'+str(min_count)+'.'+str(min_df)+'.pkl'
 
 	if not os.path.exists(fn) or overwrite:
 		PWC = defaultdict(Counter)
@@ -47,7 +47,9 @@ def build_PWC(min_count, training_udocIDs):
 		pruned = {}
 		for p in PWC:
 			## min count
-			if sum([PWC[p][uid] for uid in PWC[p] if uid in training_udocIDs]) < min_count: continue
+			occurring = [PWC[p][uid] for uid in PWC[p] if uid in training_udocIDs]
+			if len(occurring) < min_df: continue
+			elif sum(occurring) < min_count: continue
 			else:
 				pruned[p] = dict(PWC[p])
 		pickle.dump(pruned, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
@@ -176,9 +178,11 @@ if __name__ == '__main__':
 
 	tf_type = sys.argv[1]
 	idf_type = sys.argv[2]
-	
+
+
 	overwrite = True if '--overwrite' in sys.argv else False
 	min_count = 5
+	min_df = 3
 
 	print 'overwrite:', overwrite
 	print 'tf:', tf_type
@@ -192,7 +196,7 @@ if __name__ == '__main__':
 	training_udocIDs = set([x for x in u2l if u2l[x] < 800])
 
 	print 'build PWC'
-	PWC = build_PWC(min_count, training_udocIDs)
+	PWC = build_PWC(min_count, min_df ,training_udocIDs)
 
 	print 'build K'
 	K = build_K()
