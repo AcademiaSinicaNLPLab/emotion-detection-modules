@@ -90,7 +90,6 @@ def evaluate_binary_svm(pairs):
 	## target_eids: ['0', '1', ..., '39']
 	target_eids = sorted( list(set([x[0] for x in pairs])) , key=lambda a:int(a))
 
-
 	Results = defaultdict(list)
 
 	for target_eid in target_eids:
@@ -131,6 +130,8 @@ def evaluate_binary_svm(pairs):
 
 		if config.verbose: print >> sys.stderr, A
 
+
+
 		Results['accuracy'].append((emotion, A))
 		Results['precision'].append((emotion, P))
 		Results['recall'].append((emotion, R))
@@ -160,13 +161,16 @@ def find_intersection(eval_mdoc):
 
 def run(sid, param):
 
-	eval_mdoc = None
+	eval_mdoc = load_eval_from_mongo(sid, param)
 	if not eval_mdoc:
 		prediction_results = load(sid, param)
-		Eval = evaluate_binary_svm(prediction_results)
-		if not eval_mdoc: 
-			print >> sys.stderr, "[error] failed to save eval mdoc to mongo"
-			exit(-1)
+
+		results = evaluate_binary_svm(prediction_results)
+
+		eval_mdoc = save_eval_to_mongo(sid, param, results)
+		# if not eval_mdoc: 
+		# 	print >> sys.stderr, "[error] failed to save eval mdoc to mongo"
+		# 	exit(-1)
 	return eval_mdoc
 
 if __name__ == '__main__':

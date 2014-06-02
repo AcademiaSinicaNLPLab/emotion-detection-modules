@@ -109,6 +109,8 @@ if __name__ == '__main__':
 
 	# TF3xIDF2.train.lemma.pkl
 	# TF3xIDF2.test.lemma.pkl
+
+	print 'loading TFxIDF pickles'
 	ext = '.lemma.pkl' if config.lemma else '.pkl'
 	training_TFIDF = pickle.load(open('cache/'+TFIDF_type+'.train'+ext))
 	testing_TFIDF  = pickle.load(open('cache/'+TFIDF_type+'.test'+ext))
