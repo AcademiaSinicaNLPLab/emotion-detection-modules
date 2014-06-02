@@ -57,8 +57,10 @@ if __name__ == '__main__':
 		('--lemma', ['--lemma: use word lemma when looking for keywords'])
 	]
 
+	TFIDF_type = 'TF3IDF2'
+
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hk:v',['help', 'keyword_type=', 'lemma', 'verbose', 'debug'])
+		opts, args = getopt.getopt(sys.argv[1:],'hk:v',['help', 'keyword_type=', 'lemma', 'verbose', 'debug', 'TFIDF=', 'tfidf='])
 	except getopt.GetoptError:
 		config.help(config.keywordFeat_name, addon=add_opts, exit=2)
 
@@ -69,6 +71,7 @@ if __name__ == '__main__':
 			elif int(arg.strip()) == 1: config.keyword_type = 'extend'
 		elif opt in ('--lemma'): config.lemma = True
 		elif opt in ('-v','--verbose'): config.verbose = True
+		elif opt in ('--TFIDF', '--tfidf'): TFIDF_type = arg.strip()
 		elif opt in ('--debug'): config.debug = True
 
 	## target mongo collections
@@ -80,7 +83,7 @@ if __name__ == '__main__':
 		"feature_name": "keyword_TFIDF", 
 		"keyword_type": config.keyword_type,
 		"lemma": config.lemma,
-		"TFIDF_type": 'TF3IDF2'
+		"TFIDF_type": TFIDF_type
 	}
 
 	# print co_setting
@@ -93,24 +96,22 @@ if __name__ == '__main__':
 	setting_id = str(co_setting.insert( setting ))
 
 
-
 	## create keyword_list
 	keyword_list = [ mdoc['word'] for mdoc in list( co_keywords.find( {'type': config.keyword_type} ) ) ]
 
 	## run
 	# import time
 	# s = time.time()
-	print 'loading TF3 x IDF2 dictionary'
-	if config.lemma:
-		fn = 'cache/TF3IDF2.lemma.pkl'
-	else:
-		fn = 'cache/TF3IDF2.pkl'
-	TF3IDF2 = pickle.load(open(fn, 'rb'))
+	print 'loading '+TFIDF_type+' dictionary'
+	if config.lemma: fn = 'cache/'+TFIDF_type+'.lemma.pkl'
+	else: fn = 'cache/'+TFIDF_type+'.pkl'
+	
+	TFIDF = pickle.load(open(fn, 'rb'))
 
 	print 'organizing TFIDF dict'
-	TF3IDF2 = tfidf.inverse_key(TF3IDF2)
+	TFIDF = tfidf.inverse_key(TFIDF)
 
 	print 'creating features'
-	create_keyword_TFIDF_features(setting_id, TF3IDF2) # 538ba2bfd4388c4012348f0f
+	create_keyword_TFIDF_features(setting_id, TFIDF) # 538ba2bfd4388c4012348f0f
 	# print 'Time total:',time.time() - s,'sec'
 
