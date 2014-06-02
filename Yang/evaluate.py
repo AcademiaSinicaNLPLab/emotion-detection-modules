@@ -40,7 +40,7 @@ def evaluation(k='binary'):
 	emotions = open('emolist.LJ40K.txt').read().strip().split('\n')
 
 	# binary_results = [[1 if float(x) > 0.5 else 0 for x in line.split(',')] for line in open('raw/Yest_prob_te_mean_f1.csv').read().strip().split('\n')]
-	results = [[(emotions[i], x, True if float(x) > 0.5 else False) for i,x in enumerate(line.strip().split(','))] for line in open('raw/Yest_prob_te_mean_f7.csv').read().strip().split('\n')]
+	results = [[(emotions[i], x, True if float(x) > 0.5 else False) for i,x in enumerate(line.strip().split(','))] for line in open('raw/Yest_prob_te_mean_f1.csv').read().strip().split('\n')]
 
 	Positive, Negative = True, False
 	Results = defaultdict(list)
