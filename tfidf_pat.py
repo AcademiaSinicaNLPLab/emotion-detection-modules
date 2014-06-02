@@ -123,7 +123,7 @@ def create_training(PWC, D, training_udocIDs, tf_type, idf_type, min_count, min_
 
 		pickle.dump(training_TFIDF, open( fn, 'wb'), pickle.HIGHEST_PROTOCOL)
 
-def create_testing(PWC, D, testing_udocIDs, tf_type, idf_type):
+def create_testing(PWC, D, testing_udocIDs, tf_type, idf_type, min_count, min_df):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
 	fn = fn + '.pat.'+str(min_count)+'.'+str(min_df)+'.test.pkl'
 
