@@ -32,9 +32,9 @@ def build_u2l():
 
 ## total word count
 ## pat (lower) --> udocID --> patcount
-def build_PWC(min_count, training_udocIDs):
+def build_PWC(min_count, min_df, training_udocIDs):
 
-	fn = 'cache/PWC.'+str(min_count)+'.pkl'
+	fn = 'cache/PWC.'+str(min_count)+'.'+str(min_df)+'.pkl'
 
 	if not os.path.exists(fn) or overwrite:
 		PWC = defaultdict(Counter)
@@ -47,7 +47,9 @@ def build_PWC(min_count, training_udocIDs):
 		pruned = {}
 		for p in PWC:
 			## min count
-			if sum([PWC[p][uid] for uid in PWC[p] if uid in training_udocIDs]) < min_count: continue
+			occurring = [PWC[p][uid] for uid in PWC[p] if uid in training_udocIDs]
+			if len(occurring) < min_df: continue
+			elif sum(occurring) < min_count: continue
 			else:
 				pruned[p] = dict(PWC[p])
 		pickle.dump(pruned, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
@@ -78,10 +80,10 @@ def build_K(): # cardinality of |d|, i.e., K|d|
 		K = pickle.load(open(fn, 'rb'))
 	return K
 
-def create_training(PWC, D, training_udocIDs, tf_type, idf_type):
+def create_training(PWC, D, training_udocIDs, tf_type, idf_type, min_count, min_df):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
 
-	fn = fn + '.pat.5.train.pkl'
+	fn = fn + '.pat.'+str(min_count)+'.'+str(min_df)+'.train.pkl'
 
 	K_values_in_training = [K[uid] for uid in K if uid in training_udocIDs]
 	delta_d = float(sum(K_values_in_training)/float(len(K_values_in_training))) # average document length, ignore testing docs
@@ -91,7 +93,7 @@ def create_training(PWC, D, training_udocIDs, tf_type, idf_type):
 		training_TFIDF = defaultdict(Counter)
 		for udocID in training_udocIDs:
 			## training data
-			ptc = word_counter(udocID, lemmatize)
+			ptc = word_counter(udocID)
 			for p in ptc:
 
 				if p not in PWC: continue
@@ -121,10 +123,9 @@ def create_training(PWC, D, training_udocIDs, tf_type, idf_type):
 
 		pickle.dump(training_TFIDF, open( fn, 'wb'), pickle.HIGHEST_PROTOCOL)
 
-def create_testing(PWC, D, testing_udocIDs, tf_type, idf_type):
+def create_testing(PWC, D, testing_udocIDs, tf_type, idf_type, min_count, min_df):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
-	# fn = fn + '.test.pkl' if not lemmatize else fn + '.test.lemma.pkl'
-	fn = fn + '.pat.5.test.pkl'
+	fn = fn + '.pat.'+str(min_count)+'.'+str(min_df)+'.test.pkl'
 
 
 	K_values_in_training = [K[uid] for uid in K if uid not in testing_udocIDs]
@@ -135,7 +136,7 @@ def create_testing(PWC, D, testing_udocIDs, tf_type, idf_type):
 		testing_TFIDF = defaultdict(Counter)
 		for udocID in testing_udocIDs:
 			## training data
-			ptc = word_counter(udocID, lemmatize)
+			ptc = word_counter(udocID)
 			for p in ptc:
 				if tf_type == '1':
 					tf = 1+math.log(ptc[p],2) # tf1
@@ -177,9 +178,11 @@ if __name__ == '__main__':
 
 	tf_type = sys.argv[1]
 	idf_type = sys.argv[2]
-	
+
+
 	overwrite = True if '--overwrite' in sys.argv else False
 	min_count = 5
+	min_df = 3
 
 	print 'overwrite:', overwrite
 	print 'tf:', tf_type
@@ -193,7 +196,7 @@ if __name__ == '__main__':
 	training_udocIDs = set([x for x in u2l if u2l[x] < 800])
 
 	print 'build PWC'
-	PWC = build_PWC(min_count, training_udocIDs)
+	PWC = build_PWC(min_count, min_df ,training_udocIDs)
 
 	print 'build K'
 	K = build_K()
@@ -204,8 +207,8 @@ if __name__ == '__main__':
 	N = build_nt(PWC, training_udocIDs)
 
 	print 'create training'
-	training_TFIDF = create_training(PWC, D, training_udocIDs, tf_type, idf_type)
+	training_TFIDF = create_training(PWC, D, training_udocIDs, tf_type, idf_type, min_count, min_df)
 
 	print 'create testing'
-	testing_TFIDF  = create_testing(PWC, D,  testing_udocIDs,  tf_type, idf_type)
+	testing_TFIDF  = create_testing(PWC, D,  testing_udocIDs,  tf_type, idf_type, min_count, min_df)
 
