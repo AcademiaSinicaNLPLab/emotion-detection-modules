@@ -100,6 +100,7 @@ if __name__ == '__main__':
 		"TFIDF_type": TFIDF_type,
 		"min_count": 5,
 		'min_df': 2
+		'min_df': 1
 	}
 
 	## print confirm message
