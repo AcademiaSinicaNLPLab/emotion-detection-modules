@@ -91,7 +91,7 @@ def create_training(PWC, D, training_udocIDs, tf_type, idf_type):
 		training_TFIDF = defaultdict(Counter)
 		for udocID in training_udocIDs:
 			## training data
-			ptc = word_counter(udocID, lemmatize)
+			ptc = word_counter(udocID)
 			for p in ptc:
 
 				if p not in PWC: continue
@@ -123,7 +123,6 @@ def create_training(PWC, D, training_udocIDs, tf_type, idf_type):
 
 def create_testing(PWC, D, testing_udocIDs, tf_type, idf_type):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
-	# fn = fn + '.test.pkl' if not lemmatize else fn + '.test.lemma.pkl'
 	fn = fn + '.pat.5.test.pkl'
 
 
@@ -135,7 +134,7 @@ def create_testing(PWC, D, testing_udocIDs, tf_type, idf_type):
 		testing_TFIDF = defaultdict(Counter)
 		for udocID in testing_udocIDs:
 			## training data
-			ptc = word_counter(udocID, lemmatize)
+			ptc = word_counter(udocID)
 			for p in ptc:
 				if tf_type == '1':
 					tf = 1+math.log(ptc[p],2) # tf1
