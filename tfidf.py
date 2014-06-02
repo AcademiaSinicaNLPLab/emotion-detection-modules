@@ -78,8 +78,6 @@ def build_K(lemmatize=True): # cardinality of |d|, i.e., K|d|
 		K = pickle.load(open(fn, 'rb'))
 	return K
 
-
-
 def create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
 	fn = fn + '.train.pkl' if not lemmatize else fn + '.train.lemma.pkl'
@@ -225,14 +223,16 @@ def inverse_key(TFIDF):
 
 if __name__ == '__main__':
 
-	lemmatize = True if len(sys.argv) == 4 and sys.argv[3] == 'lemma' else False
+	# extbasic = 'extend' if len(sys.argv) >= 5 and sys.argv[4] == 'extend' else 'basic'
+	lemmatize = True if len(sys.argv) >= 5 and sys.argv[3] == 'lemma' else False
 	tf_type = sys.argv[1]
 	idf_type = sys.argv[2]
 
 	print 'lemmatize:', lemmatize
+	# print 'extend or basic:', extbasic
 	print 'tf:', tf_type
 	print 'idf:', idf_type
-
+	print '='*100
 	raw_input()
 
 	print 'build u2l'

@@ -66,6 +66,11 @@ if __name__ == '__main__':
 		('--lemma', ['--lemma: use word lemma when looking for keywords'])
 	]
 
+	if len(sys.argv) < 3:
+		print 'usage: python keyword_TFIDF_feature <ty_type> <idf_type> [options]'
+		config.help(config.keywordFeat_name, addon=add_opts, exit=2)
+		exit(-1)
+
 	tf_type = sys.argv[1].strip()
 	idf_type = sys.argv[2].strip()
 
