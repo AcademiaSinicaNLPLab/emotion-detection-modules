@@ -10,7 +10,7 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 keyword_list = []
 lmtzr = WordNetLemmatizer()
 
-def create_keyword_TFIDF_features(setting_id, TFIDF):
+def create_keyword_TFIDF_features(setting_id, training_TFIDF, testing_TFIDF):
 
 	## list of emotions
 	emotions = [ x['emotion'] for x in co_emotions.find( { 'label': 'LJ40K' } ) ]
@@ -24,10 +24,19 @@ def create_keyword_TFIDF_features(setting_id, TFIDF):
 			print >> sys.stderr, '%d > %s ( %d docs )' % ( ie, color.render(gold_emotion, 'g'), len(docs) )
 
 		for doc in docs:
+
+			udocID = doc['udocID']
+			ldocID = doc['ldocID']
+
+			if ldocID < 800: # training
+				feature = dict(training_TFIDF[udocID]).items()
+			else:
+				feature = dict(testing_TFIDF[udocID]).items()
+
 			mdoc = {
 				"emotion": gold_emotion,
-				"udocID": doc['udocID'],
-				"feature": dict(TFIDF[doc['udocID']]).items(),
+				"udocID": udocID,
+				"feature": feature,
 				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
 			co_feature.insert(mdoc)
@@ -57,10 +66,13 @@ if __name__ == '__main__':
 		('--lemma', ['--lemma: use word lemma when looking for keywords'])
 	]
 
-	TFIDF_type = 'TF3IDF2'
+	tf_type = sys.argv[1].strip()
+	idf_type = sys.argv[2].strip()
+
+	TFIDF_type = 'TF'+tf_type+'xIDF'+idf_type
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hk:v',['help', 'keyword_type=', 'lemma', 'verbose', 'debug', 'TFIDF=', 'tfidf='])
+		opts, args = getopt.getopt(sys.argv[3:],'hk:v',['help', 'keyword_type=', 'lemma', 'verbose', 'debug'])
 	except getopt.GetoptError:
 		config.help(config.keywordFeat_name, addon=add_opts, exit=2)
 
@@ -71,7 +83,6 @@ if __name__ == '__main__':
 			elif int(arg.strip()) == 1: config.keyword_type = 'extend'
 		elif opt in ('--lemma'): config.lemma = True
 		elif opt in ('-v','--verbose'): config.verbose = True
-		elif opt in ('--TFIDF', '--tfidf'): TFIDF_type = arg.strip()
 		elif opt in ('--debug'): config.debug = True
 
 	## target mongo collections
@@ -86,9 +97,6 @@ if __name__ == '__main__':
 		"TFIDF_type": TFIDF_type
 	}
 
-	# print co_setting
-	# print co_feature
-
 	## print confirm message
 	config.print_confirm(setting.items(), bar=40, halt=True)
 	
@@ -99,19 +107,19 @@ if __name__ == '__main__':
 	## create keyword_list
 	keyword_list = [ mdoc['word'] for mdoc in list( co_keywords.find( {'type': config.keyword_type} ) ) ]
 
-	## run
-	# import time
-	# s = time.time()
-	print 'loading '+TFIDF_type+' dictionary'
-	if config.lemma: fn = 'cache/'+TFIDF_type+'.lemma.pkl'
-	else: fn = 'cache/'+TFIDF_type+'.pkl'
-	
-	TFIDF = pickle.load(open(fn, 'rb'))
+	# TF3xIDF2.train.lemma.pkl
+	# TF3xIDF2.test.lemma.pkl
+	ext = '.lemma.pkl' if config.lemma else '.pkl'
+	training_TFIDF = pickle.load(open('cache/'+TFIDF_type+'.train'+ext))
+	testing_TFIDF  = pickle.load(open('cache/'+TFIDF_type+'.test'+ext))
+
+	# u2l  = pickle.load(open('cache/u2l.pkl'))
 
 	print 'organizing TFIDF dict'
-	TFIDF = tfidf.inverse_key(TFIDF)
+	training_TFIDF = tfidf.inverse_key(training_TFIDF)
+	testing_TFIDF = tfidf.inverse_key(testing_TFIDF)
 
 	print 'creating features'
-	create_keyword_TFIDF_features(setting_id, TFIDF) # 538ba2bfd4388c4012348f0f
+	create_keyword_TFIDF_features(setting_id, training_TFIDF, testing_TFIDF) # 538ba2bfd4388c4012348f0f
 	# print 'Time total:',time.time() - s,'sec'
 
