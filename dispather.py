@@ -2,7 +2,7 @@ import sys
 import subprocess
 from itertools import product
 
-core = 2
+core = 1
 
 params = [
 	# 'default',
@@ -28,10 +28,11 @@ params = [
 ]
 
 sids = [
+	'538be395d4388c4c7d533e2e', # pat-bag + kw-TF3xIDF2
 	# '538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
 	# '538be189d4388c7efe214736', # kw-TF1xIDF2 + pat-emo-s
 	# '538be0edd4388c67c1d6950d', # kw-bag + kw-TF3xIDF2 + pat-emo-s
-	'538bcfaad4388c59136665df', # TF3xIDF2
+	# '538bcfaad4388c59136665df', # TF3xIDF2
 	# '538bcf7ad4388c5190d8057c', # TF1xIDF2
 	# '538b290cd4388c1eb95c3f7b', # kw-bag + pat-emo-s + kw-emo-s + pat-emo-s-pos
 	# '538aeb10d4388c12a30803d9', # pat-emo-f-pos
