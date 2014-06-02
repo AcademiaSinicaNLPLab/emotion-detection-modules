@@ -224,7 +224,7 @@ def inverse_key(TFIDF):
 if __name__ == '__main__':
 
 	# extbasic = 'extend' if len(sys.argv) >= 5 and sys.argv[4] == 'extend' else 'basic'
-	lemmatize = True if len(sys.argv) >= 5 and sys.argv[3] == 'lemma' else False
+	lemmatize = True if len(sys.argv) == 4 and sys.argv[3] == 'lemma' else False
 	tf_type = sys.argv[1]
 	idf_type = sys.argv[2]
 

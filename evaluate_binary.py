@@ -88,6 +88,10 @@ def evaluate_binary_svm(pairs):
 	eid_to_emotion = { str(i):x for i, x in enumerate(LJ40K_emotions)}
 
 	## target_eids: ['0', '1', ..., '39']
+	for x in pairs:
+		print x
+		raw_input()
+
 	target_eids = sorted( list(set([x[0] for x in pairs])) , key=lambda a:int(a))
 
 	Results = defaultdict(list)
