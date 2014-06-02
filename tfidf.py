@@ -225,9 +225,15 @@ def inverse_key(TFIDF):
 
 if __name__ == '__main__':
 
-	lemmatize = True
-	tf_type = '1'
-	idf_type = '1'
+	lemmatize = True if len(sys.argv) == 4 and sys.argv[3] == 'lemma' else False
+	tf_type = sys.argv[1]
+	idf_type = sys.argv[2]
+
+	print 'lemmatize:', lemmatize
+	print 'tf:', tf_type
+	print 'idf:', idf_type
+
+	raw_input()
 
 	print 'build u2l'
 	u2l = build_u2l()
@@ -238,11 +244,11 @@ if __name__ == '__main__':
 	print 'build K'
 	K = build_K(lemmatize)
 
-	print 'build N'
-	N = build_nt(TWC, training_udocIDs, lemmatize)
-
 	testing_udocIDs  = set([x for x in u2l if u2l[x] >= 800])
 	training_udocIDs = set([x for x in u2l if u2l[x] < 800])
+	
+	print 'build N'
+	N = build_nt(TWC, training_udocIDs, lemmatize)
 
 	print 'create training'
 	training_TFIDF = create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
