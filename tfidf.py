@@ -117,7 +117,7 @@ def create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
 				tfidf = tf*idf
 				training_TFIDF[t][udocID] = tfidf
 
-		pickle.dump(training_TFIDF, open( fn+'.train.pkl', 'wb'), pickle.HIGHEST_PROTOCOL)
+		pickle.dump(training_TFIDF, open( fn, 'wb'), pickle.HIGHEST_PROTOCOL)
 	# else:
 	# 	training_TFIDF = pickle.load(open(fn, 'rb'))
 	# return training_TFIDF
@@ -160,7 +160,7 @@ def create_testing(TWC, D, testing_udocIDs, tf_type, idf_type, lemmatize=True):
 
 				tfidf = tf*idf
 				testing_TFIDF[t][udocID] = tfidf
-		pickle.dump(testing_TFIDF, open( fn+'.test.pkl', 'wb'), pickle.HIGHEST_PROTOCOL)
+		pickle.dump(testing_TFIDF, open( fn, 'wb'), pickle.HIGHEST_PROTOCOL)
 
 
 def TF1_IDF1(TWC, D, lemmatize=True):
