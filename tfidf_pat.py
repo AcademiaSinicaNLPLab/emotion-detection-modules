@@ -182,7 +182,7 @@ if __name__ == '__main__':
 
 	overwrite = True if '--overwrite' in sys.argv else False
 	min_count = 5
-	min_df = 3
+	min_df = 2
 
 	print 'overwrite:', overwrite
 	print 'tf:', tf_type
