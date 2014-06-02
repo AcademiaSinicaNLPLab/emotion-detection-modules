@@ -80,10 +80,10 @@ def build_K(): # cardinality of |d|, i.e., K|d|
 		K = pickle.load(open(fn, 'rb'))
 	return K
 
-def create_training(PWC, D, training_udocIDs, tf_type, idf_type):
+def create_training(PWC, D, training_udocIDs, tf_type, idf_type, min_count, min_df):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
 
-	fn = fn + '.pat.5.train.pkl'
+	fn = fn + '.pat.'+str(min_count)+'.'+str(min_df)+'.train.pkl'
 
 	K_values_in_training = [K[uid] for uid in K if uid in training_udocIDs]
 	delta_d = float(sum(K_values_in_training)/float(len(K_values_in_training))) # average document length, ignore testing docs
@@ -125,7 +125,7 @@ def create_training(PWC, D, training_udocIDs, tf_type, idf_type):
 
 def create_testing(PWC, D, testing_udocIDs, tf_type, idf_type):
 	fn = 'cache/TF'+tf_type+'x'+'IDF'+idf_type
-	fn = fn + '.pat.5.test.pkl'
+	fn = fn + '.pat.'+str(min_count)+'.'+str(min_df)+'.test.pkl'
 
 
 	K_values_in_training = [K[uid] for uid in K if uid not in testing_udocIDs]
