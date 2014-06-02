@@ -78,20 +78,25 @@ if __name__ == '__main__':
 	prob = True
 
 	candidates = [
-		("538bcfaad4388c59136665df", 'c2g0.001t2', 0.5), 	# kw-TF3xIDF2
-		("538a1df3d4388c32be4c2c9b", 'c2g0.001t2', 0.3),	# kw-emo-s-50%
+		("538bcfaad4388c59136665df", 'c2g0.001t2', 0.6), 	# kw-TF3xIDF2
+		("538a1df3d4388c32be4c2c9b", 'c2g0.001t2', 0.2),	# kw-emo-s-50%
 		("537451d1d4388c7843516ba4", 'c9g0.0005t2', 0.1),	# kw-bag
 		("53876efbd4388c3e013e9272", 'c9g0.0005t2', 0.1),	# pat-emo-b-50%
 	]
 	# normalize weight
 	#...
+
 	results = []
 	for sid, param, weight in candidates:
 		res = load(sid, param, prob=True)
 		results.append(res)
 
-	weighted = apply_weight(results, weight)
+	with open('fusion.csv', 'wb') as fw:
+		for i in range(len(results[0])): # 8000
+			row = [ map(lambda x:float(x)*weight, results[i][idx][1]) for (idx, (sid, param, weight)) in enumerate(candidates)]
+			weighted_sum = map(lambda a:reduce(lambda x,y: x+y, a), zip(*row))
+			fw.write(  ','.join(map(lambda x:str(x), weighted_sum)) + '\n')
 
-		
+
 
 
