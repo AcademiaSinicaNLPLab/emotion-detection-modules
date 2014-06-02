@@ -16,9 +16,9 @@ params = [
 	#'c9g0.000375t2',
 	#'c2t2',		# x
 	#'c4t2',		# x
-	#'c9t2',
+	'c9t2',
 
-	#'c2g0.001t2', 
+	'c2g0.001t2', 
 	#'c2g0.01t2',  	# x
 	#'c9g0.01t2',	# x
 	#'c9g0.005t2',	# x
@@ -28,8 +28,11 @@ params = [
 ]
 
 sids = [
-	'538c3813d4388c65b93e7744', # TF3xIDF2, lemma ,extend
-	'538c388ed4388c77fd5c3e5f', # TF3xIDF2, lemma, basic
+	'538c48e6d4388c6121b0a1f2', # pat-TF3xIDF2, min_df 1
+	'538c49ccd4388c7ee25235ff', # pat-TF3xIDF2, min_df 2
+	# '538c45d2d4388c6d069f8487', # pat-TF3xIDF2
+	#'538c3813d4388c65b93e7744', # TF3xIDF2, lemma ,extend
+	#'538c388ed4388c77fd5c3e5f', # TF3xIDF2, lemma, basic
 	#'538c32b2d4388c1cafcd0a11', #  kw-TF3xIDF2 + kw-emo-s + pat-emo-s
 	#'538bf593d4388c7618373ab1', # kw-TF3xIDF2-Yang
 	# '538be395d4388c4c7d533e2e', # pat-bag + kw-TF3xIDF2
