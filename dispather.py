@@ -5,29 +5,30 @@ from itertools import product
 core = 1
 
 params = [
-	# 'default',
-	# 'c9r5t1',
-	'c9g0.001r0t1',
-	'c9g0.001r5t1',
-	'c9g0.001r6t1',
-	'c2g0.001r5t1',
-	'c2g0.001r5t0',
-	'c9g0.00035t2',
-	'c9g0.000375t2',
+	'default',
+	'c9r5t1',
+	#'c9g0.001r0t1',
+	#'c9g0.001r5t1',
+	#'c9g0.001r6t1',
+	#'c2g0.001r5t1',
+	#'c2g0.001r5t0',
+	#'c9g0.00035t2',
+	#'c9g0.000375t2',
 	#'c2t2',		# x
 	#'c4t2',		# x
-	# 'c9t2',
+	 'c9t2',
 
-	# 'c2g0.001t2', 
+	'c2g0.001t2', 
 	#'c2g0.01t2',  	# x
 	#'c9g0.01t2',	# x
 	#'c9g0.005t2',	# x
-	# 'c9g0.001t2',
-	# 'c9g0.0005t2',
-	# 'c9g0.0001t2'
+	'c9g0.001t2',
+	'c9g0.0005t2',
+	'c9g0.0001t2'
 ]
 
 sids = [
+<<<<<<< HEAD
 <<<<<<< HEAD
 	# '538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
 	# '538be189d4388c7efe214736', # kw-TF1xIDF2 + pat-emo-s
@@ -36,6 +37,12 @@ sids = [
 =======
 	'538be395d4388c4c7d533e2e', # pat-bag + kw-TF3xIDF2
 	# '538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
+=======
+	'538c32b2d4388c1cafcd0a11', #  kw-TF3xIDF2 + kw-emo-s + pat-emo-s
+	#'538bf593d4388c7618373ab1', # kw-TF3xIDF2-Yang
+	# '538be395d4388c4c7d533e2e', # pat-bag + kw-TF3xIDF2
+	#'538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
+>>>>>>> 44a13f6... add AUC
 	# '538be189d4388c7efe214736', # kw-TF1xIDF2 + pat-emo-s
 	# '538be0edd4388c67c1d6950d', # kw-bag + kw-TF3xIDF2 + pat-emo-s
 	# '538bcfaad4388c59136665df', # TF3xIDF2

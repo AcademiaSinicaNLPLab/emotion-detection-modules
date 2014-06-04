@@ -6,7 +6,7 @@ def parse_params(str_params):
 	# target forms: ["-c 4 -b 1", "-c 4-b1", "-c4 -b1", "c4b1", "c4 b1", "c4 b 1", "-n 0.5"]
 	return [] if str_params == 'default' else sorted( re.findall(r'-?([a-z])\s*([0-9\.]+)', str_params), key=lambda x:x[0] )
 
-def svm_binary(sid, param, files):
+def svm_binary(sid, param, prob, files):
 
 	## parse parameters
 	svm_params = parse_params(param)
@@ -25,8 +25,13 @@ def svm_binary(sid, param, files):
 		model_fn  = files[eid]['model']
 		output_fn = files[eid]['output']
 
-		train_cmd = [train_program, '-q'] + training_args + [train_fn, model_fn]
-		test_cmd = [test_program, test_fn, model_fn, output_fn]
+		train_cmd = [train_program, '-q']
+		if prob: train_cmd += ['-b', '1']
+		train_cmd += training_args + [train_fn, model_fn]
+
+		test_cmd = [test_program]
+		if prob: test_cmd += ['-b', '1']
+		test_cmd += [test_fn, model_fn, output_fn]
 
 		# print train_cmd
 		# print test_cmd
@@ -60,7 +65,7 @@ def svm_binary(sid, param, files):
 	# print 'avg:', sum(res.values())/float(len(res.values())), '%'
 	# pickle.dump(res, open('tmp/'+sid+'/'+param+'.pkl', 'w'))
 
-def check_files(sid, param):
+def check_files(sid, param, prob):
 
 	files = {}
 
@@ -73,8 +78,13 @@ def check_files(sid, param):
 			'model':  'tmp/'+sid+'/'+eid+'.b.'+param+'.m',
 			'output': 'tmp/'+sid+'/'+eid+'.b.'+param+'.out'
 		}
+		if prob:
+			fns['model'] = 'tmp/'+sid+'/'+eid+'.b.'+param+'.p.m'
+			fns['output'] = 'tmp/'+sid+'/'+eid+'.b.'+param+'.p.out'
+
 		if os.path.exists(fns['model']) and os.path.exists(fns['output']):
 			complete += 1
+
 		files[eid] = fns
 
 	if complete == len(eids):
@@ -118,10 +128,14 @@ if __name__ == '__main__':
 	sid = sys.argv[1].strip()
 	param = sys.argv[2].strip()
 
-	todo_files = check_files(sid, param)
+	if '-p' in sys.argv or '--prob' in sys.argv: prob = True
+	else: prob = False
+
+	todo_files = check_files(sid, param, prob)
+
 
 	if not todo_files: ## all done
 		print '>> all done!'
 		pass
 	else:
-		svm_binary(sid, param, todo_files)
+		svm_binary(sid, param, prob, todo_files)
