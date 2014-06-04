@@ -192,8 +192,8 @@ def get_keyword_feature(udocID):
 				key = '@'+ position + '_' + emo
 				keywordFeature[key] += score_vector[emo] 
 
-
-
+		else:
+			return False
 
 	return keywordFeature
 
