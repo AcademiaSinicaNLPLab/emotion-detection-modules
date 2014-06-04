@@ -29,19 +29,29 @@ def show(exp_name):
 
 	emotions = fetch_emotions()
 
-	for e, a in sorted(d.items(), key=lambda x:x[1], reverse=True):
+	for e, a in sorted(d.items(), key=lambda x:x[0], reverse=False):
 		if e in emotions['intersection']:
 			label = 'o'
 		elif e in emotions['LJ40K']:
 			label = 'x (LJ40K)'
+			continue
 		elif e in emotions['Mishne05']:
 			label = 'x (Mishne05)'
+			continue
 		else:
 			label = '?'
+		# print '\t'.join([e, str(a), label])
+		print '\t'.join([str(a)])
 
-		print '\t'.join([e, str(a), label])
+# def fetch(sid, param):
+
 
 if __name__ == '__main__':
+
+	# exp_names = {
+	# 	'kw+pt': ('538302743681df11cd509c77', 'c9r5t1'),
+
+	# }
 
 	if len(sys.argv) < 2:
 		print 'python show.py [exp_name]'
@@ -49,4 +59,7 @@ if __name__ == '__main__':
 		exit(-1)
 
 	exp_name = sys.argv[1]
+	# if exp_name in exp_names:
+
+	# else:
 	show(exp_name)
