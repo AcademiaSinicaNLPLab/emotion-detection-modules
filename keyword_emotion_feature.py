@@ -172,12 +172,10 @@ def get_keyword_feature(udocID):
 
 		# print 'POS:', POS, '\npos:', pos, '\nword:', word
 
-<<<<<<< HEAD
 		count = get_keyword_count(word)
 		if not count: 
-<<<<<<< HEAD
 			continue # if not count, skip this word
-=======
+
 		if config.debug:
 			print 'fetch count of',word
 			pprint(word)
@@ -185,7 +183,6 @@ def get_keyword_feature(udocID):
 		if not count:
 			if config.debug: print 'no count of',word,', continue to next word.'
 			continue # if no count, skip this word
->>>>>>> 8de06bb... add debug mode
 		else:	
 			count = remove_self_count( udocID, word, count )
 
@@ -195,24 +192,18 @@ def get_keyword_feature(udocID):
 			if config.featureValueType == 'b':
 				for emo in binary_vector:
 					keywordFeature[emo] += binary_vector[emo] 
-			
-<<<<<<< HEAD
 			## pattern count (frequency)
 			elif config.featureValueType == 'f':	
 				count_vector =  { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
 				for emo in count_vector:
 					keywordFeature[emo] += count_vector[emo] 
-=======
-=======
-			return {}
+
 		count = remove_self_count( udocID, word, count )
 
 		percentage = config.cutoffPercentage/float(100)
 
 		binary_vector = accumulate_threshold(count, percentage)
 			
-
->>>>>>> f971095... pos for lemmatization
 		if config.featureValueType == 'b':
 			for emo in binary_vector:
 				keywordFeature[emo] += binary_vector[emo] 
@@ -229,15 +220,9 @@ def get_keyword_feature(udocID):
 			score_vector = { e: keyword_score[e] for e in binary_vector if binary_vector[e] == 1 }
 			for emo in score_vector:
 				keywordFeature[emo] += score_vector[emo] 
-
-<<<<<<< HEAD
->>>>>>> 765e458... pos for lemmatization
-				
-=======
 		else:
 			return False
 
->>>>>>> f971095... pos for lemmatization
 	return keywordFeature
 
 
