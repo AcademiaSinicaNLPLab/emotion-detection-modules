@@ -16,18 +16,19 @@ params = [
 	#'c9g0.000375t2',
 	#'c2t2',		# x
 	#'c4t2',		# x
-	 'c9t2',
+	#'c9t2',
 
-	'c2g0.001t2', 
+	#'c2g0.001t2', 
 	#'c2g0.01t2',  	# x
 	#'c9g0.01t2',	# x
 	#'c9g0.005t2',	# x
-	'c9g0.001t2',
+	#'c9g0.001t2',
 	'c9g0.0005t2',
-	'c9g0.0001t2'
+	#'c9g0.0001t2'
 ]
 
 sids = [
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 	# '538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
@@ -39,6 +40,11 @@ sids = [
 	# '538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
 =======
 	'538c32b2d4388c1cafcd0a11', #  kw-TF3xIDF2 + kw-emo-s + pat-emo-s
+=======
+	'538c3813d4388c65b93e7744', # TF3xIDF2, lemma ,extend
+	'538c388ed4388c77fd5c3e5f', # TF3xIDF2, lemma, basic
+	#'538c32b2d4388c1cafcd0a11', #  kw-TF3xIDF2 + kw-emo-s + pat-emo-s
+>>>>>>> 0447c14... add tfidf-pat
 	#'538bf593d4388c7618373ab1', # kw-TF3xIDF2-Yang
 	# '538be395d4388c4c7d533e2e', # pat-bag + kw-TF3xIDF2
 	#'538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
