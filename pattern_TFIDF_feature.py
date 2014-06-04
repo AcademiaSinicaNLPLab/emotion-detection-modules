@@ -99,7 +99,7 @@ if __name__ == '__main__':
 		"feature_name": "pattern_TFIDF",
 		"TFIDF_type": TFIDF_type,
 		"min_count": 5,
-		'min_df': 1
+		'min_df': 2
 	}
 
 	## print confirm message
@@ -120,8 +120,8 @@ if __name__ == '__main__':
 	
 	# TF3xIDF2.pat.5.train.pkl
 	# TF3xIDF2.pat.5.test.pkl
-	training_TFIDF = pickle.load(open('cache/'+TFIDF_type+'.pat.5.1.train.pkl'))
-	testing_TFIDF  = pickle.load(open('cache/'+TFIDF_type+'.pat.5.1.test.pkl'))
+	training_TFIDF = pickle.load(open('cache/'+TFIDF_type+'.pat.5.2.train.pkl'))
+	testing_TFIDF  = pickle.load(open('cache/'+TFIDF_type+'.pat.5.2.test.pkl'))
 
 	# u2l  = pickle.load(open('cache/u2l.pkl'))
 

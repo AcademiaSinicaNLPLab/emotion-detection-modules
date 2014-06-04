@@ -1,5 +1,7 @@
 # combine binary classifier probibility
 
+import os
+
 sid = "538bcfaad4388c59136665df"
 param = 'c2g0.001t2'
 
@@ -95,7 +97,7 @@ if __name__ == '__main__':
 		for i in range(len(results[0])): # 8000
 			row = [ map(lambda x:float(x)*weight, results[i][idx][1]) for (idx, (sid, param, weight)) in enumerate(candidates)]
 			weighted_sum = map(lambda a:reduce(lambda x,y: x+y, a), zip(*row))
-			fw.write(  ','.join(map(lambda x:str(x), weighted_sum)) + '\n')
+			fw.write(','.join(map(lambda x:str(x), weighted_sum)) + '\n')
 
 
 
