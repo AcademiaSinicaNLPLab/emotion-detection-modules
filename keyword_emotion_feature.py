@@ -2,7 +2,7 @@ import config
 import sys, pymongo, color
 from collections import defaultdict, Counter
 from nltk.stem.wordnet import WordNetLemmatizer
-
+from pprint import pprint
 from util import load_mongo_docs, load_lexicon_keyword_total_count
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
@@ -59,10 +59,18 @@ def remove_self_count(udocID, keyword, count_dict):
 				pass
 			elif remove_type == '1':
 				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - 1
-			elif remove_type == 'f':
-				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - KwTC[udocID][keyword]
 
-			# new_count[mdoc['emotion']] = new_count[mdoc['emotion']]
+			elif remove_type == 'f':
+
+
+				kw_total_count_in_this_article = KwTC[udocID][keyword]
+
+				if config.debug:
+					print 'kw_total_count_in_this_article:',kw_total_count_in_this_article
+					print 'new_count['+mdoc['emotion']+']:', new_count[mdoc['emotion']]
+					
+				new_count[mdoc['emotion']] = new_count[mdoc['emotion']] - kw_total_count_in_this_article
+
 			if new_count[mdoc['emotion']] == 0 :
 				del new_count[mdoc['emotion']]
 
@@ -150,10 +158,20 @@ def get_keyword_feature(udocID):
 
 		# print 'POS:', POS, '\npos:', pos, '\nword:', word
 
+<<<<<<< HEAD
 		count = get_keyword_count(word)
 		if not count: 
 <<<<<<< HEAD
 			continue # if not count, skip this word
+=======
+		if config.debug:
+			print 'fetch count of',word
+			pprint(word)
+
+		if not count:
+			if config.debug: print 'no count of',word,', continue to next word.'
+			continue # if no count, skip this word
+>>>>>>> 8de06bb... add debug mode
 		else:	
 			count = remove_self_count( udocID, word, count )
 
@@ -223,11 +241,11 @@ def create_keyword_features():
 
 		for doc in docs:
 			udocID = doc['udocID']
-			kw_feature = get_keyword_feature(udocID)
+			kw_feature = get_keyword_feature(udocID).items()
 			mdoc = {
 				"emotion": gold_emotion,
-				"udocID": doc['udocID'],
-				"feature": kw_feature.items(),
+				"udocID":  doc['udocID'],
+				"feature": kw_feature,
 				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
 			}
 			co_feature.insert(mdoc)
@@ -244,8 +262,8 @@ if __name__ == '__main__':
 	co_sents = db[config.co_sents_name]
 
 	## target mongo collections
-	co_setting = db['features.settings']
-	co_feature = db['features.keyword_emotion']
+	co_setting = db['features.settings'] if not config.debug else db['debug.features.settings']
+	co_feature = db['features.keyword_emotion'] if not config.debug else db['debug.features.keyword_emotion']
 
 	co_ktc = db['lexicon.keyword_total_count']
 
@@ -267,10 +285,11 @@ if __name__ == '__main__':
 				"                 0: dont't remove anything",
 				'                 1: minus-one',
 				'                 f: minus-frequency']),
+		('--debug', ['--debug: run in debug mode'])
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hk:f:c:r:v',['help', 'keyword_type=', 'lemma', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:],'hk:f:c:r:v',['help', 'keyword_type=', 'lemma', 'verbose', 'debug'])
 	except getopt.GetoptError:
 		config.help(config.keywordEmotionFeat_name, addon=add_opts, exit=2)
 
@@ -284,6 +303,7 @@ if __name__ == '__main__':
 		elif opt in ('-c'): config.cutoffPercentage = int( arg.strip() )
 		elif opt in ('-r'): remove_type = arg.strip()
 		elif opt in ('-v','--verbose'): config.verbose = True
+		elif opt in ('--debug'): config.debug = True
 
 	## create metadata
 	setting = { 
