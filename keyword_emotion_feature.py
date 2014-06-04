@@ -170,15 +170,7 @@ def get_keyword_feature(udocID):
 			if pos: # only lemmatize certain pos types
 				word = lmtzr.lemmatize(word, pos)
 
-		# print 'POS:', POS, '\npos:', pos, '\nword:', word
-
 		count = get_keyword_count(word)
-		if not count: 
-			continue # if not count, skip this word
-
-		if config.debug:
-			print 'fetch count of',word
-			pprint(word)
 
 		if not count:
 			if config.debug: print 'no count of',word,', continue to next word.'
@@ -187,41 +179,27 @@ def get_keyword_feature(udocID):
 			count = remove_self_count( udocID, word, count )
 
 			percentage = config.cutoffPercentage/float(100)
+
 			binary_vector = accumulate_threshold(count, percentage)
 				
 			if config.featureValueType == 'b':
 				for emo in binary_vector:
 					keywordFeature[emo] += binary_vector[emo] 
+			
 			## pattern count (frequency)
 			elif config.featureValueType == 'f':	
 				count_vector =  { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
 				for emo in count_vector:
 					keywordFeature[emo] += count_vector[emo] 
+			## keyword score
+			elif config.featureValueType == 's':
+				keyword_score = scoring(count)
+				score_vector = { e: keyword_score[e] for e in binary_vector if binary_vector[e] == 1 }
+				for emo in score_vector:
+					keywordFeature[emo] += score_vector[emo] 
+			else:
+				return False # wtf feature type?
 
-		count = remove_self_count( udocID, word, count )
-
-		percentage = config.cutoffPercentage/float(100)
-
-		binary_vector = accumulate_threshold(count, percentage)
-			
-		if config.featureValueType == 'b':
-			for emo in binary_vector:
-				keywordFeature[emo] += binary_vector[emo] 
-		
-		## pattern count (frequency)
-		elif config.featureValueType == 'f':	
-			count_vector =  { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
-			for emo in count_vector:
-				keywordFeature[emo] += count_vector[emo] 
-
-		## keyword score
-		elif config.featureValueType == 's':
-			keyword_score = scoring(count)
-			score_vector = { e: keyword_score[e] for e in binary_vector if binary_vector[e] == 1 }
-			for emo in score_vector:
-				keywordFeature[emo] += score_vector[emo] 
-		else:
-			return False
 
 	return keywordFeature
 

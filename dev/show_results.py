@@ -43,15 +43,7 @@ def show(exp_name):
 		# print '\t'.join([e, str(a), label])
 		print '\t'.join([str(a)])
 
-# def fetch(sid, param):
-
-
 if __name__ == '__main__':
-
-	# exp_names = {
-	# 	'kw+pt': ('538302743681df11cd509c77', 'c9r5t1'),
-
-	# }
 
 	if len(sys.argv) < 2:
 		print 'python show.py [exp_name]'
@@ -59,7 +51,5 @@ if __name__ == '__main__':
 		exit(-1)
 
 	exp_name = sys.argv[1]
-	# if exp_name in exp_names:
 
-	# else:
 	show(exp_name)
