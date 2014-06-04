@@ -121,21 +121,23 @@ def generate_feature_vectors(src_setting_ids):
 
 			## save the mapping of udocID -> eid
 			# udocID_gid[udocID] = eid
+			feature = mdoc['feature']
 
-			for f_name, f_value in mdoc['feature']:
+			if not feature:
+				feature_vectors[eid][udocID] = []
+			else:
+				for f_name, f_value in feature:
 
-				# combine f_name with prefix
-				f_name = '#'.join([prefix, f_name])
+					# combine f_name with prefix
+					f_name = '#'.join([prefix, f_name])
 
-				# generate fid
-				if f_name not in feature_pool:
-					feature_pool[f_name] = len(feature_pool)
-				# get fid
-				fid = feature_pool[f_name]
+					# generate fid
+					if f_name not in feature_pool:
+						feature_pool[f_name] = len(feature_pool)
+					# get fid
+					fid = feature_pool[f_name]
 
-				# feature_vectors[udocID].append( (fid, f_value) )
-
-				feature_vectors[eid][udocID].append( (fid, f_value) )
+					feature_vectors[eid][udocID].append( (fid, f_value) )
 
 	return feature_vectors
 

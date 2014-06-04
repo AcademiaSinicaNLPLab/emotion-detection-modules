@@ -16,9 +16,9 @@ params = [
 	#'c9g0.000375t2',
 	#'c2t2',		# x
 	#'c4t2',		# x
-	#'c9t2',
+	'c9t2',
 
-	#'c2g0.001t2', 
+	'c2g0.001t2', 
 	#'c2g0.01t2',  	# x
 	#'c9g0.01t2',	# x
 	#'c9g0.005t2',	# x
@@ -28,31 +28,22 @@ params = [
 ]
 
 sids = [
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-	# '538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
-	# '538be189d4388c7efe214736', # kw-TF1xIDF2 + pat-emo-s
-	# '538be0edd4388c67c1d6950d', # kw-bag + kw-TF3xIDF2 + pat-emo-s
-	'538bcfaad4388c59136665df', # TF3xIDF2
-=======
-	'538be395d4388c4c7d533e2e', # pat-bag + kw-TF3xIDF2
-	# '538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
-=======
-	'538c32b2d4388c1cafcd0a11', #  kw-TF3xIDF2 + kw-emo-s + pat-emo-s
-=======
-	'538c3813d4388c65b93e7744', # TF3xIDF2, lemma ,extend
-	'538c388ed4388c77fd5c3e5f', # TF3xIDF2, lemma, basic
+	'538c48e6d4388c6121b0a1f2', # pat-TF3xIDF2, min_df 1
+	'538c49ccd4388c7ee25235ff', # pat-TF3xIDF2, min_df 2
+	# '538c45d2d4388c6d069f8487', # pat-TF3xIDF2
+	#'538c3813d4388c65b93e7744', # TF3xIDF2, lemma ,extend
+	#'538c388ed4388c77fd5c3e5f', # TF3xIDF2, lemma, basic
+
 	#'538c32b2d4388c1cafcd0a11', #  kw-TF3xIDF2 + kw-emo-s + pat-emo-s
->>>>>>> 0447c14... add tfidf-pat
+
 	#'538bf593d4388c7618373ab1', # kw-TF3xIDF2-Yang
 	# '538be395d4388c4c7d533e2e', # pat-bag + kw-TF3xIDF2
 	#'538bdc4cd4388c3b72ded9e7', # kw-TF3xIDF2 + pat-emo-s
->>>>>>> 44a13f6... add AUC
+
 	# '538be189d4388c7efe214736', # kw-TF1xIDF2 + pat-emo-s
 	# '538be0edd4388c67c1d6950d', # kw-bag + kw-TF3xIDF2 + pat-emo-s
 	# '538bcfaad4388c59136665df', # TF3xIDF2
->>>>>>> c0bc512... fusion test
+
 	# '538bcf7ad4388c5190d8057c', # TF1xIDF2
 	# '538b290cd4388c1eb95c3f7b', # kw-bag + pat-emo-s + kw-emo-s + pat-emo-s-pos
 	# '538aeb10d4388c12a30803d9', # pat-emo-f-pos
