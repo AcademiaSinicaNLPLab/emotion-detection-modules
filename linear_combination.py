@@ -67,7 +67,6 @@ def load(sid, param, prob):
 # pat-emo-b-50%	[b] cut 50, min_count 4, -frequency (53876efbd4388c3e013e9272)
 
 def apply_weight(prediction_results, weight):
-<<<<<<< HEAD
 	return [(gold, map(lambda x: float(x)*weight, predicts)) for gold, predicts in prediction_results]
 
 def run(candidates, weights=[]):
@@ -159,19 +158,12 @@ def find_max():
 			# print eval_mdoc['avg_accuracy']
 			A.append((eval_mdoc['avg_accuracy'], fn))
 	print sorted(A, key=lambda x:x[0], reverse=True)[:5]
-=======
-	weighted = list()
-	for gold, predicts in prediction_results:
-		(gold, map(lambda x:float(x)*weight, predicts))
-
->>>>>>> f9fd64643143495ffd72db9c4bf1c15fe5c996b8
 
 if __name__ == '__main__':
 	
 	prob = True
 
 	candidates = [
-<<<<<<< HEAD
 		["538bcfaad4388c59136665df", 'c2g0.001t2'], 	# TF3xIDF2					3
 		["538a1df3d4388c32be4c2c9b", 'c2g0.001t2'],		# kw-emo-s-50%				1
 		["537451d1d4388c7843516ba4", 'c9g0.0005t2'],	# kw-bag					2
@@ -198,27 +190,6 @@ if __name__ == '__main__':
 		print normalized_weights
 		
 		run(candidates, weights=normalized_weights)
-=======
-		("538bcfaad4388c59136665df", 'c2g0.001t2', 0.6), 	# kw-TF3xIDF2
-		("538a1df3d4388c32be4c2c9b", 'c2g0.001t2', 0.2),	# kw-emo-s-50%
-		("537451d1d4388c7843516ba4", 'c9g0.0005t2', 0.1),	# kw-bag
-		("53876efbd4388c3e013e9272", 'c9g0.0005t2', 0.1),	# pat-emo-b-50%
-	]
-	# normalize weight
-	#...
 
-	results = []
-	for sid, param, weight in candidates:
-		res = load(sid, param, prob=True)
-		results.append(res)
-
-	with open('fusion.csv', 'wb') as fw:
-		for i in range(len(results[0])): # 8000
-			row = [ map(lambda x:float(x)*weight, results[i][idx][1]) for (idx, (sid, param, weight)) in enumerate(candidates)]
-			weighted_sum = map(lambda a:reduce(lambda x,y: x+y, a), zip(*row))
-			fw.write(','.join(map(lambda x:str(x), weighted_sum)) + '\n')
-
-
->>>>>>> f9fd64643143495ffd72db9c4bf1c15fe5c996b8
 
 
