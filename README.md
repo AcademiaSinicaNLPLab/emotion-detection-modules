@@ -102,3 +102,9 @@ git push
 git pull -u origin master	// first time using pull
 git pull
 ```
+
+## System Flow
+
+![flowchart](https://raw.githubusercontent.com/AcademiaSinicaNLPLab/emotion-detection-modules/master/img/feelit.flow.png)
+
+
