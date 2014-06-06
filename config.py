@@ -7,6 +7,7 @@ ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
+ext_dep_name = 'extract_dependency'
 
 # -------------------------------------------- paths -------------------------------------------- #
 # libsvm abs path
@@ -33,7 +34,7 @@ patternEmotionPositionFeat_name = 'pattern_emotion_position_feature'
 
 ## mongo setting
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
-db_name = 'LJ40K'
+db_name = 'NCTIR'
 
 ## mongo collection name
 co_emotions_name = 'emotions'
@@ -116,6 +117,7 @@ opt_fields = {
 
 	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
+	ext_dep_name: [],
 }
 _abbr = {
 	'p': 'ps_function',
