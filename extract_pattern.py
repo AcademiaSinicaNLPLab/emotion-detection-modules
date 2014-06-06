@@ -20,9 +20,9 @@ mc = pymongo.Connection(config.mongo_addr)
 topic_or_emotion = 'emotion'
 
 # verb_frame = (['VB'], [('prep', 0), ('subj',0), ('obj',0)]) ## for LJ40K: I love you
-verb_frame = (['V'], [('prep', 0), ('subj',0), ('obj',0)]) ## for NTCIR
+verb_frame = (['V'],  [('prep', 0), ('subj',0), ('obj',0)]) ## for NTCIR
 # be_status = (['JJ'], [('subj',1), ('cop', 1)]) ## for LJ40K: I am happy
-be_status = (['JJ'], [('top',1), ('attr', 1)]) ## for NTCIR
+be_status = (['VC'],  [('top',1), ('attr', 1)]) ## for NTCIR
 
 # input a list of dep of a document
 # output seperated lists containing each sentence
