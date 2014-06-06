@@ -129,6 +129,7 @@ def process_parsed_files(corpus_root, docIDs):
 					'udocID': udocID,
 					'ldocID': ldocID,
 					'usentID': usentID,
+					'rel': rel
 				}
 				mdep['x'] = left[0]
 				mdep['y'] = right[0]
@@ -200,4 +201,9 @@ if __name__ == '__main__':
 
 	docIDs = load_docs(corpus_root)
 	process_parsed_files(corpus_root, docIDs)
+
+	print 'create index'
+	co_docs.create_index('udocID')
+	co_sents.create_index('udocID')
+	co_deps.create_index('udocID')
 
