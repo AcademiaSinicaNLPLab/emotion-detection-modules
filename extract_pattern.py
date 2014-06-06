@@ -2,18 +2,23 @@
 
 ### extract pattern according to differernt structure
 import sys, os
-sys.path.append('/'.join([os.environ['PROJECT_HOME'],'pymodules']))
+# sys.path.append('/'.join([os.environ['PROJECT_HOME'],'pymodules']))
 
 import color
 from ListCombination import ListCombination
+
+import config
 
 from collections import defaultdict
 from pprint import pprint
 
 import pymongo, pickle
-mc = pymongo.Connection('doraemon.iis.sinica.edu.tw')
-db = mc['LJ40K']
-co = db['deps']
+mc = pymongo.Connection(config.mongo_addr)
+
+topic_or_emotion = 'emotion'
+
+verb_frame = (['VB'], [('prep', 0), ('subj',0), ('obj',0)])
+be_status = (['JJ'], [('subj',1), ('cop', 1)])
 
 # input a list of dep of a document
 # output seperated lists containing each sentence
@@ -24,6 +29,10 @@ def extract_sents(doc):
 	return S.values()
 
 def negation(sent, NEG='__'):
+
+	for dep in sent:
+		print dep
+	raw_input()
 	negs = [x for x in sent if x['rel'] == 'neg'] # found negation
 	if not negs: 
 		return sent
@@ -130,7 +139,7 @@ def form(deps, anchor_node):
 
 
 
-def extract_pattern(sent, targets):
+def extract_pattern(sent, targets, rule):
 
 	pats = []
 	sent = negation(sent, NEG='__')
@@ -202,7 +211,7 @@ def list_possible_rules(rule):
 #         'prep'   : 0
 #     }
 # }
-def store_mongo(sent, pats, mongo_collection):
+def store_mongo(sent, pats, mongo_collection, topic_or_emotion='emotion'):
 
 	for p in pats:
 
@@ -210,7 +219,7 @@ def store_mongo(sent, pats, mongo_collection):
 		doc['sent_length'] = sent[0]['sent_length']
 		doc['udocID'] = sent[0]['udocID']
 		doc['usentID'] = sent[0]['usentID']
-		doc['emotion'] = sent[0]['emotion']		
+		doc[topic_or_emotion] = sent[0][topic_or_emotion]		
 
 		doc['pattern_length'] = len(p['pat'])
 		doc['pattern'] = ' '.join([x[0] for x in p['pat']])
@@ -226,41 +235,69 @@ def store_mongo(sent, pats, mongo_collection):
 
 
 if __name__ == '__main__':
-	
-	display = False
 
-	# rule = [('subj',1), ('cop', 1)]
-	rule = [('prep', 0), ('subj',0), ('obj',0)]
-	# targets = ['JJ']
-	targets = ['VB']
+	import getopt
 
-	# udocIDs = range(10) # for dev
-	udocIDs = db['deps'].distinct('udocID')
+	add_opts = [
+		('--database', ['-d or --database: specify the destination database name']),
+		('--topic', ['--topic: identify as "topic" rather than "emotion"']),
+	]
+
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],'hd:v',['help','database=','topic','verbose'])
+	except getopt.GetoptError:
+		config.help('extract_pattern', addon=add_opts, exit=2)
+
+	## read options
+	for opt, arg in opts:
+		if opt in ('-h', '--help'): config.help('extract_pattern', addon=add_opts)
+		elif opt in ('-d','--database'): config.db_name = arg.strip()
+		elif opt in ('-v','--verbose'): config.verbose = True
+		elif opt in ('--topic'): topic_or_emotion = 'topic'
+
+	db = mc[config.db_name]
+	co_deps = db[config.co_deps_name]
+	co_pats = db[config.co_pats_name]
+
+	# # rule = [('subj',1), ('cop', 1)]
+	# rule = [('prep', 0), ('subj',0), ('obj',0)]
+	# # targets = ['JJ']
+	# targets = ['VB']
+
+	targets_rules = [verb_frame, be_status]
+
+	# udocIDs = co_deps.distinct('udocID')
+	udocIDs = [0]
 	MaxudocID = max(udocIDs)
 
-	for udocID in udocIDs:
+	for targets, rule in targets_rules:
+		
+		for udocID in udocIDs:
 
-		doc = list(db['deps'].find( {'udocID':udocID} ))
+			doc = list(co_deps.find( {'udocID':udocID} ))
 
-		## extract all sentences in one document
-		sents = extract_sents(doc)
+			# print 'doc:',doc
 
-		for sent in sents:
 
-			## for each sentence, extract patterns
-			pats = extract_pattern(sent, targets)
+			## extract all sentences in one document
+			sents = extract_sents(doc)
 
-			## display results
-			if display:
-				sent_str = ' '.join([k[0] for k in sorted(set(reduce(lambda x,y:x+y, [((d['x'],d['xIdx']), (d['y'],d['yIdx'])) for d in sent])), key=lambda a:a[1])][1:] )
-				print '> %s (%s)' % (sent_str, color.render( str(len(pats)), 'lc'))
-				for p in pats:
-					pat_str = ' '.join([x[0] for x in p['pat']])
-					print '  '+color.render(pat_str.lower(), 'g'), round(p['weight'],2)
+			for sent in sents:
 
-			## store back in mongo
-			store_mongo(sent, pats, db['pats'])
+				## for each sentence, extract patterns
+				pats = extract_pattern(sent, targets, rule)
 
-		print '> %s / %s' % (udocID, MaxudocID )
-		if display:
-			print '%s end of document %d %s' % ('='*20,udocID, '='*20)
+				## display results
+				if config.verbose:
+					sent_str = ' '.join([k[0] for k in sorted(set(reduce(lambda x,y:x+y, [((d['x'],d['xIdx']), (d['y'],d['yIdx'])) for d in sent])), key=lambda a:a[1])][1:] )
+					print '> %s (%s)' % (sent_str, color.render( str(len(pats)), 'lc'))
+					for p in pats:
+						pat_str = ' '.join([x[0] for x in p['pat']])
+						print '  '+color.render(pat_str.lower(), 'g'), round(p['weight'],2)
+
+				## store back in mongo
+				store_mongo(sent, pats, co_pats, topic_or_emotion)
+
+			print '> %s / %s' % (udocID, MaxudocID )
+			if config.verbose:
+				print '%s end of document %d %s' % ('='*20,udocID, '='*20)

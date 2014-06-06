@@ -8,6 +8,7 @@ ev_name = 'evaluation'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
 ext_dep_name = 'extract_dependency'
+ext_pat_name = 'extract_pattern'
 
 # -------------------------------------------- paths -------------------------------------------- #
 # libsvm abs path
@@ -41,6 +42,7 @@ co_emotions_name = 'emotions'
 co_docs_name = 'docs'
 co_sents_name = 'sents'
 co_pats_name = 'pats'
+co_deps_name = 'deps'
 co_lexicon_name = 'lexicon.nested'
 co_results_name = 'NewRes'
 co_patsearch_name = 'pats_trim'
@@ -118,6 +120,7 @@ opt_fields = {
 	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
 	ext_dep_name: [],
+	ext_pat_name: ['-v']
 }
 _abbr = {
 	'p': 'ps_function',
