@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+## python extract_pattern.py -d NTCIR --topic --verbose
+
 ### extract pattern according to differernt structure
 import sys, os
 # sys.path.append('/'.join([os.environ['PROJECT_HOME'],'pymodules']))
@@ -17,8 +19,10 @@ mc = pymongo.Connection(config.mongo_addr)
 
 topic_or_emotion = 'emotion'
 
-verb_frame = (['VB'], [('prep', 0), ('subj',0), ('obj',0)])
-be_status = (['JJ'], [('subj',1), ('cop', 1)])
+# verb_frame = (['VB'], [('prep', 0), ('subj',0), ('obj',0)]) ## for LJ40K: I love you
+verb_frame = (['V'], [('prep', 0), ('subj',0), ('obj',0)]) ## for NTCIR
+# be_status = (['JJ'], [('subj',1), ('cop', 1)]) ## for LJ40K: I am happy
+be_status = (['JJ'], [('top',1), ('attr', 1)]) ## for NTCIR
 
 # input a list of dep of a document
 # output seperated lists containing each sentence
@@ -29,10 +33,6 @@ def extract_sents(doc):
 	return S.values()
 
 def negation(sent, NEG='__'):
-
-	for dep in sent:
-		print dep
-	raw_input()
 	negs = [x for x in sent if x['rel'] == 'neg'] # found negation
 	if not negs: 
 		return sent
@@ -159,10 +159,6 @@ def extract_pattern(sent, targets, rule):
 
 			rels, matched_rule = res
 			if not rels: continue
-			# for dep in deps:
-
-				# print dict([(x, dep[x]) for x in dep if x not in ['emotion', 'sent_length', 'udocID', 'usentID']])
-			# (rels)
 
 			combs = ListCombination(rels.values())
 
@@ -173,10 +169,8 @@ def extract_pattern(sent, targets, rule):
 				weight = 1/float(len(combs))
 
 				p = {'anchor':anchor_node, 'pat': pat, 'comb':comb, 'weight':weight, 'matched_rule': matched_rule}
-				# pats.append((pat,weight))
+				
 				pats.append(p)
-				# print pat, weight
-			# print '='*50
 	return pats
 
 def list_possible_rules(rule):
@@ -266,18 +260,18 @@ if __name__ == '__main__':
 
 	targets_rules = [verb_frame, be_status]
 
-	# udocIDs = co_deps.distinct('udocID')
-	udocIDs = [0]
+	udocIDs = co_deps.distinct('udocID')
+	# udocIDs = [0]
 	MaxudocID = max(udocIDs)
 
 	for targets, rule in targets_rules:
 		
+		# print 'targets:',targets
+		# print 'rule:',rule
+		# raw_input()
 		for udocID in udocIDs:
 
 			doc = list(co_deps.find( {'udocID':udocID} ))
-
-			# print 'doc:',doc
-
 
 			## extract all sentences in one document
 			sents = extract_sents(doc)

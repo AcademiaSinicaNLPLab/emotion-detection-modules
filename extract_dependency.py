@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+## python extract_dependency.py -p /corpus/NTCIR/formalrun_released_TC -d NTCIR
+
 import pymongo, os, sys, config
 from pprint import pprint
 from collections import Counter
