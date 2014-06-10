@@ -1,5 +1,68 @@
 import pickle, os
 
+## parse raw dependency text
+## input
+# raw_deps:
+# 	poss(dog-2, My-1)
+# 	nsubj(likes-4, dog-2)
+# 	advmod(likes-4, also-3)
+# 	root(ROOT-0, likes-4)
+# 	xcomp(likes-4, eating-5)
+# 	dobj(eating-5, sausage-6)
+## output
+# list:	
+		# [
+		# 	('poss', ('dog', 2), ('My', 1) ),
+		# 	...
+		# ]
+# dict:	
+		# [
+		# 	{
+		# 		'rel': 'poss',
+		# 		'ltoken': 'dog',
+		# 		'lidx': 2,
+		# 		'rtoken': 'My',
+		# 		'ridx': 1
+		# 	},
+		# 	...
+		# ]
+def read_deps(raw_deps, delimiter=None, auto_detect=False, return_type=list):
+	deps = []
+	if not delimiter or auto_detect:
+		delimiter = '\n' if raw_deps.count('\n') > raw_deps.count('), ') else '), '
+	for dep in map(lambda x:x.strip(), raw_deps.strip().split(delimiter)):
+		if ')' not in dep.split('-')[-1]: # put ")" back
+			dep = dep + ')'
+		lpb = [i for (i,x) in enumerate(dep) if x == '(']
+		rpb = [i for (i,x) in enumerate(dep) if x == ')']
+		if not lpb or not rpb: continue
+
+		dl = min(lpb)
+		dr = max(rpb)
+
+		rel = dep[:dl]
+		body = dep[dl+1:dr]
+
+		parts = body.split(', ')
+
+		left, right = map(lambda x: ( '-'.join(x.split('-')[:-1]), int( x.split('-')[-1].replace("'",'') ) ), parts)
+
+		if return_type == dict:
+			deps.append( {'rel':rel, 'ltoken': left[0], 'lidx': left[1], 'rtoken': right[0], 'ridx': right[1]} )
+		else:
+			deps.append((rel , left, right))
+	return deps
+
+## input
+# raw_wordpos
+# 	My/PRP$ dog/NN also/RB likes/VBZ eating/VBG sausage/NN ./.
+#
+## output
+# 	[(My,PRP$), (dog/NN), ...]
+def read_words(raw_wordpos, delimiter=' '):
+	return [('/'.join(word_pos_str.split('/')[:-1]), word_pos_str.split('/')[-1]) for word_pos_str in raw_wordpos.strip().split(delimiter)]
+
+
 ## load entire mongo.LJ40K.docs into memory
 def load_mongo_docs(co_docs):
 	mongo_docs = {}
@@ -43,3 +106,6 @@ def load_lexicon_keyword_total_count(co_ktc):
 	else:
 		KwTC = pickle.load(open('cache/KwTC.lexicon.pkl','rb'))
 	return KwTC
+
+
+
