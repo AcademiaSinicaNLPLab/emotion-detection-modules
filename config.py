@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys, color
 
+
+
+category = 'polarity' ## target to be categorized. e.g., emotion, polarity
+
+
 #### define program names
 ds_name = 'document_scoring'
 ps_name = 'pattern_scoring'
@@ -22,6 +27,12 @@ libsvm_program = {
 svm_file_root = 'tmp'
 
 # -------------------------------------------- mongodb -------------------------------------------- #
+
+## mongo setting
+# mongo_addr = 'doraemon.iis.sinica.edu.tw'
+mongo_addr = 'wolverine.iis.sinica.edu.tw'
+db_name = 'NTCIR'
+
 keywordFeat_name = 'keyword_feature'
 keywordEmotionFeat_name = 'keyword_emotion_feature'
 keywordPositionFeat_name = 'keyword_position_feature'
@@ -32,17 +43,12 @@ patternEmotionFeat_name = 'pattern_emotion_feature'
 patternPositionFeat_name = 'pattern_position_feature'
 patternEmotionPositionFeat_name = 'pattern_emotion_position_feature'
 
-
-## mongo setting
-mongo_addr = 'doraemon.iis.sinica.edu.tw'
-db_name = 'NCTIR'
-
 ## mongo collection name
 co_emotions_name = 'emotions'
 co_docs_name = 'docs'
 co_sents_name = 'sents'
-co_pats_name = 'pats'
 co_deps_name = 'deps'
+co_pats_name = 'pats'
 co_lexicon_name = 'lexicon.nested'
 co_results_name = 'NewRes'
 co_patsearch_name = 'pats_trim'
@@ -119,7 +125,7 @@ opt_fields = {
 
 	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
-	ext_dep_name: [],
+	ext_dep_name: ['-v','-o'],
 	ext_pat_name: ['-v']
 }
 _abbr = {
