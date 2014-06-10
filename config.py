@@ -13,6 +13,7 @@ ev_name = 'evaluation'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
 ext_dep_name = 'extract_dependency'
+ext_met_name = 'extract_metadata'
 ext_pat_name = 'extract_pattern'
 
 # -------------------------------------------- paths -------------------------------------------- #
@@ -45,10 +46,13 @@ patternEmotionPositionFeat_name = 'pattern_emotion_position_feature'
 
 ## mongo collection name
 co_emotions_name = 'emotions'
+co_category_name = category
+
 co_docs_name = 'docs'
 co_sents_name = 'sents'
 co_deps_name = 'deps'
 co_pats_name = 'pats'
+
 co_lexicon_name = 'lexicon.nested'
 co_results_name = 'NewRes'
 co_patsearch_name = 'pats_trim'
@@ -123,10 +127,13 @@ opt_fields = {
 	patternPositionFeat_name:	['-b','-m','-e','-l','-v'],
 	patternEmotionPositionFeat_name:	['-b','-m','-e','-f','-v'],
 
+	'default': ['-v', '-o'],
+
 	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
-	ext_dep_name: ['-v','-o'],
-	ext_pat_name: ['-v']
+	# ext_dep_name: ['-v','-o'],
+	# ext_met_name: ['-v', '-o']
+	# ext_pat_name: ['-v']
 }
 _abbr = {
 	'p': 'ps_function',
@@ -280,8 +287,8 @@ def help(program, args=[], addon=[], exit=1):
 		'                 3: same as type 2 but ignore those with total occurrence < 4 (1, 2, 3)']
 
 	#########################################################################################################
-
-	opts = opt_fields[program]
+	
+	opts = opt_fields['default'] if program not in opt_fields else opt_fields[program]
 
 	## add all self-defined option description
 	# addon_opt: --setting
