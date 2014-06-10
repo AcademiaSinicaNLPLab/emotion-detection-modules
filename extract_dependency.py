@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+## python extract_dependency.py -p /corpus/NTCIR/formalrun_released_TC -d NTCIR
+
 import pymongo, os, sys, config
 from pprint import pprint
 from collections import Counter
@@ -129,6 +133,7 @@ def process_parsed_files(corpus_root, docIDs):
 					'udocID': udocID,
 					'ldocID': ldocID,
 					'usentID': usentID,
+					'rel': rel
 				}
 				mdep['x'] = left[0]
 				mdep['y'] = right[0]
@@ -200,4 +205,9 @@ if __name__ == '__main__':
 
 	docIDs = load_docs(corpus_root)
 	process_parsed_files(corpus_root, docIDs)
+
+	print 'create index'
+	co_docs.create_index('udocID')
+	co_sents.create_index('udocID')
+	co_deps.create_index('udocID')
 

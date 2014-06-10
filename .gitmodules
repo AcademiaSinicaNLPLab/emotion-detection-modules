@@ -1,0 +1,3 @@
+[submodule "pymodules"]
+	path = pymodules
+	url = git@github.com:maxis1718/pymodules.git
