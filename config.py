@@ -5,6 +5,7 @@ import sys, color
 
 category = 'polarity' ## target to be categorized. e.g., emotion, polarity
 
+corpus_root = '/corpus/NTCIR'
 
 #### define program names
 ds_name = 'document_scoring'

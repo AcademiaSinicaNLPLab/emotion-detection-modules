@@ -15,12 +15,11 @@ mc = pymongo.Connection(config.mongo_addr)
 
 db_name = None
 co_docs = None
-co_sents = None
-
-# corpus_root = '/Users/Maxis/corpus/NTCIR/'
-corpus_root = False
+co_cate = None
 
 def load_NTCIR_docs(corpus_root, category, ext='txt'):
+
+	categorize_targets = set()
 	udocIDs, ldocIDs, docIDs = {}, Counter(), []
 	# fn:
 	# T=N01.F=1_edn_xxx_20031204_2244111.S=0003.P=POS.txt
@@ -34,7 +33,7 @@ def load_NTCIR_docs(corpus_root, category, ext='txt'):
 		# meta: { T: N01, F: ..., S: 0003 }
 		meta = dict([x.split('=') for x in fn.split('.') if '=' in x])
 		categorize_target = meta['P'] ## polarity
-
+		categorize_targets.add(categorize_target)
 
 		## get udocID and ldocID
 		ldocID = ldocIDs[categorize_target] # current file count under __ polarity
@@ -64,6 +63,9 @@ def load_NTCIR_docs(corpus_root, category, ext='txt'):
 		docIDs.append( doc_meta )
 		co_docs.insert(doc_meta)
 
+	for categorize_target in categorize_targets:
+		co_cate.insert({category: categorize_target})
+	
 	return docIDs
 
 def load_LJ40K_docs():
@@ -105,7 +107,7 @@ if __name__ == '__main__':
 	### read options
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help(program, addon=add_opts)
-		elif opt in ('-p','--path'): corpus_root = arg.strip()
+		elif opt in ('-p','--path'): config.corpus_root = arg.strip()
 		elif opt in ('-d','--database'): config.db_name = arg.strip()
 		elif opt in ('-o','--overwrite'): config.overwrite = True
 		elif opt in ('-v','--verbose'): config.verbose = True
@@ -113,8 +115,8 @@ if __name__ == '__main__':
 	loglevel = logging.DEBUG if config.verbose else logging.INFO
 	logging.basicConfig(format='[%(levelname)s] %(message)s', level=loglevel)
 
-	if not corpus_root:
-		logging.error('specify the input corpus path: e.g., python extract_metadata.py -p /corpus/NTCIR/')
+	if not config.corpus_root:
+		logging.error('specify the input corpus path: e.g., python '+program+'.py -p /corpus/NTCIR/')
 		exit(-1)
 
 	### ------------------ mongodb ------------------ ###
@@ -123,10 +125,10 @@ if __name__ == '__main__':
 
 	## db.<collection_name>
 	co_docs = db[config.co_docs_name]
-	co_sents = db[config.co_sents_name]
+	co_cate = db[config.co_category_name]
 
 	### check whether destination collection is empty or not
-	dest_cos = [co_docs, co_sents]
+	dest_cos = [co_docs, co_cate]
 	dest_cos_status = {co.name : co.count() for co in dest_cos}
 	logging.info('current collection status: ' + json.dumps(dest_cos_status))
 	if sum(dest_cos_status.values()) > 0 and not config.overwrite:
@@ -140,10 +142,8 @@ if __name__ == '__main__':
 			for co in dest_cos: co.drop()
 	### ------------------ (end) mongodb ------------------ ###
 
-	load_NTCIR_docs(corpus_root, category=config.category, ext='txt')
+	load_NTCIR_docs(corpus_root=config.corpus_root, category=config.category, ext='txt')
 	
 	logging.info('create index on "%s" in "%s"' % ('udocID', co_docs.full_name))
 	co_docs.create_index('udocID')
-	logging.info('create index on "%s" in "%s"' % ('udocID', co_sents.full_name))
-	co_sents.create_index('udocID')
 
