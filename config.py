@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-import sys, color
+import sys
+sys.path.append('pymodules')
+import color
 
 category = 'polarity' ## target to be categorized. e.g., emotion, polarity
 

@@ -2,14 +2,15 @@
 
 ## 
 ## python extract_dependency.py -p /corpus/NTCIR/formalrun_released_TC -d NTCIR
+import sys
+sys.path.append('pymodules')
 import config
-import logging, json
-import pymongo, os, sys
-
-from pprint import pprint
+import logging
+import json
+import pymongo
+import os
 from collections import Counter
-
-from util import read_words, read_deps
+import color
 
 mc = pymongo.Connection(config.mongo_addr)
 

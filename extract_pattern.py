@@ -3,21 +3,17 @@
 ## python extract_pattern.py -d NTCIR --topic --verbose
 
 ### extract pattern according to differernt structure
-
-
 import sys
 sys.path.append('pymodules')
-
 import config
 import logging, json
-import pymongo, os
+import pymongo
+import os
+import pickle
+from collections import Counter, defaultdict
 
 import color
 from ListCombination import ListCombination
-
-from collections import defaultdict
-
-import pickle
 
 mc = pymongo.Connection(config.mongo_addr)
 

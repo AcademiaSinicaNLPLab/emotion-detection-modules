@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
-import config
-import logging, json
-import pymongo, os, sys
 
+import sys
+sys.path.append('pymodules')
+import config
+import logging
+import json
+import pymongo
+import os
+import color
 from collections import Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
@@ -15,32 +20,25 @@ categories = []
 
 # calculate occurrences of patterns
 def count_patterns(categories, condition={}):
-
 	patCount = {}
 	for c in categories:
 		patCount[c] = Counter()
-
 		query = { config.category: c }
 		query.update(condition)
-		print c, query
 		# get udocIDs
 		for mdoc in co_docs.find(query):
-			print mdoc
 			udocID = mdoc['udocID']
-
 			## get patterns
 			for mpat in co_pats.find( {'udocID': udocID} ):
-				print 'mpat:',mpat
 				pat = mpat['pattern'].lower()
 				patCount[c][pat] += 1
-		print '-'*50
-
 	return patCount
 
 # build lexicon storing pattern occurrence
 def build_lexicon(patCount, categories):
 	for c in categories:
 		for p in patCount[c].keys():
+			logging.debug('insert pattern %s into %s' % (color.render(p,'g'), color.render(co_lexicon.full_name,'lightyellow') ))
 			co_lexicon.insert( { 'pattern': p, config.category: c, 'count': patCount[c][p] } )
 
 if __name__ == '__main__':
@@ -85,13 +83,12 @@ if __name__ == '__main__':
 		else: 
 			for co in dest_cos: co.drop()
 
-	logging.info('fetch categories from %s' % (co_cate.full_name))
+	logging.info('fetch categories from %s' % (color.render(co_cate.full_name, 'ly')))
 	categories = sorted([x[config.category] for x in co_cate.find({'label':config.category})])
 
 	logging.info('count patterns')
 	# patCount = count_patterns(categories, condition={'ldocID': {'$lt': 800}} )
 	patCount = count_patterns(categories)
-	print patCount
 
-	logging.info('build pattern lexicon at %s' % (co_lexicon.full_name))
+	logging.info('build pattern lexicon at %s' % (color.render(co_lexicon.full_name, 'ly')))
 	build_lexicon(patCount, categories)
