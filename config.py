@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys, color
 
-
-
 category = 'polarity' ## target to be categorized. e.g., emotion, polarity
 
 corpus_root = '/corpus/NTCIR'
@@ -13,9 +11,6 @@ ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
-ext_dep_name = 'extract_dependency'
-ext_met_name = 'extract_metadata'
-ext_pat_name = 'extract_pattern'
 
 # -------------------------------------------- paths -------------------------------------------- #
 # libsvm abs path
@@ -128,13 +123,10 @@ opt_fields = {
 	patternPositionFeat_name:	['-b','-m','-e','-l','-v'],
 	patternEmotionPositionFeat_name:	['-b','-m','-e','-f','-v'],
 
-	'default': ['-v', '-o'],
-
 	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
-	# ext_dep_name: ['-v','-o'],
-	# ext_met_name: ['-v', '-o']
-	# ext_pat_name: ['-v']
+
+	'default': ['-v', '-o']
 }
 _abbr = {
 	'p': 'ps_function',
