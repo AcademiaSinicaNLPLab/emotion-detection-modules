@@ -3,26 +3,37 @@
 ## python extract_pattern.py -d NTCIR --topic --verbose
 
 ### extract pattern according to differernt structure
-import sys, os
-# sys.path.append('/'.join([os.environ['PROJECT_HOME'],'pymodules']))
+
+
+import sys
+sys.path.append('pymodules')
+
+import config
+import logging, json
+import pymongo, os
 
 import color
 from ListCombination import ListCombination
 
-import config
-
 from collections import defaultdict
-from pprint import pprint
 
-import pymongo, pickle
+import pickle
+
 mc = pymongo.Connection(config.mongo_addr)
 
-topic_or_emotion = 'emotion'
 
 # verb_frame = (['VB'], [('prep', 0), ('subj',0), ('obj',0)]) ## for LJ40K: I love you
 verb_frame = (['V'],  [('prep', 0), ('subj',0), ('obj',0)]) ## for NTCIR
 # be_status = (['JJ'], [('subj',1), ('cop', 1)]) ## for LJ40K: I am happy
 be_status = (['VC'],  [('top',1), ('attr', 1)]) ## for NTCIR
+
+# # rule = [('subj',1), ('cop', 1)]
+# rule = [('prep', 0), ('subj',0), ('obj',0)]
+# # targets = ['JJ']
+# targets = ['VB']
+
+co_deps = None
+co_pats = None
 
 # input a list of dep of a document
 # output seperated lists containing each sentence
@@ -137,8 +148,6 @@ def form(deps, anchor_node):
 			words.add((prep, 'IN', idx))
 	return sorted(list(words), key=lambda x:x[-1])
 
-
-
 def extract_pattern(sent, targets, rule):
 
 	pats = []
@@ -150,9 +159,6 @@ def extract_pattern(sent, targets, rule):
 		for anchor_node in anchors[pos]:
 
 			deps = anchors[pos][anchor_node]
-
-			# print anchor_node
-
 
 			res = apply_rule(deps, rule)
 			if not res: continue
@@ -173,21 +179,6 @@ def extract_pattern(sent, targets, rule):
 				pats.append(p)
 	return pats
 
-def list_possible_rules(rule):
-	## [(s, 0), (o, 0)]
-	## --> 		v
-	##		s + v
-	##			v + o
-	##		s + v + o
-
-	## [(s, 1), (o, 0)]
-	## --> 	s + v
-	##		s + v + o
-
-	## [(s, 1), (o, 1)]
-	## --> 	s + v + o
-	pass
-
 # {
 #     pattern: "i _love you",
 #     anchor: "love",
@@ -205,71 +196,20 @@ def list_possible_rules(rule):
 #         'prep'   : 0
 #     }
 # }
-def store_mongo(sent, pats, mongo_collection, topic_or_emotion='emotion'):
-
-	for p in pats:
-
-		doc = {}
-		doc['sent_length'] = sent[0]['sent_length']
-		doc['udocID'] = sent[0]['udocID']
-		doc['usentID'] = sent[0]['usentID']
-		doc[topic_or_emotion] = sent[0][topic_or_emotion]		
-
-		doc['pattern_length'] = len(p['pat'])
-		doc['pattern'] = ' '.join([x[0] for x in p['pat']])
-		doc['rule'] = p['matched_rule']
-
-		doc['anchor'] = p['anchor'][0]
-		doc['anchor_type'] = p['anchor'][1]
-		doc['anchor_idx'] = p['anchor'][2]
-
-		doc['weight'] = p['weight']
-		
-		mongo_collection.save(doc)
-
-
-if __name__ == '__main__':
-
-	import getopt
-
-	add_opts = [
-		('--database', ['-d or --database: specify the destination database name']),
-		('--topic', ['--topic: identify as "topic" rather than "emotion"']),
-	]
-
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hd:v',['help','database=','topic','verbose'])
-	except getopt.GetoptError:
-		config.help('extract_pattern', addon=add_opts, exit=2)
-
-	## read options
-	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help('extract_pattern', addon=add_opts)
-		elif opt in ('-d','--database'): config.db_name = arg.strip()
-		elif opt in ('-v','--verbose'): config.verbose = True
-		elif opt in ('--topic'): topic_or_emotion = 'topic'
-
-	db = mc[config.db_name]
-	co_deps = db[config.co_deps_name]
-	co_pats = db[config.co_pats_name]
-
-	# # rule = [('subj',1), ('cop', 1)]
-	# rule = [('prep', 0), ('subj',0), ('obj',0)]
-	# # targets = ['JJ']
-	# targets = ['VB']
-
-	targets_rules = [verb_frame, be_status]
+def run(targets_rules):
 
 	udocIDs = co_deps.distinct('udocID')
-	# udocIDs = [0]
+
 	MaxudocID = max(udocIDs)
+	
 
 	for targets, rule in targets_rules:
 		
-		# print 'targets:',targets
-		# print 'rule:',rule
-		# raw_input()
+		rule_str = color.render(' '.join([str(x)+','+str(y) for x,y in rule]), 'lightblue')
+
 		for udocID in udocIDs:
+
+			logging.info(' process %d/%d; rule: %s' % (udocID, MaxudocID, rule_str))
 
 			doc = list(co_deps.find( {'udocID':udocID} ))
 
@@ -278,20 +218,84 @@ if __name__ == '__main__':
 
 			for sent in sents:
 
-				## for each sentence, extract patterns
+				## extract patterns in each sentence
 				pats = extract_pattern(sent, targets, rule)
 
 				## display results
 				if config.verbose:
 					sent_str = ' '.join([k[0] for k in sorted(set(reduce(lambda x,y:x+y, [((d['x'],d['xIdx']), (d['y'],d['yIdx'])) for d in sent])), key=lambda a:a[1])][1:] )
-					print '> %s (%s)' % (sent_str, color.render( str(len(pats)), 'lc'))
+					logging.debug('%s (%d)' % (sent_str, len(pats)))
 					for p in pats:
 						pat_str = ' '.join([x[0] for x in p['pat']])
-						print '  '+color.render(pat_str.lower(), 'g'), round(p['weight'],2)
+						logging.debug('   %s %.1f' % (color.render(pat_str.lower(), 'g'), p['weight']))
 
 				## store back in mongo
-				store_mongo(sent, pats, co_pats, topic_or_emotion)
+				for p in pats:
+					mdoc = {
+						'sent_length': 		sent[0]['sent_length'],
+						'udocID': 			sent[0]['udocID'],
+						'usentID': 			sent[0]['usentID'],
+						config.category: 	sent[0][config.category],
 
-			print '> %s / %s' % (udocID, MaxudocID )
-			if config.verbose:
-				print '%s end of document %d %s' % ('='*20,udocID, '='*20)
+						'pattern_length': 	len(p['pat']),
+						'pattern': 			' '.join([x[0] for x in p['pat']]),
+						'rule': 			p['matched_rule'],
+
+						'anchor': 			p['anchor'][0],
+						'anchor_type': 		p['anchor'][1],
+						'anchor_idx': 		p['anchor'][2],
+
+						'weight': 			p['weight']
+					}
+					co_pats.insert(mdoc)
+
+if __name__ == '__main__':
+
+	program = __file__.split('.py')[0]
+
+	import getopt
+
+	add_opts = [
+		('--database', ['-d or --database: specify the destination database name']),
+	]
+
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],'hovd:',['help','overwrite','verbose', 'database='])
+	except getopt.GetoptError:
+		config.help(program, addon=add_opts, exit=2)
+
+	## read options
+	for opt, arg in opts:
+		if opt in ('-h', '--help'): config.help(program, addon=add_opts)
+		elif opt in ('-d','--database'): config.db_name = arg.strip()
+		elif opt in ('-o','--overwrite'): config.overwrite = True
+		elif opt in ('-v','--verbose'): config.verbose = True
+
+	loglevel = logging.DEBUG if config.verbose else logging.INFO
+	logging.basicConfig(format='[%(levelname)s] %(message)s', level=loglevel)
+
+
+	db = mc[config.db_name]
+
+	## src
+	co_deps = db[config.co_deps_name]
+	## dest
+	co_pats = db[config.co_pats_name]
+
+	### check whether destination collection is empty or not
+	dest_cos = [co_pats]
+	dest_cos_status = {co.name : co.count() for co in dest_cos}
+	logging.info('current collection status: ' + json.dumps(dest_cos_status))
+	if sum(dest_cos_status.values()) > 0 and not config.overwrite:
+		logging.warn('use --overwrite or -o to drop current data and insert new one')
+		exit(-1)
+	elif sum(dest_cos_status.values()) > 0 and config.overwrite:
+		# logging.warn('overwrite mode, will drop all data in ' + )
+		print >> sys.stderr, 'drop all data in',', '.join(dest_cos_status.keys()), '(Y/n)? ', 
+		if raw_input().lower().startswith('n'): exit(-1)
+		else: 
+			for co in dest_cos: co.drop()
+
+	targets_rules = [verb_frame, be_status]
+
+	run(targets_rules)
