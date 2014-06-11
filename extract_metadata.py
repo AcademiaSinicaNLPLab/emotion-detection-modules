@@ -64,7 +64,8 @@ def load_NTCIR_docs(corpus_root, category, ext='txt'):
 		co_docs.insert(doc_meta)
 
 	for categorize_target in categorize_targets:
-		co_cate.insert({category: categorize_target})
+
+		co_cate.insert({category: categorize_target, 'label':category})
 	
 	return docIDs
 
@@ -146,4 +147,7 @@ if __name__ == '__main__':
 	
 	logging.info('create index on "%s" in "%s"' % ('udocID', co_docs.full_name))
 	co_docs.create_index('udocID')
+
+	logging.info('create index on "%s" in "%s"' % ('label', co_cate.full_name))
+	co_cate.create_index('label')
 
