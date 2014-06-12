@@ -1,41 +1,55 @@
 # -*- coding: utf-8 -*-
 
 import config
+import os
 import pymongo
+import logging
+import pickle
 from collections import defaultdict, Counter
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-def create_lexicon_pattern_total_count():
-	PatTC = defaultdict(Counter)
+# class TotalCount(object):
+# 	"""docstring for TotalCount"""
+# 	def __init__(self, arg):
+# 		super(TotalCount, self).__init__()
+# 		self.arg = arg
+		
+target_name = 'pattern'
 
-	for mdoc in db['pats'].find():
+# def create_lexicon_pattern_total_count(co_pats, co_dest, verbose=False):
+def create_lexicon_pattern_total_count():
+	co_pats = db[config.co_pats_name]
+	co_dest = db[config.co_lexicon_pattern_tc_name]
+
+	PatTC = defaultdict(Counter)
+	for mdoc in co_pats.find():
 		pat = mdoc['pattern'].lower()
 		udocID = mdoc['udocID']
 		PatTC[udocID][pat] += 1
 
-	co = db[config.co_lexicon_pattern_tc_name]
+	# co_dest = db[config.co_lexicon_pattern_tc_name]
 	for udocID in PatTC:
-		mdoc = { 'udocID': udocID, 'pats': PatTC[udocID].items() }
-		co.insert(mdoc)
-	co.create_index('udocID')
+		mdoc = { 'udocID': udocID, target_name: PatTC[udocID].items() }
+		co_dest.insert(mdoc)
+	co_dest.create_index('udocID')
 
-def create_lexicon_pattern_position_total_count():
+def create_lexicon_pattern_position_total_count(co_pats, co_sents, co_docs, co_dest):
 	
 	PatTC = defaultdict(Counter)
 
-	udocIDs = [ x['udocID'] for x in list( db['docs'].find() ) ]
+	udocIDs = [ x['udocID'] for x in list( co_docs.find() ) ]
 
 	for udocID in udocIDs:
 
-		sents = { x['usentID']:x['sent_length'] for x in list( db['sents'].find( {'udocID': udocID} ) ) }
+		sents = { x['usentID']:x['sent_length'] for x in list( co_sents.find( {'udocID': udocID} ) ) }
 		usentID_offset = min(sents)
 		total_words = sum([sents[x] for x in sents])
 
 		th1 = total_words * 0.2
 		th2 = total_words * 0.8
 
-		pats = list( db['pats'].find( {'udocID': udocID} ) )
+		pats = list( co_pats.find( {'udocID': udocID} ) )
 		
 		for pat in pats:
 			
@@ -47,24 +61,25 @@ def create_lexicon_pattern_position_total_count():
 			key = '#' +  pat['pattern'].lower() + '@' + position
 			PatTC[udocID][key] += 1
 
-	co = db['lexicon.pattern_position_total_count']
+	# co_dest = db['lexicon.pattern_position_total_count']
 	for udocID in PatTC:
 		mdoc = { 'udocID': udocID, 'pats': PatTC[udocID].items() }
-		co.insert(mdoc)
-	co.create_index('udocID')
+		co_dest.insert(mdoc)
+	co_dest.create_index('udocID')
 
 
-def create_lexicon_keyword_total_count(wordType='extend', lemma=True):
+def create_lexicon_keyword_total_count(co_docs, co_sents, co_keywords, co_cate, wordType='extend', lemma=True):
 
 	from nltk.stem.wordnet import WordNetLemmatizer
 	KwTC = defaultdict(Counter)
 
-	co_docs = db['docs']
-	co_sents = db['sents']
-	co_keywords = db['resource.WordNetAffect']
+	# co_docs = db['docs']
+	# co_sents = db['sents']
+	# co_keywords = db['resource.WordNetAffect']
+	# co_cate = db['emotions']
 
 	lmtzr = WordNetLemmatizer()
-	emotions = sorted([x['emotion'] for x in db['emotions'].find({'label':'LJ40K'}, {'_id':0, 'emotion':1})])
+	emotions = sorted([x['emotion'] for x in co_cate.find({'label':'LJ40K'}, {'_id':0, 'emotion':1})])
 	keyword_list = set( [ x['word'].lower() for x in list( co_keywords.find({ 'type': wordType }) ) ] )
 
 	for sent_mdoc in co_sents.find():
@@ -107,12 +122,7 @@ def create_lexicon_keyword_total_count(wordType='extend', lemma=True):
 	#  u'i love you': 340,
 	# ...}
 ##  PTC[33680]['i love you']
-	#  340 
-def load_lexicon_pattern_total_count():
-	PatTC = {}
-	for mdoc in db[config.co_lexicon_pattern_tc_name].find():
-		PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
-	return PatTC
+	#  340
 
 # KwTC[0]
 # {u'bad': 1,
@@ -124,11 +134,36 @@ def load_lexicon_pattern_total_count():
 #  u'entry': 1,
 #  ...
 # }
-def load_lexicon_keyword_total_count():
-	KwTC = {}
-	for mdoc in db[config.co_lexicon_keyword_tc_name].find():
-		KwTC[mdoc['udocID']] = {kw: count for kw, count in mdoc['keywords']}
-	return KwTC
+# KwTC[0]['bad']
+# 1
+
+## target: pattern, pattern_position, keyword
+## create_lexicon_pattern_position_total_count()
+## create_lexicon_keyword_total_count(wordType='extend', lemma=True)
+
+
+### co: collection pointer, e.g., co = db[lexicon.pattern_total_count]
+### target: pattern or keywords
+def load():
+	co_ptc = db[config.co_lexicon_pattern_tc_name]
+	TC = {}
+	pkl_path = 'cache/' + co_ptc.name + '.pkl'
+
+	if not os.path.exists(pkl_path):
+
+		if co_ptc.find().count() == 0:
+			if config.verbose: logging.debug('creating lexicon pattern total count')
+			co_dest = create_lexicon_pattern_total_count()
+			
+
+		if config.verbose: logging.debug('collecting pattern total count')
+		for mdoc in co_ptc.find():
+			TC[mdoc['udocID']] = {token: count for token, count in mdoc[target_name]}
+		if not os.path.exists('cache'): os.mkdir('cache')
+		pickle.dump(TC, open(pkl_path,'wb'), protocol=pickle.HIGHEST_PROTOCOL)
+	else:
+		TC = pickle.load(open(pkl_path,'rb'))
+	return TC	
 
 if __name__ == '__main__':
 
