@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 
+## 
 ## python extract_dependency.py -p /corpus/NTCIR/formalrun_released_TC -d NTCIR
-
-import pymongo, os, sys, config
-from pprint import pprint
+import sys
+sys.path.append('pymodules')
+import config
+import logging
+import json
+import pymongo
+import os
+import color
 from collections import Counter
+from util import read_words, read_deps
 
 mc = pymongo.Connection(config.mongo_addr)
 
@@ -14,107 +21,50 @@ co_sents = None
 co_deps = None
 
 # corpus_root = '/Users/Maxis/corpus/NTCIR/'
-corpus_root = False
+# corpus_root = False
 
-# > db.docs.findOne()
-# {
-	# 	"_id" : ObjectId("53214e23d4388c4792206528"),
-	# 	"emotion" : "crazy",
-	# 	"ldocID" : 0,
-	# 	"udocID" : 19000
-# }
-
-# > db.sents.findOne()
-# {
-	# 	"_id" : ObjectId("531944ac3681dfca09875205"),
-	# 	"emotion" : "accomplished",
-	# 	"sent_length" : 10,
-	# 	"udocID" : 0,
-	# 	"sent_pos" : "I/PRP got/VBD new/JJ hair/NN :/: O/RB omfg/VBG I/PRP love/VBP it/PRP",
-	# 	"usentID" : 0,
-	# 	"sent" : "I got new hair : O omfg I love it"
-# }
-
-# > db.deps.findOne()
-# {
-	# "_id" : ObjectId("531944ac3681dfca098751fc"),
-	# "emotion" : "accomplished",
-	# "sent_length" : 10,
-	# "udocID" : 0,
-	# "xIdx" : 2,
-	# "xPos" : "VBD",
-	# "yPos" : "PRP",
-	# "usentID" : 0,
-	# "rel" : "nsubj",
-	# "y" : "I",
-	# "x" : "got",
-	# "yIdx" : 1
-# }
-
-## parse raw dependency text
-def read_deps(raw_deps, delimiter=None, auto_detect=False, return_type=list):
-	deps = []
-	if not delimiter or auto_detect:
-		delimiter = '\n' if raw_deps.count('\n') > raw_deps.count('), ') else '), '
-
-	for dep in map(lambda x:x.strip(), raw_deps.strip().split(delimiter)):
-
-		if ')' not in dep.split('-')[-1]: # put ")" back
-			dep = dep + ')'
-
-		lpb = [i for (i,x) in enumerate(dep) if x == '(']
-		rpb = [i for (i,x) in enumerate(dep) if x == ')']
-		if not lpb or not rpb: continue
-
-		dl = min(lpb)
-		dr = max(rpb)
-
-		rel = dep[:dl]
-		body = dep[dl+1:dr]
-
-		parts = body.split(', ')
-
-		# print map(lambda x: ( '-'.join(x.split('-')[:-1]), int( x.split('-')[-1].replace("'",'') ) ), parts)
-
-		left, right = map(lambda x: ( '-'.join(x.split('-')[:-1]), int( x.split('-')[-1].replace("'",'') ) ), parts)
-
-		if return_type == dict:
-			deps.append( {'rel':rel, 'ltoken': left[0], 'lidx': left[1], 'rtoken': right[0], 'ridx': right[1]} )
-		else:
-			deps.append((rel , left, right))
-
-	return deps
-
-
-def read_words(raw_wordpos, delimiter=' '):
-	return [('/'.join(word_pos_str.split('/')[:-1]), word_pos_str.split('/')[-1]) for word_pos_str in raw_wordpos.strip().split(delimiter)]
-
-def process_parsed_files(corpus_root, docIDs):
+## sections:
+# default output of Stanford Parser
+	# {
+	# 	'words': 0,
+	# 	'tree':  1,
+	# 	'deps':  2
+	# }
+# if `tree` didn't output: words and followed by deps
+	# {
+	# 	'words': 0,
+	# 	'deps':  1
+	# }
+def process_parsed_files(corpus_root, category, sections):
 
 	usentID = 0
-	for mdoc in docIDs:
+	## identify sections: words,tree,deps
+	sections = sections.split(',')
+	section_idx = {x:sections.index(x) for x in sections}
 
-		fn = mdoc['filename']
+	for mdoc in co_docs.find():
+
+		fn = mdoc['fn']
 		udocID = mdoc['udocID']
 		ldocID = mdoc['ldocID']
-		topic = mdoc['topic']
+		categorize_target = mdoc[category]
+		
+		logging.info( 'processing document %s:%s, udocID:%s, ldocID:%s' % (category,categorize_target, udocID, ldocID) )
 
-		co_docs.insert(mdoc)
-		print 'processing document', 'topic:', topic, 'udocID:', udocID, 'ldocID:',ldocID
-
+		## load parsed text
 		fpath = os.path.join(corpus_root, fn)
-
 		doc = open(fpath).read().strip().split('\n\n')
-		for i in range(len(doc)/2): 
-			block = doc[i*2:(i+1)*2]
-			
-			word_pos_list = read_words(block[0]) # even line number, words and POS tags
-			deps = read_deps(block[1]) # odd line number,  dependencies
 
+		for i in range(len(doc)/len(sections)): 
+			block = doc[i*len(sections):(i+1)*len(sections)]
+			
+			word_pos_list = read_words(block[section_idx['words']]) # even line number, words and POS tags
+			## tree = read_tree(block[section_idx['tree']])
+			deps = read_deps(block[section_idx['deps']]) # odd line number,  dependencies
 
 			### insert sent to db.sents
 			msent = {
-				'topic': topic,
+				category: categorize_target,
 				'sent_length': len(word_pos_list),
 				'sent_pos': block[0],
 				'usentID': usentID,
@@ -124,12 +74,11 @@ def process_parsed_files(corpus_root, docIDs):
 			}
 			co_sents.insert(msent)
 
-
 			### process deps
 			for rel, left, right in deps:
 				mdep = {
+					category: categorize_target,
 					'sent_length': len(word_pos_list),
-					'topic': topic,
 					'udocID': udocID,
 					'ldocID': ldocID,
 					'usentID': usentID,
@@ -151,63 +100,62 @@ def process_parsed_files(corpus_root, docIDs):
 
 			usentID += 1
 
-
-def load_docs(corpus_root):
-	ldocIDs = Counter()
-	udocIDs = {}
-	docIDs = []
-	for fn in os.listdir(corpus_root):
-		if not fn.endswith('.txt'): continue
-		topic = fn.split(']]')[0].strip()
-		# fn = '11]]1_edn_xxx_20030518_1963619-2.txt'
-		fpath = os.path.join(corpus_root, fn)
-		## get udocID and ldocID
-		ldocID = ldocIDs[topic] # current file count under __ topic
-		udocID = len(udocIDs) # current total file count
-		ldocIDs[topic] += 1
-		udocIDs[fn] = True
-		docIDs.append( {'filename': fn, 'topic': topic, 'ldocID': ldocID, 'udocID': udocID} )
-	return docIDs
-
 if __name__ == '__main__':
 
-	import getopt
+	program = __file__.split('.py')[0]
 
+	import getopt
 	add_opts = [
 		('--path', ['-p or --path: specify the input corpus path']),
 		('--database', ['-d or --database: specify the destination database name']),
 	]
-
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hp:d:',['help','path=', 'database='])
+		opts, args = getopt.getopt(sys.argv[1:],'hp:d:ov',['help','path=', 'database=', 'overwrite','verbose'])
 	except getopt.GetoptError:
-		config.help('extract_dependency', addon=add_opts, exit=2)
+		config.help(program, addon=add_opts, exit=2)
 
-	## read options
+	### read options
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help('extract_dependency', addon=add_opts)
-		elif opt in ('-p','--path'): corpus_root = arg.strip()
+		if opt in ('-h', '--help'): config.help(program, addon=add_opts)
+		elif opt in ('-p','--path'): config.corpus_root = arg.strip()
 		elif opt in ('-d','--database'): config.db_name = arg.strip()
+		elif opt in ('-o','--overwrite'): config.overwrite = True
+		elif opt in ('-v','--verbose'): config.verbose = True
 
-	if not corpus_root:
-		print 'specify the input corpus path: e.g., python extract_dependency.py -p /corpus/NTCIR/'
+	loglevel = logging.DEBUG if config.verbose else logging.INFO
+	logging.basicConfig(format='[%(levelname)s] %(message)s', level=loglevel)
+
+	if not config.corpus_root:
+		logging.error('specify the input corpus path: e.g., python '+program+'.py -p /corpus/NTCIR/')
 		exit(-1)
 
-	if not corpus_root:
-		print 'specify the destination database name: e.g., python extract_dependency.py -d NTCIR'
-		exit(-1)
 
+	## use db
 	db = mc[config.db_name]
 
-	co_docs = db['docs']
-	co_sents = db['sents']
-	co_deps = db['deps']
+	## src collection
+	co_docs = db[config.co_docs_name]
+	## dest collections
+	co_sents = db[config.co_sents_name]
+	co_deps = db[config.co_deps_name]
 
-	docIDs = load_docs(corpus_root)
-	process_parsed_files(corpus_root, docIDs)
+	### check whether destination collection is empty or not
+	dest_cos = [co_sents, co_deps]
+	dest_cos_status = {co.name : co.count() for co in dest_cos}
+	logging.info('current collection status: ' + json.dumps(dest_cos_status))
+	if sum(dest_cos_status.values()) > 0 and not config.overwrite:
+		logging.warn('use --overwrite or -o to drop current data and insert new one')
+		exit(-1)
+	elif sum(dest_cos_status.values()) > 0 and config.overwrite:
+		# logging.warn('overwrite mode, will drop all data in ' + )
+		print >> sys.stderr, 'drop all data in',', '.join(dest_cos_status.keys()), '(Y/n)? ', 
+		if raw_input().lower().startswith('n'): exit(-1)
+		else:
+			for co in dest_cos: co.drop()
 
-	print 'create index'
-	co_docs.create_index('udocID')
+	process_parsed_files(corpus_root=config.corpus_root, category=config.category, sections='words,deps')
+
+	logging.info('create index')
 	co_sents.create_index('udocID')
 	co_deps.create_index('udocID')
 

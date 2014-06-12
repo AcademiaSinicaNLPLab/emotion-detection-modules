@@ -152,6 +152,7 @@ def find_max():
 	A = []
 	for fn in os.listdir('cache/fusion/'):
 		if fn.startswith('fusion') and fn.endswith('.pkl'):
+			print 'processing',fn
 			eval_mdoc = pickle.load(open('cache/fusion/'+fn, 'rb'))
 			# evaluate_fusion.find_intersection()
 			# print fn
@@ -164,13 +165,14 @@ if __name__ == '__main__':
 	prob = True
 
 	candidates = [
-		["538bcfaad4388c59136665df", 'c2g0.001t2'], 	# TF3xIDF2					3
+		["538bcfaad4388c59136665df", 'c2g0.001t2'], 	# TF3xIDF2					4
 		["538a1df3d4388c32be4c2c9b", 'c2g0.001t2'],		# kw-emo-s-50%				1
-		["537451d1d4388c7843516ba4", 'c9g0.0005t2'],	# kw-bag					2
-		["53876efbd4388c3e013e9272", 'c9g0.0005t2'],	# pat-emo-b-50%				2
-		["537c6c90d4388c0e27069e7b", 'c9g0.005t2'],		# pat-bag					2
-														# 63.54%
-		# ['538aec90d4388c49cb5c2705', 'c9g0.0001t2']		# pat-emo-s-pos-50%
+		["537451d1d4388c7843516ba4", 'c9g0.0005t2'],	# kw-bag					3
+		["53876efbd4388c3e013e9272", 'c9g0.0005t2'],	# pat-emo-b-50%				1
+		["537c6c90d4388c0e27069e7b", 'c9g0.005t2'],		# pat-bag					1
+														
+		# ['538aec90d4388c49cb5c2705', 'c9g0.0001t2']		# pat-emo-s-pos-50%		0
+																					# 63.56%
 	]
 	# 0.4x0.1x0.3x0.1x0.1x0.0
 	#0.3x0.1x0.2x0.2x0.2x0.0

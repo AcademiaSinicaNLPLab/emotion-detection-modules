@@ -85,6 +85,7 @@ def build_TWC(lemmatize, min_count, stop, training_udocIDs):
 
 		pickle.dump(pruned, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
 	else:
+		print 'loading TWC'
 		TWC = pickle.load(open(fn, 'rb'))
 	return TWC
 
@@ -243,12 +244,15 @@ def TF3_IDF2(TWC, D, N, K, lemmatize=True):
 		delta_d = float(sum(K.values())/float(len(K)))
 		max_nt = max(N.values())
 
+		IDF2 = {}
 		for t in TWC:
 			idf2 = max_nt - N[t]
+			IDF2[t] = idf2
 			for udocID in TWC[t]:
 				wc = TWC[t][udocID]
 				tf3 = wc/float( wc + K[udocID]/delta_d )
 				TF3IDF2[t][udocID] = tf3 * idf2
+		pickle.dump(IDF2, open(fn.replace('TF3IDF2','IDF2'), 'wb'), pickle.HIGHEST_PROTOCOL)
 		pickle.dump(TF3IDF2, open(fn, 'wb'), pickle.HIGHEST_PROTOCOL)
 	else:
 		TF3IDF2 = pickle.load(open(fn, 'rb'))
@@ -299,16 +303,14 @@ if __name__ == '__main__':
 	print 'build K'
 	K = build_K(lemmatize)
 
-
-	
 	print 'build N'
 	N = build_nt(TWC, training_udocIDs, lemmatize)
 
-	print 'create training'
-	training_TFIDF = create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
+	# print 'create training'
+	# training_TFIDF = create_training(TWC, D, training_udocIDs, tf_type, idf_type, lemmatize=True)
 
-	print 'create testing'
-	testing_TFIDF  = create_testing(TWC, D,  testing_udocIDs,  tf_type, idf_type, lemmatize=True)
+	# print 'create testing'
+	# testing_TFIDF  = create_testing(TWC, D,  testing_udocIDs,  tf_type, idf_type, lemmatize=True)
 
 
 	# print 'calculating TF1_IDF1'
@@ -317,6 +319,6 @@ if __name__ == '__main__':
 	# print 'calculating TF1_IDF2'
 	# TF1_IDF2(TWC, D, N, lemmatize)
 
-	# print 'calculating TF3_IDF2'
-	# TF3_IDF2(TWC, D, N, K, lemmatize)
+	print 'calculating TF3_IDF2'
+	TF3_IDF2(TWC, D, N, K, lemmatize)
 

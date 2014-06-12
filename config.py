@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-import sys, color
+import sys
+sys.path.append('pymodules')
+import color
+
+category = 'polarity' ## target to be categorized. e.g., emotion, polarity
+
+corpus_root = '/corpus/NTCIR'
 
 #### define program names
 ds_name = 'document_scoring'
@@ -7,8 +13,6 @@ ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
-ext_dep_name = 'extract_dependency'
-ext_pat_name = 'extract_pattern'
 
 # -------------------------------------------- paths -------------------------------------------- #
 # libsvm abs path
@@ -22,6 +26,13 @@ libsvm_program = {
 svm_file_root = 'tmp'
 
 # -------------------------------------------- mongodb -------------------------------------------- #
+
+## mongo setting
+mongo_addr = 'doraemon.iis.sinica.edu.tw'
+#mongo_addr = 'wolverine.iis.sinica.edu.tw'
+#db_name = 'NTCIR'
+db_name = 'LJ40K'
+
 keywordFeat_name = 'keyword_feature'
 keywordEmotionFeat_name = 'keyword_emotion_feature'
 keywordPositionFeat_name = 'keyword_position_feature'
@@ -32,17 +43,15 @@ patternEmotionFeat_name = 'pattern_emotion_feature'
 patternPositionFeat_name = 'pattern_position_feature'
 patternEmotionPositionFeat_name = 'pattern_emotion_position_feature'
 
-
-## mongo setting
-mongo_addr = 'doraemon.iis.sinica.edu.tw'
-db_name = 'NCTIR'
-
 ## mongo collection name
 co_emotions_name = 'emotions'
+co_category_name = category
+
 co_docs_name = 'docs'
 co_sents_name = 'sents'
-co_pats_name = 'pats'
 co_deps_name = 'deps'
+co_pats_name = 'pats'
+
 co_lexicon_name = 'lexicon.nested'
 co_results_name = 'NewRes'
 co_patsearch_name = 'pats_trim'
@@ -119,8 +128,8 @@ opt_fields = {
 
 	genSVM_name:['-v', '-o'],
 	runSVM_name:['-v', '-o'],
-	ext_dep_name: [],
-	ext_pat_name: ['-v']
+
+	'default': ['-v', '-o']
 }
 _abbr = {
 	'p': 'ps_function',
@@ -274,8 +283,8 @@ def help(program, args=[], addon=[], exit=1):
 		'                 3: same as type 2 but ignore those with total occurrence < 4 (1, 2, 3)']
 
 	#########################################################################################################
-
-	opts = opt_fields[program]
+	
+	opts = opt_fields['default'] if program not in opt_fields else opt_fields[program]
 
 	## add all self-defined option description
 	# addon_opt: --setting
