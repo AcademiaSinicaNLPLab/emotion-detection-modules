@@ -1,4 +1,9 @@
+import sys
+sys.path.append('pymodules')
+
+import color
 import pickle, os
+import logging
 
 ## parse raw dependency text
 ## input
@@ -61,6 +66,27 @@ def read_deps(raw_deps, delimiter=None, auto_detect=False, return_type=list):
 # 	[(My,PRP$), (dog/NN), ...]
 def read_words(raw_wordpos, delimiter=' '):
 	return [('/'.join(word_pos_str.split('/')[:-1]), word_pos_str.split('/')[-1]) for word_pos_str in raw_wordpos.strip().split(delimiter)]
+
+### check index
+# input: list of ( collection pointer, index name ) tuple
+# check_list = [
+# 	(co_docs, config.category), ## 
+# 	(co_pats, 'udocID')
+# ]
+def check_indexes(check_list, verbose=True):
+	res = []
+	for co, idx_name in check_list:
+		INDEXED = False
+		current_idx_full_names = co.index_information().keys()
+		for current_idx_full_name in current_idx_full_names:
+			current_idx = '_'.join(current_idx_full_name.split('_')[:-1]) 
+			if current_idx == idx_name:
+				INDEXED = True
+				break
+		if verbose: logging.info('collection: %s, index: %s (%s)' % (color.render(co.full_name, 'y'), color.render(idx_name,'g'), 'o' if INDEXED else 'x') )
+		if not INDEXED:
+			co.create_index(idx_name)
+			if verbose: logging.warn('create index on %s in %s' % (color.render(idx_name, 'g'), color.render(co.full_name, 'y') ))
 
 
 ## load entire mongo.LJ40K.docs into memory
