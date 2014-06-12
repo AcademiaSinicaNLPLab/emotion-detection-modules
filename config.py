@@ -3,9 +3,16 @@ import sys
 sys.path.append('pymodules')
 import color
 
-category = 'polarity' ## target to be categorized. e.g., emotion, polarity
+####  ----------------------------------- must-do ----------------------------------- ####
 
+# mongo_addr = 'doraemon.iis.sinica.edu.tw'
+mongo_addr = 'wolverine.iis.sinica.edu.tw'
+# db_name = 'LJ40K'
+db_name = 'NTCIR'
+
+category = 'polarity' ## target to be categorized. e.g., emotion, polarity
 corpus_root = '/corpus/NTCIR'
+####  ----------------------------------- must-do ----------------------------------- ####
 
 #### define program names
 ds_name = 'document_scoring'
@@ -26,13 +33,7 @@ libsvm_program = {
 svm_file_root = 'tmp'
 
 # -------------------------------------------- mongodb -------------------------------------------- #
-
-## mongo setting
-mongo_addr = 'doraemon.iis.sinica.edu.tw'
-#mongo_addr = 'wolverine.iis.sinica.edu.tw'
-#db_name = 'NTCIR'
-db_name = 'LJ40K'
-
+## mongo collection setting
 keywordFeat_name = 'keyword_feature'
 keywordEmotionFeat_name = 'keyword_emotion_feature'
 keywordPositionFeat_name = 'keyword_position_feature'
