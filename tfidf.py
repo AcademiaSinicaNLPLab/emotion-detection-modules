@@ -319,6 +319,6 @@ if __name__ == '__main__':
 	# print 'calculating TF1_IDF2'
 	# TF1_IDF2(TWC, D, N, lemmatize)
 
-	print 'calculating TF3_IDF2'
-	TF3_IDF2(TWC, D, N, K, lemmatize)
+	# print 'calculating TF3_IDF2'
+	# TF3_IDF2(TWC, D, N, K, lemmatize)
 

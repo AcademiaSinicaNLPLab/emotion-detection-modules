@@ -107,6 +107,8 @@ debug = False
 topk = 1
 
 
+delta_d = 356.10659375
+
 ### latest version: support automatically insert addon option names
 ### i.e, config.py doesn't care about neither the addon opts nor the description
 ### e.g., in runSVM_name, addon is a list of length 3, which looks like [ ('--setting', [...]), ('--list', [...]), ('--param', [...]) ]
