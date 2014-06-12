@@ -34,6 +34,23 @@ def count_patterns(categories, condition={}):
 				patCount[c][pat] += 1
 	return patCount
 
+def check_indexes(check_list):
+	res = []
+	for co, idx_name in check_list:
+		INDEXED = False
+		current_idx_full_names = co.index_information().keys()
+		for current_idx_full_name in current_idx_full_names:
+			current_idx = '_'.join(current_idx_full_name.split('_')[:-1]) 
+			if current_idx == idx_name:
+				INDEXED = True
+				break
+
+		logging.info('collection: %s, index: %s (%s)' % (color.render(co.full_name, 'y'), color.render(idx_name,'g'), 'o' if INDEXED else 'x') )
+		if not INDEXED:
+			co.create_index(idx_name)
+			logging.warn('create index on %s in %s' % (color.render(idx_name, 'g'), color.render(co.full_name, 'y') ))
+	
+
 # build lexicon storing pattern occurrence
 def build_lexicon(patCount, categories):
 	for c in categories:
@@ -83,6 +100,9 @@ if __name__ == '__main__':
 		else: 
 			for co in dest_cos: co.drop()
 
+	index_check_list = [(co_docs, config.category), (co_pats, 'udocID')]
+	check_indexes(check_list=index_check_list)
+	
 	logging.info('fetch categories from %s' % (color.render(co_cate.full_name, 'ly')))
 	categories = sorted([x[config.category] for x in co_cate.find({'label':config.category})])
 
