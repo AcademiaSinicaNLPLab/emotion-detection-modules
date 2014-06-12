@@ -1,12 +1,16 @@
+# -*- coding: utf-8 -*-
+
 import config
+import json
 import sys, pymongo, color, os, pickle
 from collections import defaultdict, Counter
 from pprint import pprint
 import logging
-import util
+import util, feature
 # from util import load_lexicon_pattern_total_count
 import lexicon_total_count
-db = pymongo.Connection(config.mongo_addr)[config.db_name]
+
+db = None
 
 # global cache for pattern
 cache = {}
@@ -17,9 +21,9 @@ mongo_docs = {}
 # global cache for mongo.LJ40K.lexicon.pattern_total_count
 PatTC = {}
 
-remove_type = '0'
+# remove_type = '0'
 
-
+percentage = 1.0
 ## input: pattern
 ## output: a dictionary of (emotion, occurrence)
 def get_patcount(pattern):
@@ -39,9 +43,9 @@ def get_patcount(pattern):
 
 	return cache[pattern]
 
-
 ## input: dictionary of (emotion, count)
 ## output: dictionary of (emotion, count)
+## condition: for LJ40K, distinguish training/testing using document ID
 def remove_self_count(udocID, pattern, count_dict, category, condition=False):
 
 	global mongo_docs
@@ -52,120 +56,23 @@ def remove_self_count(udocID, pattern, count_dict, category, condition=False):
 	if new_count: 
 
 		## ldocID: 0-799
-		if condition: ## for LJ40K, identify training
-			if mdoc['ldocID'] < 800:
-				new_count[mdoc[category]] = new_count[mdoc[category]] - PatTC[udocID][pattern.lower()]
-		else:
-			## all are considering as training
+		# not condition: considering all as training
+		# condition and mdoc['ldocID'] < 800: ## for LJ40K, identify training/testing
+		if not condition or condition and mdoc['ldocID'] < 800: 
+			# print mdoc
+			# print mdoc[category]
 			new_count[mdoc[category]] = new_count[mdoc[category]] - PatTC[udocID][pattern.lower()]
-
-			# new_count[mdoc['emotion']] = new_count[mdoc['emotion']]
-			if new_count[mdoc[category]] == 0 :
-				del new_count[mdoc[category]]
+		
+		if new_count[mdoc[category]] == 0 :
+			del new_count[mdoc[category]]
 
 	return new_count
 
 
-## input: dictionary of (emotion, value)
-## output: dictionary of (emotion, 1) for emotions passed the threshold
-def accumulate_threshold(count, percentage):
-	## temp_dict -> { 0.3: ['happy', 'angry'], 0.8: ['sleepy'], ... }
-	## (count)	    { 2:   ['bouncy', 'sleepy', 'hungry', 'creative'], 3: ['cheerful']}
-	temp_dict = defaultdict( list ) 
-	for e in count:
-		temp_dict[count[e]].append(e)
-	
-	## temp_list -> [ (0.8, ['sleepy']), (0.3, ['happy', 'angry']), ... ] ((sorted))
-	## (count)	    [ (3, ['cheerful']), (2,   ['bouncy', 'sleepy', 'hungry', 'creative'])]
-	temp_list = temp_dict.items()
-	temp_list.sort(reverse=True)
-
-	th = percentage * sum( count.values() )
-	current_sum = 0
-	selected_emotions = []
-
-	while current_sum < th:
-		top = temp_list.pop(0)
-		selected_emotions.extend( top[1] )
-		current_sum += top[0] * len(top[1])
-
-	return dict( zip(selected_emotions, [1]*len(selected_emotions)) )
-
-
-## input: count <dict> emotion --> count
-## output: patscore <dict> emotion --> score
-
-
-## output: a dictionary of (emotion, patfeature) according to different featureValueType 
-def get_patfeature(pattern, udocID):
-	########################################################################################
-	## [Options]
-	## 		config.minCount
-	## 		config.featureValueType
-	## 		config.cut
-	########################################################################################
-
-	# count <dict> emotion --> patcount
-	# {
-	#	'aggravated': 3,
-	#  	'amused': 2,
-	#  	'anxious': 3, ...
-	# }
-	logging.info('get count of "%s"' % (color.render(pattern,'g') ))
-	count = get_patcount(pattern) # pattern count
-
-	if not count: return {}
-
-	## remove self count using --remove argument
-	logging.info('remove self count of "%s" in udocID: %s' % (color.render(pattern,'g'), color.render(str(udocID),'lc')) )
-	count = remove_self_count(udocID, pattern, count, category=config.category)
-
-	# check if total patcount < min_count
-	if sum( count.values() ) < config.minCount: return {}
-	
-	percentage = config.cutoffPercentage/float(100)
-	binary_vector = accumulate_threshold(count, percentage)
-
-	## binary vector
-	# if config.featureValueType == 'b':
-	# 	return binary_vector
-	
-	# ## pattern count (frequency)
-	# elif config.featureValueType == 'f':	
-	# 	return { e: count[e] for e in binary_vector if binary_vector[e] == 1 }
-
-	## pattern score
-	# elif config.featureValueType == 's':
-	# pattern_score = pattern_scoring(count)
-	pattern_score = util.pattern_scoring_function(count)
-	return { e: pattern_score[e] for e in binary_vector if binary_vector[e] == 1 }
-
-	# else:
-		# return False
-
-def get_document_feature(udocID):
-
-	docfeature = Counter()
-
-	## find all pats in the document <udocID>
-	pats = list( co_pats.find( {'udocID': udocID} ) )
-
-	logging.info('\t%s (%d pats)\t' % (  color.render('#' + str(udocID), 'y'), len(pats)))
-
-	for pat in pats:
-
-		patfeature = get_patfeature(pat['pattern'], udocID)
-
-		for e in patfeature: 
-			docfeature[e] += patfeature[e]
-
-	return docfeature
-
 ## category: emotion or polarity
-def create_document_features(category):
+def calculate_pattern_scores(category):
 
 	## list of category
-	
 	categories = [ x[category] for x in co_cate.find( { 'label': category } ) ]
 	logging.debug('found %d categories' % len(categories))
 
@@ -173,104 +80,109 @@ def create_document_features(category):
 
 		## get all document with emotions <gold_emotion> (ldocID: 0-799 for training, 800-999 for testing)
 		docs = list( co_docs.find( { category: gold_category } ) )
+		logging.info('%d/%d %s: %d docs' % ( ie, len(categories), color.render(gold_category, 'lg'), len(docs) ))
 
-		logging.debug('%d > %s ( %d docs )' % ( ie, color.render(gold_category, 'g'), len(docs) ))
+		for ith_doc, doc in enumerate(docs):
+			udocID = doc['udocID']
+			## find all pats in the document <udocID>
+			pats = list( co_pats.find( {'udocID': udocID} ) )
+			logging.info('%s --> %s (%d pats) [%d/%d]\t%.1f%%' % ( color.render(gold_category, 'lg'), color.render(str(udocID),'ly'), len(pats), ith_doc+1, len(docs), (ith_doc+1)/float(len(docs))*100 )  )
 
-		for doc in docs:
-			get_document_feature(udocID=doc['udocID'])
-			exit(0)
-			mdoc = {
-				category: gold_category,
-				"udocID": doc['udocID'],
-				"feature": get_document_feature(udocID=doc['udocID']).items(),
-				"setting": setting_id # looks like "5369fb11d4388c0aa4c5ca4e"
-			}
-			co_feature.insert(mdoc)
+			for pat in pats:
 
-	co_feature.create_index("setting")
+				pattern_score = {}
+				pattern = pat['pattern']
+
+				count = get_patcount(pattern)
+				logging.debug('get count of "%s (%d)"' % (color.render(pattern,'g'), len(count) ))
+
+				if count:
+					count = remove_self_count(udocID, pattern, count, category=config.category)
+					logging.debug('remove self count of "%s" in udocID: %s' % (color.render(pattern,'g'), color.render(str(udocID),'lc')) )
+					pattern_score = feature.pattern_scoring_function(count)
+
+				mdoc = {
+					'score':pattern_score,
+					'udocID':udocID,
+					'pattern':pattern
+				}
+				co_patscore.insert(mdoc)
+
+	co_patscore.create_index("pattern")
 
 if __name__ == '__main__':
+
+	program = __file__.split('.py')[0]
 
 	## input arguments
 	import getopt
 	
 	add_opts = [
-		('-f', ['-f: feature value type',
-				'                 b: binary vector',
-				'                 f: pattern count (frequency)',
-				'                 s: pattern score']),
-		('-n', ['-n: filter out patterns with minimum count',
-			    '                 k: minimum count']),
-		('-c', ['-c: cut off by accumulated count percentage',
-				'                 k: cut at k%']),
-		# ('-r', ['-r: remove self count',
-		# 		"                 0: dont't remove anything",
-		# 		'                 1: minus-one',
-		# 		'                 f: minus-frequency']),
+		('-n', ['-n or --minCount: filter out patterns with minimum count',
+			    '                  k: minimum count']),
+		('-c', ['-c: or --cut: cut off by accumulated count percentage',
+				'              k: cut at k%']),
 		('--debug', ['--debug: run in debug mode'])
 	]
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:],'hf:n:c:vr:',['help', 'featureValueType=', 'minCount=', 'cut', 'verbose', 'debug'])
+		# opts, args = getopt.getopt(sys.argv[1:],'hf:n:c:vr:',['help', 'featureValueType=', 'minCount=', 'cut=', 'verbose', 'debug'])
+		opts, args = getopt.getopt(sys.argv[1:],'hn:c:vr:o',['help', 'minCount=', 'cut=', 'verbose', 'debug', 'overwrite'])
 	except getopt.GetoptError:
-		config.help(config.patternEmotionFeat_name, addon=add_opts, exit=2)
+		config.help(program, addon=add_opts, exit=2)
 
 	for opt, arg in opts:
-		if opt in ('-h', '--help'): config.help(config.patternEmotionFeat_name, addon=add_opts)
-		elif opt in ('-f'): config.featureValueType = arg.strip()
-		elif opt in ('-n'): config.minCount = int( arg.strip() )
-		elif opt in ('-c'): config.cutoffPercentage = int( arg.strip() )
+		if opt in ('-h', '--help'): config.help(program, addon=add_opts)
+		# elif opt in ('-f', '--featureValueType'): config.featureValueType = arg.strip()
+		elif opt in ('-n', '--minCount'): config.minCount = int( arg.strip() )
+		elif opt in ('-c', '--cut'): config.cutoffPercentage = int( arg.strip() )
 		elif opt in ('-v','--verbose'): config.verbose = True
-		# elif opt in ('-r'): remove_type = arg.strip()
+		elif opt in ('-o','--overwrite'): config.overwrite = True
 		elif opt in ('--debug'): config.debug = True
 
 	loglevel = logging.DEBUG if config.verbose else logging.INFO
 	logging.basicConfig(format='[%(levelname)s] %(message)s', level=loglevel)
+
+	logging.debug('connecting mongodb at %s/%s' % (config.mongo_addr, config.db_name))
+	db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 	## select mongo collections
 	co_cate = db[config.co_category_name] ## db.polarity or db.emotions
 	co_docs = db[config.co_docs_name]
 	co_pats = db[config.co_pats_name]
 	co_lexicon = db[config.co_lexicon_name]
-	co_ptc = db[config.co_lexicon_pattern_tc_name]
-
+	
+	## dest
+	co_patscore = db[config.co_patscore_name]
 	index_check_list = [(co_docs, config.category), (co_pats, 'udocID'), (co_lexicon, 'pattern')]
 	util.check_indexes(check_list=index_check_list, verbose=config.verbose)
 
-	# exit(0)
-	
 
-	# target mongo collections
-	if config.debug: # insert to a debug collection
-		co_setting = db['debug.features.settings']
-		co_feature = db['debug.features.pattern_emotion']
-	else:
-		co_setting = db['features.settings']
-		co_feature = db['features.pattern_emotion']		
+	## check whether destination collection is empty or not
+	dest_cos = [co_patscore]
+	dest_cos_status = {co.name : co.count() for co in dest_cos}
+	logging.info('current collection status: ' + json.dumps(dest_cos_status))
+	if sum(dest_cos_status.values()) > 0 and not config.overwrite:
+		logging.warn('use --overwrite or -o to drop current data and insert new one')
+		exit(-1)
+	elif sum(dest_cos_status.values()) > 0 and config.overwrite:
+		# logging.warn('overwrite mode, will drop all data in ' + )
+		print >> sys.stderr, 'drop all data in',', '.join(dest_cos_status.keys()), '(Y/n)? ', 
+		if raw_input().lower().startswith('n'): exit(-1)
+		else:
+			for co in dest_cos: co.drop()
 
 
-	## insert metadata
-	setting = { 
-		"feature_name": "pattern_emotion", 
-		"feature_value_type": config.featureValueType,
-		"min_count": config.minCount,
-		"cutoff_percentage": config.cutoffPercentage,
-		# "remove": remove_type
-	}
-
-	## print confirm message
-	config.print_confirm(setting.items(), bar=40, halt=True)
-	
-	## insert metadata
-	# setting_id = str(co_setting.insert( setting ))
+	percentage = config.cutoffPercentage/float(100)
 
 	## run
-	print 'load_mongo_docs'
+	logging.info('load_mongo_docs')
 	mongo_docs = util.load_mongo_docs(co_docs)
 
-	# if remove_type == 'f':
-	print 'load_lexicon_pattern_total_count'
-	PatTC = util.load_lexicon_pattern_total_count(co_ptc)
+	## load lexicon_total_count to do "remove_self_count"
+	logging.info('load_lexicon_pattern_total_count')
+	lexicon_total_count.target_name = 'pattern'
+	PatTC = lexicon_total_count.load()
 
-	print 'create_document_features'
-	create_document_features(category=config.category)
+	logging.info('create_document_features')
+	calculate_pattern_scores(category=config.category)
