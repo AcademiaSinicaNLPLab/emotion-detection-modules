@@ -88,19 +88,34 @@ def check_indexes(check_list, verbose=True):
 			co.create_index(idx_name)
 			if verbose: logging.warn('create index on %s in %s' % (color.render(idx_name, 'g'), color.render(co.full_name, 'y') ))
 
+def pattern_scoring_function(pat_counts):
+
+	score = {}
+	for anchor in pat_counts:
+
+		SUM = float( sum( [ pat_counts[category] for category in pat_counts if category != anchor ] ) )
+		SUMSQ = float( sum( [ (pat_counts[category] ** 2) for category in pat_counts if category != anchor ] ) )
+		
+		anchor_value = float( pat_counts[anchor] )
+		not_anchor_value = float( SUMSQ/( SUM + 0.9 ** SUM ) )
+		
+		score[anchor] = anchor_value / (anchor_value + not_anchor_value)
+
+	return score
+
 
 ## load entire mongo.LJ40K.docs into memory
 def load_mongo_docs(co_docs):
 	mongo_docs = {}
-	if not os.path.exists('cache/mongo_docs.pkl'):
+	if not os.path.exists('cache/'+co_docs.full_name+'.pkl'):
 		if not os.path.exists('cache'): os.mkdir('cache')
 		for mdoc in co_docs.find({}, {'_id':0}):
 			udocID = mdoc['udocID']
 			del mdoc['udocID']
 			mongo_docs[udocID] = mdoc
-		pickle.dump(mongo_docs, open('cache/mongo_docs.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
+		pickle.dump(mongo_docs, open('cache/'+co_docs.full_name+'.pkl','wb'), protocol=pickle.HIGHEST_PROTOCOL)
 	else:
-		mongo_docs = pickle.load(open('cache/mongo_docs.pkl','rb'))
+		mongo_docs = pickle.load(open('cache/'+co_docs.full_name+'.pkl','rb'))
 	return mongo_docs
 
 ##  PTC[33680]['i love you']
