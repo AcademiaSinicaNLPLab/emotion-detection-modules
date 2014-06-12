@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+
+import config
 import pymongo
 from collections import defaultdict, Counter
 
-db = pymongo.Connection('doraemon.iis.sinica.edu.tw')['LJ40K']
+db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 def create_lexicon_pattern_total_count():
 	PatTC = defaultdict(Counter)
@@ -11,7 +14,7 @@ def create_lexicon_pattern_total_count():
 		udocID = mdoc['udocID']
 		PatTC[udocID][pat] += 1
 
-	co = db['lexicon.pattern_total_count']
+	co = db[config.co_lexicon_pattern_tc_name]
 	for udocID in PatTC:
 		mdoc = { 'udocID': udocID, 'pats': PatTC[udocID].items() }
 		co.insert(mdoc)
@@ -87,7 +90,7 @@ def create_lexicon_keyword_total_count(wordType='extend', lemma=True):
 			if word in keyword_list:
 				KwTC[udocID][word] += 1
 
-	co = db['lexicon.keyword_total_count']
+	co = db[co_lexicon_keyword_tc_name]
 	for udocID in KwTC:
 		mdoc = { 'udocID': udocID, 'keywords': KwTC[udocID].items() }
 		co.insert( mdoc )
@@ -107,7 +110,7 @@ def create_lexicon_keyword_total_count(wordType='extend', lemma=True):
 	#  340 
 def load_lexicon_pattern_total_count():
 	PatTC = {}
-	for mdoc in db['lexicon.pattern_total_count'].find():
+	for mdoc in db[config.co_lexicon_pattern_tc_name].find():
 		PatTC[mdoc['udocID']] = {pat: count for pat, count in mdoc['pats']}
 	return PatTC
 
@@ -123,7 +126,7 @@ def load_lexicon_pattern_total_count():
 # }
 def load_lexicon_keyword_total_count():
 	KwTC = {}
-	for mdoc in db['lexicon.keyword_total_count'].find():
+	for mdoc in db[config.co_lexicon_keyword_tc_name].find():
 		KwTC[mdoc['udocID']] = {kw: count for kw, count in mdoc['keywords']}
 	return KwTC
 
