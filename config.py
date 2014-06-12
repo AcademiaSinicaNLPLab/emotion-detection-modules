@@ -28,9 +28,10 @@ svm_file_root = 'tmp'
 # -------------------------------------------- mongodb -------------------------------------------- #
 
 ## mongo setting
-# mongo_addr = 'doraemon.iis.sinica.edu.tw'
-mongo_addr = 'wolverine.iis.sinica.edu.tw'
-db_name = 'NTCIR'
+mongo_addr = 'doraemon.iis.sinica.edu.tw'
+#mongo_addr = 'wolverine.iis.sinica.edu.tw'
+#db_name = 'NTCIR'
+db_name = 'LJ40K'
 
 keywordFeat_name = 'keyword_feature'
 keywordEmotionFeat_name = 'keyword_emotion_feature'
