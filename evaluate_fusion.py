@@ -82,13 +82,9 @@ def evaluation(fn, k='binary'):
 			label_probs = sorted([(emotions[i],p) for i,p in enumerate(probs)], key=lambda x:x[1], reverse=True)
 
 
-
-
-			
-			
-
 			## get gold answer
 			gold_emotion = emotions[int(gold_eid)]
+
 
 			## get prediction results
 			if k == 'binary':
@@ -98,7 +94,10 @@ def evaluation(fn, k='binary'):
 			else:
 				## top1
 				# predict = [t[0] for t in sorted(results[i], key=lambda x: float(x[1]), reverse=True )[:k]]
+				k = int(k)
 				predict = [e for (e, p) in label_probs][:k]
+
+			
 
 			really_is = Positive if target_emotion == gold_emotion else Negative
 			classified_as = Positive if target_emotion in predict else Negative
@@ -121,6 +120,7 @@ def evaluation(fn, k='binary'):
 			res['FP'] += 1 if FP else 0
 			res['FN'] += 1 if FN else 0		
 
+		print really_is_positive, target_emotion
 		r = really_is_negative/float(really_is_positive)
 		A = accuracy(res, ratio=r)
 
@@ -136,7 +136,11 @@ def evaluation(fn, k='binary'):
 if __name__ == '__main__':
 
 	# eval_mdoc = evaluation(k=1)
-	eval_mdoc = evaluation(fn='cache/fusion.csv', k='binary')
+	fn = sys.argv[1]
+	k = sys.argv[2]
+	# fn = 'cache/fusion.csv'
+	# k ='binary'
+	eval_mdoc = evaluation(fn, k)
 	find_intersection(eval_mdoc)
 
 

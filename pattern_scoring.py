@@ -118,20 +118,35 @@ def calculate_pattern_scores_remove_self(category):
 	co_patscore.create_index("pattern")
 
 def calculate_pattern_scores():
-	for mdoc in co_lexicon.find():
+	total = co_lexicon.count()
+
+	for i,mdoc in enumerate(co_lexicon.find()):
 		
 		pattern = mdoc['pattern']
-		
+
+		percent = (i+1)/float(total)*100
+
+		if not config.verbose:
+			sys.stderr.write('[%s> %.2f%%%s]\r' % ('='*(int(percent)+1), percent, ' '*(100-int(percent) ) ) )
+			sys.stderr.flush()
+		else:
+			logging.debug('[%.2f%%] (%d/%d) process %s' % (percent, i+1, total, color.render(pattern, 'ly') ))
+
 		count = get_patcount(pattern)
 		logging.debug('get count of "%s (%d)"' % (color.render(pattern,'g'), len(count) ))
 
+		
 		pattern_score = {} if not count else feature.pattern_scoring_function(count)
 
 		mdoc = {
 			'score':pattern_score,
 			'pattern':pattern
 		}
+		logging.debug('insert mdoc in %s' % (color.render(co_patscore.full_name, 'ly') ) )
 		co_patscore.insert(mdoc)
+
+	sys.stderr.write('\n')
+	logging.info('create index on %s in %s' % (color.render('pattern', 'g'), color.render(co_patscore.full_name, 'ly') ) )
 	co_patscore.create_index("pattern")
 
 if __name__ == '__main__':
