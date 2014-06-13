@@ -71,8 +71,8 @@ co_patscore_prefix = 'patscore'
 co_docscore_prefix = 'docscore'
 
 ## to be setup
-co_patscore_name = 'patscore'
-co_docscore_name = ''
+# co_patscore_name = co_patscore_prefix
+# co_docscore_name = ''
 # ------------------------------------------ (end) mongodb ------------------------------------------ #
 
 ## names of functions

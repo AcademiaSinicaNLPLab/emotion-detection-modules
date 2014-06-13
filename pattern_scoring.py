@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 
+import sys
+sys.path.append('pymodules')
+
 import config
 import json
-import sys, pymongo, color, os, pickle
+import pymongo
+import color
+import os
+import pickle
 from collections import defaultdict, Counter
-from pprint import pprint
 import logging
 import util, feature
-# from util import load_lexicon_pattern_total_count
-import lexicon_total_count
+
 
 db = None
 
@@ -22,8 +26,10 @@ mongo_docs = {}
 PatTC = {}
 
 # remove_type = '0'
+### remove self count or not
+remove = False
 
-percentage = 1.0
+# percentage = 1.0
 ## input: pattern
 ## output: a dictionary of (emotion, occurrence)
 def get_patcount(pattern):
@@ -58,10 +64,9 @@ def remove_self_count(udocID, pattern, count_dict, category, condition=False):
 		## ldocID: 0-799
 		# not condition: considering all as training
 		# condition and mdoc['ldocID'] < 800: ## for LJ40K, identify training/testing
-		if not condition or condition and mdoc['ldocID'] < 800: 
-			# print mdoc
-			# print mdoc[category]
+		if not condition or condition and mdoc['ldocID'] < 800:
 			new_count[mdoc[category]] = new_count[mdoc[category]] - PatTC[udocID][pattern.lower()]
+
 		
 		if new_count[mdoc[category]] == 0 :
 			del new_count[mdoc[category]]
@@ -70,7 +75,7 @@ def remove_self_count(udocID, pattern, count_dict, category, condition=False):
 
 
 ## category: emotion or polarity
-def calculate_pattern_scores(category):
+def calculate_pattern_scores_remove_self(category):
 
 	## list of category
 	categories = [ x[category] for x in co_cate.find( { 'label': category } ) ]
@@ -97,8 +102,10 @@ def calculate_pattern_scores(category):
 				logging.debug('get count of "%s (%d)"' % (color.render(pattern,'g'), len(count) ))
 
 				if count:
+
 					count = remove_self_count(udocID, pattern, count, category=config.category)
 					logging.debug('remove self count of "%s" in udocID: %s' % (color.render(pattern,'g'), color.render(str(udocID),'lc')) )
+
 					pattern_score = feature.pattern_scoring_function(count)
 
 				mdoc = {
@@ -108,6 +115,23 @@ def calculate_pattern_scores(category):
 				}
 				co_patscore.insert(mdoc)
 
+	co_patscore.create_index("pattern")
+
+def calculate_pattern_scores():
+	for mdoc in co_lexicon.find():
+		
+		pattern = mdoc['pattern']
+		
+		count = get_patcount(pattern)
+		logging.debug('get count of "%s (%d)"' % (color.render(pattern,'g'), len(count) ))
+
+		pattern_score = {} if not count else feature.pattern_scoring_function(count)
+
+		mdoc = {
+			'score':pattern_score,
+			'pattern':pattern
+		}
+		co_patscore.insert(mdoc)
 	co_patscore.create_index("pattern")
 
 if __name__ == '__main__':
@@ -120,14 +144,13 @@ if __name__ == '__main__':
 	add_opts = [
 		('-n', ['-n or --minCount: filter out patterns with minimum count',
 			    '                  k: minimum count']),
-		('-c', ['-c: or --cut: cut off by accumulated count percentage',
-				'              k: cut at k%']),
-		('--debug', ['--debug: run in debug mode'])
+		('--debug', ['--debug: run in debug mode']),
+		('--remove', ['--remove: remove self count'])
 	]
 
 	try:
 		# opts, args = getopt.getopt(sys.argv[1:],'hf:n:c:vr:',['help', 'featureValueType=', 'minCount=', 'cut=', 'verbose', 'debug'])
-		opts, args = getopt.getopt(sys.argv[1:],'hn:c:vr:o',['help', 'minCount=', 'cut=', 'verbose', 'debug', 'overwrite'])
+		opts, args = getopt.getopt(sys.argv[1:],'hn:vr:o',['help', 'minCount=', 'verbose', 'debug', 'overwrite', 'remove'])
 	except getopt.GetoptError:
 		config.help(program, addon=add_opts, exit=2)
 
@@ -138,6 +161,7 @@ if __name__ == '__main__':
 		elif opt in ('-c', '--cut'): config.cutoffPercentage = int( arg.strip() )
 		elif opt in ('-v','--verbose'): config.verbose = True
 		elif opt in ('-o','--overwrite'): config.overwrite = True
+		elif opt in ('--remove'): remove = True
 		elif opt in ('--debug'): config.debug = True
 
 	loglevel = logging.DEBUG if config.verbose else logging.INFO
@@ -146,17 +170,23 @@ if __name__ == '__main__':
 	logging.debug('connecting mongodb at %s/%s' % (config.mongo_addr, config.db_name))
 	db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
-	## select mongo collections
-	co_cate = db[config.co_category_name] ## db.polarity or db.emotions
-	co_docs = db[config.co_docs_name]
-	co_pats = db[config.co_pats_name]
+	## src
+	if remove:
+		co_docs = db[config.co_docs_name]
+		co_pats = db[config.co_pats_name]
+		co_cate = db[config.co_category_name] ## db.polarity or db.emotions
 	co_lexicon = db[config.co_lexicon_name]
 	
 	## dest
-	co_patscore = db[config.co_patscore_name]
-	index_check_list = [(co_docs, config.category), (co_pats, 'udocID'), (co_lexicon, 'pattern')]
-	util.check_indexes(check_list=index_check_list, verbose=config.verbose)
+	modifier = 'remove' if remove else 'normal'
+	co_patscore_name = '.'.join([config.co_patscore_prefix, modifier])
+	co_patscore = db[ co_patscore_name ]
 
+	if remove:
+		index_check_list = [(co_docs, config.category), (co_pats, 'udocID'), (co_lexicon, 'pattern')]
+	else:
+		index_check_list = [(co_lexicon, 'pattern')]
+	util.check_indexes(check_list=index_check_list, verbose=config.verbose)
 
 	## check whether destination collection is empty or not
 	dest_cos = [co_patscore]
@@ -172,17 +202,20 @@ if __name__ == '__main__':
 		else:
 			for co in dest_cos: co.drop()
 
+	if remove:
+		import lexicon_total_count
+		## load mongo doc and total count for remove_self_count()
+		logging.info('load_mongo_docs')
+		mongo_docs = util.load_mongo_docs(co_docs)
 
-	percentage = config.cutoffPercentage/float(100)
+		## load lexicon_total_count to do "remove_self_count"
+		logging.info('load lexicon pattern total count')
+		lexicon_total_count.target_name = 'pattern'
+		PatTC = lexicon_total_count.load()
 
-	## run
-	logging.info('load_mongo_docs')
-	mongo_docs = util.load_mongo_docs(co_docs)
+		logging.info('calculate pattern scores')
+		calculate_pattern_scores_remove_self(category=config.category)
 
-	## load lexicon_total_count to do "remove_self_count"
-	logging.info('load_lexicon_pattern_total_count')
-	lexicon_total_count.target_name = 'pattern'
-	PatTC = lexicon_total_count.load()
-
-	logging.info('create_document_features')
-	calculate_pattern_scores(category=config.category)
+	else:
+		logging.info('calculate pattern scores')
+		calculate_pattern_scores()
