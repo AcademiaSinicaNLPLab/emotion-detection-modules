@@ -32,7 +32,7 @@ def restore_abbreviation(abbv, deps):
 		for xy in ['x', 'y']:
 			w, pos = dep[xy], dep[xy+'Pos']
 			if w in abbv:
-				dif type(abbv[w]) == dict: # ambiguous
+				if type(abbv[w]) == dict: # ambiguous
 					if pos not in abbv[w]:
 						dep[xy] = abbv[w]['default']
 					else:
@@ -177,6 +177,7 @@ def word_counter(sents, lemmatize):
 	for sent in sents:
 		POSs = Tree( sent['parsetree'] ).pos()
 		for t, POS in POSs:
+			t = t.lower()
 			if lemmatize:
 				if POS.startswith('N'): pos = 'n'
 				elif POS.startswith('J'): pos = 'a'
@@ -195,6 +196,7 @@ def TF3_IDF2(WC):
 	D = 32000
 	N = pickle.load(open('cache/N.lemma.pkl'))
 	delta_d = config.delta_d
+	total_words = sum(WC.values())
 
 	TF3IDF2 = Counter()
 	max_nt = max(N.values())
