@@ -17,7 +17,6 @@ server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(), jsonrpc.TransportTcpIp(addr=("
 
 lmtzr = WordNetLemmatizer()
 
-
 abbv = {
 	"'m": "am", 
 	"'s": {'VBP': "is", 'VBD': 'was', 'default': "is"},
@@ -26,6 +25,9 @@ abbv = {
 	"'re": {'VBP': "are", 'VBD': 'were', 'default': 'are'},
 	"'d": {'MD': "would", 'VBD': 'had', 'default': 'would'}
 }
+
+targets_rules = {'VB': [('prep', 0), ('subj',0), ('obj',0)],  ## for LJ40K: I have dinner with you
+				 'JJ': [('subj',1), ('cop', 1)]}  ## for LJ40K: I am happy
 
 def restore_abbreviation(abbv, deps):
 	for dep in deps:
@@ -141,7 +143,7 @@ def extract_patterns(sents):
 				deps.append(dep)
 
 		deps = negation(deps, NEG='__')
-		anchors = extract_anchors(deps, [target for target in targets_rules])
+		anchors = extract_anchors( deps, targets_rules.keys() )
 
 
 		for pos in anchors: ## pos = 'VB' or 'JJ'
@@ -229,9 +231,6 @@ def instant_emotion_detection(doc):
 
 if __name__ == '__main__':
 
-
-	targets_rules = {'VB': [('prep', 0), ('subj',0), ('obj',0)],  ## for LJ40K: I have dinner with you
-					 'JJ': [('subj',1), ('cop', 1)]}  ## for LJ40K: I am happy
 
 	doc = "I don't like you. You are bad."
 	emotion = instant_emotion_detection(doc)
