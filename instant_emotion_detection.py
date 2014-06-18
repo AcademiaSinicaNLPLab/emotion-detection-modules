@@ -196,7 +196,9 @@ def word_counter(sents, lemmatize):
 	return wc
 
 
-def TF3_IDF2(WC):
+def TF3_IDF2(sents, lemmatize):
+
+	WC = word_counter(sents, lemmatize)
 
 	D = 32000
 	N = pickle.load(open('cache/N.lemma.pkl'))
@@ -215,6 +217,20 @@ def TF3_IDF2(WC):
 	return TF3IDF2
 
 
+
+def get_patfeat(pats):
+
+	feat = Counter()
+	
+	for pat in pats:
+		pattern = ' '.join( [ x[0].lower() for x in pat['pat'] ] )
+		mdoc = db['patscore.normal'].find_one({ 'pattern': pattern })
+		if mdoc:
+			for emo in mdoc['score']:
+				feat[emo] += mdoc['score'][emo]
+	return feat
+
+
 ## best fusion
 # TF3_IDF2 + pat-emo-s-50%
 ## input: <string> doc
@@ -226,9 +242,11 @@ def instant_emotion_detection(doc):
 	## get patterns
 	pats = extract_patterns(sents)
 
+	## get pattern features
+	pattern_feat = get_patfeat(pats)
+
 	## get tfidf features
-	WC = word_counter(sents, lemmatize=True)
-	tf3_idf2 = TF3_IDF2(WC)
+	tf3idf2_feat = TF3_IDF2(sents, lemmatize=True)
 
 
 
