@@ -122,6 +122,9 @@ def form(deps, anchor_node):
 ## output: pats
 def extract_patterns(sents):
 
+	global targets_rules
+	global abbv
+
 	pats = []
 
 	for sent in sents:
@@ -232,6 +235,6 @@ def instant_emotion_detection(doc):
 if __name__ == '__main__':
 
 
-	doc = "I don't like you. You are bad."
+	doc = "Today I went to donate blood, but my blood didn't flow out smoothly through the first needle. Today was a little chilly, so the nurse said that my vessels were contracting and my blood circulation was not good. After applying a hot compress for a while, they tried again. Actually, I am afraid of needles, even though it is just like getting bitten by a mosquito. I turned my head to distract my attention from the syringe, but the fear of being penetrated inevitably got me nervous. Despite not my first time, it still got me unnerved."
 	emotion = instant_emotion_detection(doc)
 
