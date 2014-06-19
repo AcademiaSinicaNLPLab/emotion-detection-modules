@@ -1,3 +1,4 @@
+import config
 import os, color, sys
 from collections import Counter, defaultdict
 import random
@@ -78,7 +79,8 @@ def run(sid):
 
 		src_paths[ftype] = src_path
 
-	if dest_files_exist(sid, root):
+	if dest_files_exist(sid, root) and not config.overwrite:
+		print 'all destination files existed'
 		exit(0)
 
 	## load source files
@@ -108,6 +110,10 @@ def run(sid):
 if __name__ == '__main__':
 
 	# sid = '53875c80d4388c4100cac5b2'
+	if '--overwrite' in sys.argv:
+		config.overwrite = True
+	else:
+		config.overwrite = False
 	sid = sys.argv[1].strip()
 	run(sid)
 

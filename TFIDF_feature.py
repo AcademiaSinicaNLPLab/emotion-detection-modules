@@ -9,6 +9,8 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
 keyword_list = []
 lmtzr = WordNetLemmatizer()
+keyword_mode = False
+
 
 def create_keyword_TFIDF_features(setting_id, training_TFIDF, testing_TFIDF):
 
@@ -30,14 +32,18 @@ def create_keyword_TFIDF_features(setting_id, training_TFIDF, testing_TFIDF):
 
 			if ldocID < 800: # training
 				if udocID in training_TFIDF:
-					# feature = dict(training_TFIDF[udocID]).items() ## no specified keyword list
-					feature = [(t, training_TFIDF[udocID][t]) for t in training_TFIDF[udocID] if t.lower() in keyword_list] ## use specified keyword list
+					if keyword_mode:
+						feature = [(t, training_TFIDF[udocID][t]) for t in training_TFIDF[udocID] if t.lower() in keyword_list] ## use specified keyword list
+					else:
+						feature = dict(training_TFIDF[udocID]).items() ## no specified keyword list
 				else:
 					feature = []
 			else:
 				if udocID in testing_TFIDF:
-					# feature = dict(testing_TFIDF[udocID]).items()
-					feature = [(t, testing_TFIDF[udocID][t]) for t in testing_TFIDF[udocID] if t.lower() in keyword_list] ## use specified keyword list
+					if keyword_mode:
+						feature = [(t, testing_TFIDF[udocID][t]) for t in testing_TFIDF[udocID] if t.lower() in keyword_list] ## use specified keyword list
+					else:
+						feature = dict(testing_TFIDF[udocID]).items()
 				else:
 					feature = []
 
@@ -68,14 +74,14 @@ if __name__ == '__main__':
 	import getopt
 
 	add_opts = [
-		('-k', ['-k: keyword set in WordNetAffect',
-				'                 0: basic',
-				'                 1: extend']),
+		('-k', ['-k or --keyword_type: keyword set in WordNetAffect',
+				'                      0: basic',
+				'                      1: extend']),
 		('--lemma', ['--lemma: use word lemma when looking for keywords'])
 	]
 
 	if len(sys.argv) < 3:
-		print 'usage: python keyword_TFIDF_feature <ty_type> <idf_type> [options]'
+		print 'usage: python keyword_TFIDF_feature <tf_type> <idf_type> [options]'
 		config.help(config.keywordFeat_name, addon=add_opts, exit=2)
 		exit(-1)
 
@@ -92,6 +98,7 @@ if __name__ == '__main__':
 	for opt, arg in opts:
 		if opt in ('-h', '--help'): config.help(config.keywordFeat_name, addon=add_opts)
 		elif opt in ('-k','--keyword_type'): 
+			keyword_mode = True
 			if int(arg.strip()) == 0: config.keyword_type = 'basic'
 			elif int(arg.strip()) == 1: config.keyword_type = 'extend'
 		elif opt in ('--lemma'): config.lemma = True
@@ -99,16 +106,18 @@ if __name__ == '__main__':
 		elif opt in ('--debug'): config.debug = True
 
 	## target mongo collections
-	co_setting = db['features.settings'] if not config.debug else db['debug.features.settings']
-	co_feature = db['features.keyword_TFIDF'] if not config.debug else db['debug.features.keyword_TFIDF']
+	co_setting = db[config.co_feature_setting_name] if not config.debug else db['debug.'+config.co_feature_setting_name]
+	co_feature = db['features.TFIDF'] if not config.debug else db['debug.features.TFIDF']
 
 	## insert metadata
 	setting = { 
-		"feature_name": "keyword_TFIDF", 
-		"keyword_type": config.keyword_type,
+		"feature_name": "TFIDF", 
+		# "keyword_type": config.keyword_type,
 		"lemma": config.lemma,
 		"TFIDF_type": TFIDF_type
 	}
+	if keyword_mode:
+		setting['keyword_type'] = config.keyword_type
 
 	## print confirm message
 	config.print_confirm(setting.items(), bar=40, halt=True)
@@ -118,19 +127,12 @@ if __name__ == '__main__':
 
 
 	## create keyword_list
-	keyword_list = set([ mdoc['word'] for mdoc in list( co_keywords.find( {'type': config.keyword_type} ) ) ])
-
-	# TF3xIDF2.train.lemma.pkl
-	# TF3xIDF2.test.lemma.pkl
+	if keyword_mode:
+		keyword_list = set([ mdoc['word'] for mdoc in list( co_keywords.find( {'type': config.keyword_type} ) ) ])
 
 	print 'loading TFxIDF pickles'
-	# ext = '.lemma.pkl' if config.lemma else '.pkl'
-	
-
 	training_TFIDF = pickle.load(open('cache/'+TFIDF_type+'.lemma.stop.10.train.pkl'))
 	testing_TFIDF  = pickle.load(open('cache/'+TFIDF_type+'.lemma.stop.10.test.pkl'))
-
-	# u2l  = pickle.load(open('cache/u2l.pkl'))
 
 	print 'organizing TFIDF dict'
 	training_TFIDF = tfidf.inverse_key(training_TFIDF)
@@ -138,5 +140,5 @@ if __name__ == '__main__':
 
 	print 'creating features'
 	create_keyword_TFIDF_features(setting_id, training_TFIDF, testing_TFIDF) # 538ba2bfd4388c4012348f0f
-	# print 'Time total:',time.time() - s,'sec'
+
 

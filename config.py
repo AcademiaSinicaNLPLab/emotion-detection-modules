@@ -3,13 +3,21 @@ import sys
 sys.path.append('pymodules')
 import color
 
-category = 'polarity' ## target to be categorized. e.g., emotion, polarity
+####  ----------------------------------- must-do ----------------------------------- ####
 
+mongo_addr = 'doraemon.iis.sinica.edu.tw'
+# mongo_addr = 'wolverine.iis.sinica.edu.tw'
+db_name = 'LJ40K'
+# db_name = 'NTCIR'
+
+# category = 'polarity' ## target to be categorized. e.g., emotion, polarity
+category = 'emotion' ## target to be categorized. e.g., emotion, polarity
 corpus_root = '/corpus/NTCIR'
+####  ----------------------------------- must-do ----------------------------------- ####
 
 #### define program names
 ds_name = 'document_scoring'
-ps_name = 'pattern_scoring'
+# ps_name = 'pattern_scoring'
 ev_name = 'evaluation'
 genSVM_name = 'toSVM'
 runSVM_name = 'run_svm'
@@ -26,13 +34,7 @@ libsvm_program = {
 svm_file_root = 'tmp'
 
 # -------------------------------------------- mongodb -------------------------------------------- #
-
-## mongo setting
-mongo_addr = 'doraemon.iis.sinica.edu.tw'
-#mongo_addr = 'wolverine.iis.sinica.edu.tw'
-#db_name = 'NTCIR'
-db_name = 'LJ40K'
-
+## mongo collection setting
 keywordFeat_name = 'keyword_feature'
 keywordEmotionFeat_name = 'keyword_emotion_feature'
 keywordPositionFeat_name = 'keyword_position_feature'
@@ -57,6 +59,10 @@ co_results_name = 'NewRes'
 co_patsearch_name = 'pats_trim'
 co_feature_setting_name = 'features.settings'
 
+## total count
+co_lexicon_pattern_tc_name = 'lexicon.pattern_total_count'
+co_lexicon_keyword_tc_name = 'lexicon.keyword_total_count'
+
 co_svm_out_name  = 'svm.out'	# (svm) .out.txt
 co_svm_gold_name = 'svm.gold'	# (svm) .gold
 co_svm_eval_name = 'svm.eval'	# (svm) evalutation results
@@ -66,8 +72,8 @@ co_patscore_prefix = 'patscore'
 co_docscore_prefix = 'docscore'
 
 ## to be setup
-co_patscore_name = ''
-co_docscore_name = ''
+# co_patscore_name = co_patscore_prefix
+# co_docscore_name = ''
 # ------------------------------------------ (end) mongodb ------------------------------------------ #
 
 ## names of functions
@@ -114,7 +120,7 @@ delta_d = 356.10659375
 ### e.g., in runSVM_name, addon is a list of length 3, which looks like [ ('--setting', [...]), ('--list', [...]), ('--param', [...]) ]
 ###       and the program will incorporate missing opts and yield: ['-v', '-o', '--setting', '--list', '--param']
 opt_fields = {
-	ps_name: 	['-p','-s','-v', '-o'],
+	# ps_name: 	['-p','-s','-v', '-o'],
 	ds_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	ev_name: 	['-p','-d','-s','-g','-l','-v', '-o'],
 	
@@ -277,12 +283,12 @@ def help(program, args=[], addon=[], exit=1):
 		'                 0: number of words',
 		'                 1: number of sentences (not implemented yet)']
 	
-	params['-f'] = [
-		'-f, --featureValueType: feature value computation',
-		'                 0: pattern scores (patscore_p2_s0)', 
-		'                 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores',
-		'                 2: accumulated threshold by 0.68 (1 standard diviation) using pattern occurrence',
-		'                 3: same as type 2 but ignore those with total occurrence < 4 (1, 2, 3)']
+	# params['-f'] = [
+	# 	'-f, --featureValueType: feature value computation',
+	# 	'                 0: pattern scores (patscore_p2_s0)', 
+	# 	'                 1: accumulated threshold by 0.68 (1 standard diviation) using pattern scores',
+	# 	'                 2: accumulated threshold by 0.68 (1 standard diviation) using pattern occurrence',
+	# 	'                 3: same as type 2 but ignore those with total occurrence < 4 (1, 2, 3)']
 
 	#########################################################################################################
 	

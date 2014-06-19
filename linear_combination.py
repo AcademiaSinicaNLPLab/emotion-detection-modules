@@ -1,5 +1,6 @@
 # combine binary classifier probibility
 
+import config
 import os,sys,pickle,subprocess
 
 import evaluate_fusion
@@ -25,6 +26,9 @@ def load(sid, param, prob):
 
 	out_files = [x for x in related_files if x.endswith('.out')]
 	gold_files = [x for x in related_files if x.endswith('.gold')]
+
+	# print 'found',len(out_files), 'out_files'
+	# print 'found',len(gold_files), 'gold_files'
 
 	if len(out_files) == 0:
 		print 'no output files for sid =',sid, 'param =',param
@@ -77,23 +81,23 @@ def run(candidates, weights=[]):
 
 	systems = [(x[0],x[1], normalized_weights[i]) for i,x in enumerate(candidates)]
 
-	# for sid, param, weight in systems:
-	# 	print sid, param, 'x',weight 
+	prefix = '+'.join([ str(s[0]) + '#' + str(s[1]) for s in systems])
 
-
-	fn = 'fusion'+'x'.join([str(x[2]) for x in systems])+'.csv'
+	fn = prefix+ '_' + 'x'.join([str(x[2]) for x in systems])+'.csv'
+	
+	print 'systems:',systems, '-->', fn
 
 	if not os.path.exists('cache/fusion/'+fn):
-
-		# print 'fusion','x'.join([str(x[2]) for x in systems])
 
 		weighted_results = []
 		for sid, param, weight in systems:
 			res = load(sid, param, prob=True)
+			
+			print sid, param, len(res)
+
 			weighted_res = apply_weight(res, weight)
 			weighted_results.append(weighted_res)
 
-		
 
 		fw = open('cache/fusion/'+fn, 'wb')
 		for line in zip(*weighted_results):
@@ -148,49 +152,70 @@ def generate(length=4, ranges=10, step=1, core=8):
 	# pws[-1].append(weight_list[-1*wl%core:])
 		# print len(weight_list[c*parts[c]:(c+1)*parts[c]])
 
-def find_max():
+def find_intersection(eval_mdoc):
+	inter = [u'crazy', u'exhausted', u'sleepy', u'confused', u'sad', u'cheerful', u'blah', u'bouncy', u'blank', u'cold', u'busy', u'drained', u'hopeful', u'creative', u'content', u'contemplative', u'calm', u'sick', u'bored', u'frustrated', u'excited', u'happy', u'good', u'okay', u'ecstatic', u'loved', u'awake', u'aggravated', u'depressed', u'hungry', u'amused', u'anxious', u'accomplished', u'annoyed']
+	inter_accuracy = {e:eval_mdoc['accuracy'][e] for e in eval_mdoc['accuracy'] if e in inter}
+	intersection_accuracy = sum(inter_accuracy.values())/float(len(inter_accuracy.values()))
+	return intersection_accuracy
+
+def find_max(inter=False):
 	A = []
 	for fn in os.listdir('cache/fusion/'):
-		if fn.startswith('fusion') and fn.endswith('.pkl'):
-			print 'processing',fn
+		if fn.endswith('.pkl'):
+			# print 'processing',fn
 			eval_mdoc = pickle.load(open('cache/fusion/'+fn, 'rb'))
 			# evaluate_fusion.find_intersection()
 			# print fn
 			# print eval_mdoc['avg_accuracy']
-			A.append((eval_mdoc['avg_accuracy'], fn))
-	print sorted(A, key=lambda x:x[0], reverse=True)[:5]
+			if not inter:
+				A.append( (eval_mdoc['avg_accuracy'], fn) )
+			else:
+				A.append( (find_intersection(eval_mdoc), fn) )
+	print '\n'.join( [f+'\t'+str(accu) for (accu,f) in sorted(A, key=lambda x:x[0], reverse=True)] )
 
 if __name__ == '__main__':
 	
 	prob = True
-
+	
 	candidates = [
+		# ["53a1921a3681df411cdf9f38", 'c2g0.001t2'], # TF3xIDF2
 		["538bcfaad4388c59136665df", 'c2g0.001t2'], 	# TF3xIDF2					4
-		["538a1df3d4388c32be4c2c9b", 'c2g0.001t2'],		# kw-emo-s-50%				1
+		# ["538a1df3d4388c32be4c2c9b", 'c2g0.001t2'],	# kw-emo-s-50%				1
 		["537451d1d4388c7843516ba4", 'c9g0.0005t2'],	# kw-bag					3
-		["53876efbd4388c3e013e9272", 'c9g0.0005t2'],	# pat-emo-b-50%				1
-		["537c6c90d4388c0e27069e7b", 'c9g0.005t2'],		# pat-bag					1
-														
-		# ['538aec90d4388c49cb5c2705', 'c9g0.0001t2']		# pat-emo-s-pos-50%		0
+		# ["53876efbd4388c3e013e9272", 'c9g0.0005t2'],	# pat-emo-b-50%				1
+		# ["537c6c90d4388c0e27069e7b", 'c9g0.005t2'],	# pat-bag					1
+		['53875eead4388c4eac581415', 'c2g0.001t2'], 	# pat-emo-s-50%
+		# ['538aec90d4388c49cb5c2705', 'c9g0.0001t2']		# pat-emo-s-pos-50%			0
+
 																					# 63.56%
 	]
+	
+	if '--overwrite' in sys.argv:
+		config.overwrite = True
+	else:
+		config.overwrite = False
+	
 	# 0.4x0.1x0.3x0.1x0.1x0.0
 	#0.3x0.1x0.2x0.2x0.2x0.0
 	normalized_weights = [1.0/len(candidates)]*len(candidates)
 
-	if len(sys.argv) == 2:
+	args = [x for x in sys.argv if not x.startswith('--')]
+
+	if len(args) == 2:
 		if sys.argv[1] == 'generate':
-			generate(length=len(candidates), ranges=10, step=1, core=8)
+			generate(length=len(candidates), ranges=10, step=1, core=2)
 		elif sys.argv[1] == 'max':
-			find_max()
+			print 'find Max'
+			if '--inter' in sys.argv:
+				find_max(inter=True)
+			else:
+				find_max(inter=False)
 	else:
 
 		if len(sys.argv[1:]) == len(candidates):
 			ws = [float(x.strip()) for x in sys.argv[1:]]
 			normalized_weights = [x/float(sum(ws)) for x in ws]
-		print 
-		print normalized_weights
-		
+
 		run(candidates, weights=normalized_weights)
 
 

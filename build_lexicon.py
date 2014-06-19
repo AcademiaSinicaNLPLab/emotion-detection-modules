@@ -8,7 +8,8 @@ import json
 import pymongo
 import os
 import color
-from collections import Counter
+import util
+from collections import Counter, defaultdict
 
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
@@ -20,9 +21,9 @@ categories = []
 
 # calculate occurrences of patterns
 def count_patterns(categories, condition={}):
-	patCount = {}
+	patCount = defaultdict(Counter)
 	for c in categories:
-		patCount[c] = Counter()
+		# patCount[c] = Counter()
 		query = { config.category: c }
 		query.update(condition)
 		# get udocIDs
@@ -31,15 +32,22 @@ def count_patterns(categories, condition={}):
 			## get patterns
 			for mpat in co_pats.find( {'udocID': udocID} ):
 				pat = mpat['pattern'].lower()
-				patCount[c][pat] += 1
-	return patCount
+				patCount[pat][c] += 1
+	return patCount	
 
 # build lexicon storing pattern occurrence
 def build_lexicon(patCount, categories):
-	for c in categories:
-		for p in patCount[c].keys():
-			logging.debug('insert pattern %s into %s' % (color.render(p,'g'), color.render(co_lexicon.full_name,'lightyellow') ))
-			co_lexicon.insert( { 'pattern': p, config.category: c, 'count': patCount[c][p] } )
+	# for c in categories:
+	for p in patCount:
+		logging.debug('insert pattern %s into %s' % (color.render(p,'g'), color.render(co_lexicon.full_name,'lightyellow') ))
+
+		mdoc = {
+			'pattern': p,
+			'count': dict(patCount[p]),
+			'total_count': sum(patCount[p].values())
+		}
+
+		co_lexicon.insert( mdoc )
 
 if __name__ == '__main__':
 
@@ -83,6 +91,9 @@ if __name__ == '__main__':
 		else: 
 			for co in dest_cos: co.drop()
 
+	index_check_list = [(co_docs, config.category), (co_pats, 'udocID')]
+	util.check_indexes(check_list=index_check_list, verbose=config.verbose)
+	
 	logging.info('fetch categories from %s' % (color.render(co_cate.full_name, 'ly')))
 	categories = sorted([x[config.category] for x in co_cate.find({'label':config.category})])
 
