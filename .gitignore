@@ -2,7 +2,7 @@ stat
 *.sh
 cache
 venv
-tmp
+tmp*
 res
 *.pyo
 *.pyc
