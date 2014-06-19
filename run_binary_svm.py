@@ -1,3 +1,4 @@
+import config
 import os, subprocess, re, pickle, color, sys
 from pprint import pprint
 
@@ -33,37 +34,10 @@ def svm_binary(sid, param, prob, files):
 		if prob: test_cmd += ['-b', '1']
 		test_cmd += [test_fn, model_fn, output_fn]
 
-		# print train_cmd
-		# print test_cmd
-
 		subprocess.call(train_cmd, shell=False)
 		subprocess.Popen(test_cmd, stdout=subprocess.PIPE, shell=False) ## use stdout=subprocess.PIPE to prevent accuracy output
-
-		print 'processing', eid, '(',i+1, '/', len(eids), ')'
-		# print '-'*60
-		# print
-	# else:
-	# 	# with open('tmp/'+sid+'/default.res', 'w') as fw:
-	# 	for eid in eids:
-
-	# 		train_fn  = 'tmp/'+sid+'/'+eid+'.b.train'
-	# 		test_fn   = 'tmp/'+sid+'/'+eid+'.b.test'
-	# 		model_fn  = 'tmp/'+sid+'/'+eid+'.b.'+param+'.m'
-	# 		output_fn = 'tmp/'+sid+'/'+eid+'.b.'+param+'.out'
-
-
-
-
 		
-		# accuracy_str = proc.stdout.read().strip()
-		# accuracy = float(re.findall(r'([0-9]+\.[0-9]+)%', accuracy_str)[0])
-		# res[eid] = accuracy
-		# fw.write(accuracy_str + '\n')
-
-		# print eid, accuracy
-
-	# print 'avg:', sum(res.values())/float(len(res.values())), '%'
-	# pickle.dump(res, open('tmp/'+sid+'/'+param+'.pkl', 'w'))
+		print 'processing', eid, '(',i+1, '/', len(eids), ')'
 
 def check_files(sid, param, prob):
 
@@ -87,43 +61,26 @@ def check_files(sid, param, prob):
 
 		files[eid] = fns
 
-	if complete == len(eids):
+	if complete == len(eids) and not config.overwrite:
 		return False
 	else:
 		return 	files
-# def intersection(sid, param):
-
-# 	import pymongo
-# 	db = pymongo.Connection('doraemon.iis.sinica.edu.tw')['LJ40K']
-
-# 	M2005 = [x['emotion'] for x in db['emotions'].find({'label':'Mishne05'})]
-# 	LJ40K = [x['emotion'] for x in db['emotions'].find({'label':'LJ40K'})]
-# 	eids = {x:i for i,x in enumerate(sorted(LJ40K))}
-# 	# eid_to_emotion = {i:x for i,x in enumerate(sorted(LJ40K))}
-# 	inter_emotions = [e for e in set(M2005+LJ40K) if e in M2005 and e in LJ40K]
-
-# 	inter_eid_to_emotion = {}
-# 	for e in inter_emotions:
-# 		eid = eids[e]
-# 		inter_eid_to_emotion[str(eid)] = e
-
-
-# 	res = pickle.load(open('tmp/'+sid+'/'+param+'.pkl'))
-# 	inter_res = [(inter_eid_to_emotion[eid], acc) for eid, acc in res.items() if eid in inter_eid_to_emotion]
-	
-# 	# map(lambda x: (inter_eid_to_emotion[x[0]],x[1]) )
-# 	inter_res.sort(key=lambda x:x[0])
-
-# 	inter_res = dict(inter_res)
-# 	pprint(inter_res)
-# 	print '='*50
-# 	print 'avg (2005+LJ40K):', color.render(str( round( sum(inter_res.values())/float(len(inter_res.values())), 4)), 'y'), '%'
 
 
 if __name__ == '__main__':
 
 	# sid = '53875c80d4388c4100cac5b2'
 	# param = 'default'
+
+	if '--help' in sys.argv or '-h' in sys.argv:
+		print ' '.join(['Usage: python',__file__,'<sid>','<param>','[-p or --prob]'])
+		exit(0)
+
+	if '--overwrite' in sys.argv:
+		config.overwrite = True
+	else:
+		config.overwrite = False
+		
 
 	sid = sys.argv[1].strip()
 	param = sys.argv[2].strip()
@@ -133,9 +90,7 @@ if __name__ == '__main__':
 
 	todo_files = check_files(sid, param, prob)
 
-
 	if not todo_files: ## all done
 		print '>> all done!'
-		pass
 	else:
 		svm_binary(sid, param, prob, todo_files)
