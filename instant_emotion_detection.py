@@ -11,10 +11,13 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from ListCombination import ListCombination
 import jsonrpc
 
+print 'connect mongo'
 db = pymongo.Connection(config.mongo_addr)[config.db_name]
 
+print 'init server'
 server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(), jsonrpc.TransportTcpIp(addr=("doraemon.iis.sinica.edu.tw", 12345)))
 
+print 'init WordNetLemmatizer'
 lmtzr = WordNetLemmatizer()
 
 abbv = {
@@ -28,6 +31,12 @@ abbv = {
 
 targets_rules = {'VB': [('prep', 0), ('subj',0), ('obj',0)],  ## for LJ40K: I have dinner with you
 				 'JJ': [('subj',1), ('cop', 1)]}  ## for LJ40K: I am happy
+
+
+## load pickles
+N = pickle.load(open('cache/N.lemma.pkl'))
+featID_emotions = pickle.load(open('cache/featID.emotions.pkl'))
+featID_N_lemma = pickle.load(open('cache/featID.N.lemma.pkl'))
 
 def restore_abbreviation(abbv, deps):
 	for dep in deps:
@@ -90,7 +99,6 @@ def apply_rule(deps, rule):
 	return (dict(D), R)
 
 
-
 def form(deps, anchor_node):
 	words = set()
 	for dep in deps:
@@ -106,7 +114,6 @@ def form(deps, anchor_node):
 
 			words.add((prep, 'IN', idx))
 	return sorted(list(words), key=lambda x:x[-1])
-
 
 
 ## sents format
@@ -175,6 +182,25 @@ def extract_patterns(sents):
 	return pats
 
 
+def get_patemo_feat(pats):
+
+	feat = {}
+	patscores = Counter()
+	
+	for pat in pats:
+		pattern = ' '.join( [ x[0].lower() for x in pat['pat'] ] )
+		mdoc = db['patscore.normal'].find_one({ 'pattern': pattern })
+		if mdoc:
+			for emo in mdoc['score']:
+				patscores[emo] += mdoc['score'][emo]
+
+	for emo in patscores:
+		featID = featID_emotions[emo]
+		feat[featID] = patscores[emo]
+
+	return feat
+
+
 def word_counter(sents, lemmatize):
 
 	wc = Counter()
@@ -196,38 +222,25 @@ def word_counter(sents, lemmatize):
 	return wc
 
 
-def TF3_IDF2(sents, lemmatize):
+def get_TF3IDF2_feat(sents, lemmatize):
+
+	feat = {}
 
 	WC = word_counter(sents, lemmatize)
 
 	D = 32000
-	N = pickle.load(open('cache/N.lemma.pkl'))
 	delta_d = config.delta_d
 	total_words = sum(WC.values())
 
-	TF3IDF2 = Counter()
 	max_nt = max(N.values())
 
 	for t in WC:
 		idf2 = max_nt - N[t]
 		wc = WC[t]
 		tf3 = wc / float( wc + total_words/delta_d )
-		TF3IDF2[t] = tf3 * idf2
+		featID = featID_N_lemma[t]
+		feat[featID] = tf3 * idf2
 
-	return TF3IDF2
-
-
-
-def get_patfeat(pats):
-
-	feat = Counter()
-	
-	for pat in pats:
-		pattern = ' '.join( [ x[0].lower() for x in pat['pat'] ] )
-		mdoc = db['patscore.normal'].find_one({ 'pattern': pattern })
-		if mdoc:
-			for emo in mdoc['score']:
-				feat[emo] += mdoc['score'][emo]
 	return feat
 
 
@@ -235,7 +248,8 @@ def get_patfeat(pats):
 # TF3_IDF2 + pat-emo-s-50%
 ## input: <string> doc
 ## output: emotion
-def instant_emotion_detection(doc):
+def instant_emotion_detection(doc, server):
+
 
 	sents = json.loads( server.parse( doc ) )['sentences']
 
@@ -243,16 +257,16 @@ def instant_emotion_detection(doc):
 	pats = extract_patterns(sents)
 
 	## get pattern features
-	pattern_feat = get_patfeat(pats)
+	pattern_feat = get_patemo_feat(pats)
+	print pattern_feat
 
 	## get tfidf features
-	tf3idf2_feat = TF3_IDF2(sents, lemmatize=True)
-
+	tf3idf2_feat = get_TF3IDF2_feat(sents, lemmatize=True)
+	print tf3idf2_feat
 
 
 if __name__ == '__main__':
 
-
-	doc = "Today I went to donate blood, but my blood didn't flow out smoothly through the first needle. Today was a little chilly, so the nurse said that my vessels were contracting and my blood circulation was not good. After applying a hot compress for a while, they tried again. Actually, I am afraid of needles, even though it is just like getting bitten by a mosquito. I turned my head to distract my attention from the syringe, but the fear of being penetrated inevitably got me nervous. Despite not my first time, it still got me unnerved."
-	emotion = instant_emotion_detection(doc)
-
+	
+	doc = u"Today I went to donate blood, but my blood didn't flow out smoothly through the first needle. Today was a little chilly, so the nurse said that my vessels were contracting and my blood circulation was not good. After applying a hot compress for a while, they tried again. Actually, I am afraid of needles, even though it is just like getting bitten by a mosquito. I turned my head to distract my attention from the syringe, but the fear of being penetrated inevitably got me nervous. Despite not my first time, it still got me unnerved."
+	instant_emotion_detection(doc, server)
