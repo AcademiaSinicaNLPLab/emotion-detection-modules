@@ -14,7 +14,8 @@ db = pymongo.Connection(config.mongo_addr)[config.db_name]
 udocID_eid = {}
 co_feature_setting = None
 setting_id_str = ''
-eids = { emotion : i for i, emotion in enumerate(sorted([d['emotion'] for d in db['emotions'].find({'label': 'LJ40K'})])) }
+eids = pickle.load(open('featID.emotions.pkl'))
+# eids = { emotion : i for i, emotion in enumerate(sorted([d['emotion'] for d in db['emotions'].find({'label': 'LJ40K'})])) }
 ## ------------------------------------------------------- ##
 
 def parse_src_setting_ids():
@@ -112,7 +113,7 @@ def generate_feature_vectors(src_setting_ids):
 		for mdoc in db[collection_name].find({'setting':src_setting_id}):
 			udocID = mdoc['udocID']
 			emotion = mdoc['emotion']
-			
+
 			## use emotion index as eid
 			eid = eids[emotion]
 
