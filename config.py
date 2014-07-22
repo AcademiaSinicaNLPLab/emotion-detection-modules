@@ -7,11 +7,12 @@ import color
 
 mongo_addr = 'doraemon.iis.sinica.edu.tw'
 # mongo_addr = 'wolverine.iis.sinica.edu.tw'
-db_name = 'LJ40K'
+db_name = 'kimo'
 # db_name = 'NTCIR'
 
 # category = 'polarity' ## target to be categorized. e.g., emotion, polarity
 category = 'emotion' ## target to be categorized. e.g., emotion, polarity
+
 corpus_root = '/corpus/NTCIR'
 ####  ----------------------------------- must-do ----------------------------------- ####
 
